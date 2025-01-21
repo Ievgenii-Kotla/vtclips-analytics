@@ -844,7 +844,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
               'Total: ', len(self.youtube_channel_values), '\n',
               'New  : ', len(self.new_yt_channel_ids))
         print('Newest search id: ', self.search_yt_id, '\n\n')
-        print('Quota left for this key: ', self.quota_left)
+        print('Quota left for current key: ', self.quota_left)
 
         self.session_videos_total += len(self.youtube_video_values)
         self.session_videos_new += len(self.new_yt_video_ids)
