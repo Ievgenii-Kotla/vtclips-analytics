@@ -172,7 +172,7 @@ cython_debug/
 
 # project files
 vc_modules/api_quota_state.json
-tests/api_quota_state.json
+tests/test_api_quota_state.json
 todo
 
 
