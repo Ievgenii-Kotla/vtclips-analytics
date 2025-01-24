@@ -103,7 +103,7 @@ class PrepareAPI:
 
     def get_quota_left(self, api_key):
         key = next(key for key, value in self.api_keys.items() if value == api_key)
-        quota_left = self.api_keys[key]
+        quota_left = self.api_quotas[key]
         return quota_left
 
     def _reset_quotas(self):
