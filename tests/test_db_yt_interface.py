@@ -4,8 +4,8 @@ from unittest.mock import patch, ANY
 import json
 import os
 
-from vc_modules import connect_to_db, db_yt_interface
-from vc_modules.db_yt_interface import PrepareAPI
+from vtc import connect_to_db, db_yt_interface
+from vtc.db_yt_interface import PrepareAPI
 from tests.fixtures import setup_test_db
 
 
@@ -23,7 +23,7 @@ class ConsistentANY:
 
 class TestSearchYTByKeywordSetMap(unittest.TestCase):
     @classmethod
-    @patch('vc_modules.db_yt_interface.datetime', wraps=datetime)
+    @patch('vtc.db_yt_interface.datetime', wraps=datetime)
     def setUpClass(cls, mock_datetime) -> None:
         mock_datetime.datetime.now.return_value = datetime.datetime(
             2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc)
@@ -227,7 +227,7 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         return actual
 
     @classmethod
-    @patch('vc_modules.db_yt_interface.datetime', wraps=datetime)
+    @patch('vtc.db_yt_interface.datetime', wraps=datetime)
     def setUpClass(cls, mock_datetime):
         mock_datetime.datetime.now.return_value = datetime.datetime(
             2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc)

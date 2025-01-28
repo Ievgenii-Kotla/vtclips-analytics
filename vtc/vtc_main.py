@@ -2,7 +2,7 @@ from __future__ import annotations
 import argparse
 import datetime
 
-from vc_modules import db_yt_interface, connect_to_db
+from vtc import db_yt_interface, connect_to_db
 
 
 def search_yt_by_keyword(args: dict):

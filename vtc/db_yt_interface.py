@@ -8,7 +8,7 @@ import json
 from googleapiclient.discovery import build
 from psycopg2.extras import execute_values
 
-from vc_modules import connect_to_db
+from vtc import connect_to_db
 
 # TODO: big things to add:
 #  logging

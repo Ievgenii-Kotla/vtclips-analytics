@@ -1,12 +1,12 @@
 import unittest
 from unittest.mock import patch
 
-from vc_modules import vc_main
+from vtc import vtc_main
 
 
 class testParseArguments(unittest.TestCase):
     @patch('sys.argv', [
-        'vc_main.py',
+        'vtc_main.py',
         'keyword',
         '-q',
         '8000',
@@ -28,7 +28,7 @@ class testParseArguments(unittest.TestCase):
         '0'
     ])
     def test_parse_arguments_single_dash(self):
-        args = vc_main.parse_arguments()
+        args = vtc_main.parse_arguments()
         self.assertEqual('keyword', args['command'])
         self.assertEqual(8000, args['quota'])
         self.assertEqual(('name1', 'name2'), args['talents_names'])
@@ -40,11 +40,11 @@ class testParseArguments(unittest.TestCase):
         self.assertEqual(0, args['repetitions'])
 
     @patch('sys.argv', [
-        'vc_main.py',
+        'vtc_main.py',
         'keyword'
     ])
     def test_parse_arguments_no_arguments(self):
-        args = vc_main.parse_arguments()
+        args = vtc_main.parse_arguments()
         self.assertNotIn('quota', args)
         self.assertNotIn('talents_names', args)
         self.assertNotIn('start_search_date', args)
