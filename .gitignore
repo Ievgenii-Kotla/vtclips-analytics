@@ -171,7 +171,7 @@ cython_debug/
 .pypirc
 
 # project files
-vc_modules/api_quota_state.json
+vtc/api_quota_state.json
 tests/test_api_quota_state.json
 todo
 
