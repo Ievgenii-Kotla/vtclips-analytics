@@ -174,6 +174,7 @@ cython_debug/
 vtc/api_quota_state.json
 tests/test_api_quota_state.json
 todo
+logs
 
 
 # other
