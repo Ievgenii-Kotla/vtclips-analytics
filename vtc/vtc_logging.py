@@ -4,7 +4,9 @@ from logging.handlers import TimedRotatingFileHandler
 from time import gmtime
 
 
-def setup_logger(log_filename="logs/vtc.log"):
+def get_logger(log_filename="logs/vtc.log"):
+    makedirs("logs", exist_ok=True)
+
     logger = logging.getLogger("vtc_logger")
     logger.setLevel(logging.INFO)
 
@@ -22,7 +24,3 @@ def setup_logger(log_filename="logs/vtc.log"):
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
     return logger
-
-
-makedirs("logs", exist_ok=True)
-logger = setup_logger()
