@@ -1,14 +1,12 @@
-import logging
 import unittest
-import io
 import os
-import sys
 import glob
 
 from vtc import vtc_logging
 from unittest.mock import patch
 
-class testSetupLogger(unittest.TestCase):
+
+class TestSetupLogger(unittest.TestCase):
     def setUp(self):
         # Clean up log files inside the 'logs' folder
         files = glob.glob("logs/*.log")
