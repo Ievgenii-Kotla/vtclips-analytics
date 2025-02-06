@@ -1,4 +1,5 @@
 from os import makedirs
+import sys
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from time import gmtime
@@ -20,7 +21,7 @@ def get_logger(log_filename="logs/vtc.log", log_to_file=True):
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
-    stream_handler = logging.StreamHandler()
+    stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setLevel(logging.INFO)
     logger.addHandler(stream_handler)
 
