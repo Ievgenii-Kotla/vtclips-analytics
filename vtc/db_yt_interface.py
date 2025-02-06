@@ -54,7 +54,7 @@ class PrepareAPI:
             with open(self.filepath, "r", encoding="utf-8") as file:
                 data = json.load(file)
         except FileNotFoundError as err:
-            print("File not found. ", err)
+            print("File with info about quotas is not found. ", err)
             self.last_update_at = self.current_time_utc()
             # Using self._reset_quotas and inline loading instead of self.reset_and_reload_quotas
             #   to avoid infinite loop if the file couldn't be created for some reason
