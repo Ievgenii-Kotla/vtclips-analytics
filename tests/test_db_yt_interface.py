@@ -31,7 +31,7 @@ class TestSearchYTByKeywordSetMap(unittest.TestCase):
 
         connection = connect_to_db.connect_to_test_db()
         instance = db_yt_interface.SearchYTByKeyword(connection=connection,
-                                                     api_service=PrepareAPI(filepath='test_api_quota_state.json'))
+                                                     api_service=PrepareAPI(filepath='../data/test_api_quota_state.json'))
         instance.set_search_map()
         connect_to_db.connection_close(connection)
 
@@ -317,7 +317,7 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         connection = connect_to_db.connect_to_test_db()
         search_instance = db_yt_interface.SearchYTByKeyword(
             connection=connection,
-            api_service=PrepareAPI(filepath='test_api_quota_state.json')
+            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json')
         )
         search_instance.response = json.loads(json_response)
 
@@ -536,7 +536,7 @@ SELECT * FROM search_yt_youtube_video;
 class TestPrepareAPI(unittest.TestCase):
     def setUp(self) -> None:
         """ Create proper .json file with necessary info inside """
-        filepath = "test_api_quota_state.json"
+        filepath = "../data/test_api_quota_state.json"
         file_content = {
             "API_quotas":
                 {

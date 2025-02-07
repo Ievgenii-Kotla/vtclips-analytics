@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from vtc import vtc_main
+import vtc_main
 
 
 class testParseArguments(unittest.TestCase):

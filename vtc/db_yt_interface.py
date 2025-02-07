@@ -8,12 +8,15 @@ import json
 from googleapiclient.discovery import build
 from psycopg2.extras import execute_values
 
-from vtc import connect_to_db
+from vtc import connect_to_db, vtc_logging
 
 # TODO: big things to add:
 #  logging
 #      move or duplicate every 'print()' to logging
 #  write exceptions
+
+# create the logger
+logger = vtc_logging.get_logger()
 
 
 class PrepareAPI:
@@ -21,7 +24,7 @@ class PrepareAPI:
     def current_time_utc():
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
-    def __init__(self, quota_points=10000, filepath="api_quota_state.json"):
+    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json"):
         def get_reset_target_time() -> datetime.datetime:
             time_now = self.current_time_utc()
             target_time = time_now.replace(hour=7, minute=0, second=0)
@@ -54,12 +57,12 @@ class PrepareAPI:
             with open(self.filepath, "r", encoding="utf-8") as file:
                 data = json.load(file)
         except FileNotFoundError as err:
-            print("File with info about quotas is not found. ", err)
+            logger.info("File with info about quotas is not found. ", err)
             self.last_update_at = self.current_time_utc()
             # Using self._reset_quotas and inline loading instead of self.reset_and_reload_quotas
             #   to avoid infinite loop if the file couldn't be created for some reason
             self._reset_quotas()
-            print(f"New file created. {self.filepath}")
+            logger.info(f"New file created. {self.filepath}")
             with open(self.filepath, "r", encoding="utf-8") as file:
                 data = json.load(file)
         self.api_quotas = data["API_quotas"]
@@ -189,7 +192,7 @@ class SearchYTByKeyword:
     def close(self):
         if self.cursor:
             self.cursor.close()
-            print("Cursor closed.")
+            logger.info("Cursor closed.")
         if self.connection:
             connect_to_db.connection_close(self.connection)
 
@@ -515,9 +518,9 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             'datetimenow': self.datetime_now
         }
         cursor = self.connection.cursor()
-        print("Creating the search map...")
+        logger.info("Creating the search map...")
         cursor.execute(query, values)
-        print("Search map created.")
+        logger.info("Search map created.")
         self.search_map = cursor.fetchall()
         cursor.close()
 
@@ -552,7 +555,7 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         self.published_before = end.isoformat()
 
         if end - start < datetime.timedelta(hours=23, minutes=59, seconds=59):
-            print(f"Current search's length is {end - start} hh:mm:ss")
+            logger.info(f"Current search's length is {end - start} hh:mm:ss")
 
     # TBI
     def updated_quota(self):
@@ -577,10 +580,10 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             if talent_id is not None:
                 ids.append(int(talent_id))
             elif talent_id is None:
-                print(f"Warning: Talent's name '{name}' did not match any talents.")
+                logger.warning(f"Warning: Talent's name '{name}' did not match any talents.")
             # todo: fix: despite warning appears to use the first of all returned ids
             if cursor.fetchall():
-                print(f"Warning: Talent's name '{name}' matched more than one talent.")
+                logger.warning(f"Warning: Talent's name '{name}' matched more than one talent.")
         cursor.close()
         self.talents_ids = tuple(ids)
 
@@ -593,7 +596,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         # Authenticate with the API using your API key
         api_key = self.api_service.get_api_key()
         if api_key is None:
-            print("API key not found.")
+            logger.error("API key not found.")
         youtube = build('youtube', 'v3', developerKey=api_key)
 
         # todo: add an exception for not enough quota left
@@ -610,10 +613,10 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             type="video",
         ).execute()
         # todo: replace with a proper logging
-        print(f"max results: {self.max_results}\n",
-              f"publishedAfter: {self.published_after}\n",
-              f"publishedBefore: {self.published_before}\n",
-              f"q: {self.search_query}\n")
+        logger.info(f"max results: {self.max_results}\n"
+                    f"publishedAfter: {self.published_after}\n"
+                    f"publishedBefore: {self.published_before}\n"
+                    f"q: {self.search_query}\n")
         self.api_service.change_quota(api_key, -100)
         self.quota_left = self.api_service.get_quota_left(api_key)
 
@@ -829,22 +832,21 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         except Exception as e:
             traceback.print_exc()
             self.connection.rollback()
-            print(f"An error occurred while saving: {e}")
-            print("Transaction rolled back. ")
+            logger.error(f"An error occurred while saving: {e} \nTransaction rolled back. ")
         else:
             self.connection.commit()
-            print("Changes committed.")
+            logger.info("Changes committed.")
 
         # todo: replace with a proper logging
         # 'logging' a few stats
-        print('Videos in response.\n',
-              'Total: ', len(self.youtube_video_values), '\n',
-              'New  : ', len(self.new_yt_video_ids))
-        print('Channels in response.\n',
-              'Total: ', len(self.youtube_channel_values), '\n',
-              'New  : ', len(self.new_yt_channel_ids))
-        print('Newest search id: ', self.search_yt_id, '\n\n')
-        print('Quota left for current key: ', self.quota_left)
+        logger.info(f'Videos in response.\n'
+                    f'Total: {len(self.youtube_video_values)}\n'
+                    f'New  : {len(self.new_yt_video_ids)}')
+        logger.info(f'Channels in response.\n'
+                    f'Total: {len(self.youtube_channel_values)}\n'
+                    f'New  : {len(self.new_yt_channel_ids)}')
+        logger.info(f'Newest search id: {self.search_yt_id}')
+        logger.info(f'Quota left for current key: {self.quota_left}')
 
         self.session_videos_total += len(self.youtube_video_values)
         self.session_videos_new += len(self.new_yt_video_ids)
@@ -855,17 +857,17 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
     def validate_results_per_page_qty(self):
         """ Check if 'resultsPerPage' returned in the response matches actual number of responses. """
         if self.response['pageInfo']['resultsPerPage'] != len(self.response['items']):
-            print("resultsPerPage value does not match the actual number of results per page")
+            logger.warning("resultsPerPage value does not match the actual number of results per page")
 
     def session_stats(self):
-        print("Session statistics: ")
-        print("Searches conducted: ", self.session_searches)
-        print('Videos found:\n',
-              'Total: ', self.session_videos_total, '\n',
-              'New  : ', self.session_videos_new, '\n')
-        print('Channels found:\n',
-              'Total: ', self.session_channels_total, '\n',
-              'New  : ', self.session_channels_new, '\n')
+        logger.info("Session statistics: ")
+        logger.info(f"Searches conducted: {self.session_searches}")
+        logger.info(f'Videos found:\n'
+                    f'Total: {self.session_videos_total}\n'
+                    f'New  : {self.session_videos_new}')
+        logger.info(f'Channels found:\n'
+                    f'Total: {self.session_channels_total}\n'
+                    f'New  : {self.session_channels_new}\n')
 
 
 class SearchYTByChannel:
@@ -874,8 +876,10 @@ class SearchYTByChannel:
 
 
 if __name__ == "__main__":
+    logger = vtc_logging.get_logger(log_to_file=False)
     connection = connect_to_db.connect_to_db()
-    search_instance = SearchYTByKeyword(connection=connection)
+    search_instance = SearchYTByKeyword(connection=connection,
+                                        api_service=PrepareAPI(filepath='../data/test_api_quota_state.json'))
     for i in range(2):
         search_instance.search_next_and_save()
     search_instance.session_stats()
