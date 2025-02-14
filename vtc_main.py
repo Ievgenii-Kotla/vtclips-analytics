@@ -1,8 +1,10 @@
 from __future__ import annotations
 import argparse
 import datetime
+import logging
 
-from vtc import db_yt_interface, connect_to_db
+
+from vtc import db_yt_interface, connect_to_db, vtc_logging
 
 
 def search_yt_by_keyword(args: dict):
@@ -109,6 +111,7 @@ def parse_arguments() -> dict:
 
 
 if __name__ == '__main__':
+    vtc_logging.setup_logger()
     args = parse_arguments()
     print('Received arguments: ', args)
     command = args.pop('command')

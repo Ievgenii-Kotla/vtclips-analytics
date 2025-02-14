@@ -18,7 +18,7 @@ class TestSetupLogger(unittest.TestCase):
     @patch("logging.StreamHandler.emit")
     def test_stream_handler_output(self, mock_emit):
         """ Basic test for streamHandler. """
-        logger = vtc_logging.get_logger("logs/test_log.log")
+        logger = vtc_logging.setup_logger("logs/test_log.log")
 
         logger.debug("debug")
         mock_emit.assert_not_called()
@@ -45,7 +45,7 @@ class TestSetupLogger(unittest.TestCase):
 
     def test_file_handler_output(self):
         """ Basic test for fileHandler. """
-        logger = vtc_logging.get_logger("logs/test_log.log")
+        logger = vtc_logging.setup_logger("logs/test_log.log")
         logger.debug("debug")
         logger.info("info")
         logger.warning("warning")

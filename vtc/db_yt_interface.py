@@ -4,6 +4,7 @@ import datetime
 import os
 import traceback
 import json
+import logging
 
 from googleapiclient.discovery import build
 from psycopg2.extras import execute_values
@@ -16,7 +17,7 @@ from vtc import connect_to_db, vtc_logging
 #  write exceptions
 
 # create the logger
-logger = vtc_logging.get_logger()
+logger = logging.getLogger(__name__)
 
 
 class PrepareAPI:
@@ -876,7 +877,7 @@ class SearchYTByChannel:
 
 
 if __name__ == "__main__":
-    logger = vtc_logging.get_logger(log_to_file=False)
+    logger = vtc_logging.setup_logger(log_to_file=False)
     connection = connect_to_db.connect_to_db()
     search_instance = SearchYTByKeyword(connection=connection,
                                         api_service=PrepareAPI(filepath='../data/test_api_quota_state.json'))
@@ -884,16 +885,3 @@ if __name__ == "__main__":
         search_instance.search_next_and_save()
     search_instance.session_stats()
     connect_to_db.connection_close(search_instance.connection)
-
-
-
-
-
-
-
-
-
-
-
-
-
