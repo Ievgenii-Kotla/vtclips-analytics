@@ -5,7 +5,7 @@ from logging.handlers import TimedRotatingFileHandler
 from time import gmtime
 
 
-def setup_logger(log_filename="../logs/vtc.log", log_to_file=True):
+def setup_logger(log_filename="logs/vtc.log", log_to_file=True):
     makedirs("../logs", exist_ok=True)
 
     logger = logging.getLogger()
