@@ -49,11 +49,6 @@ def parse_arguments() -> dict:
         'keyword',
         help='search youtube using a keyword and add the results to the DB'
     )
-    keyword_parser.add_argument('-q',
-                                '--quota',
-                                type=int,
-                                default=argparse.SUPPRESS,
-                                help='Quota limits per API key.')
     keyword_parser.add_argument('-tn',
                                 '--talents_names',
                                 nargs='+',

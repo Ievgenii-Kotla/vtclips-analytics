@@ -129,7 +129,6 @@ class PrepareAPI:
 class SearchYTByKeyword:
     def __init__(self,
                  connection,
-                 quota_in_reserve: int = 0,
                  talents_names: tuple[str] | None = None,
                  start_search_datetime: str = '1970-01-01 00:00:00+00:00',
                  end_search_datetime: str = '9000-01-01 00:00:00+00:00',
@@ -139,7 +138,6 @@ class SearchYTByKeyword:
                  api_service: PrepareAPI = None
                  ):
         # Command line arguments that where provided
-        self.quota_in_reserve = quota_in_reserve
         self.talents_names = talents_names
         self.start_search_datetime = start_search_datetime
         self.end_search_datetime = end_search_datetime

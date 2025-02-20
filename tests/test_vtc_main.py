@@ -2,14 +2,12 @@ import unittest
 from unittest.mock import patch
 
 import vtc_main
-
+from vtc import db_yt_interface
 
 class testParseArguments(unittest.TestCase):
     @patch('sys.argv', [
         'vtc_main.py',
         'keyword',
-        '-q',
-        '8000',
         '-tn',
         'name1',
         'name2',
@@ -30,7 +28,6 @@ class testParseArguments(unittest.TestCase):
     def test_parse_arguments_single_dash(self):
         args = vtc_main.parse_arguments()
         self.assertEqual('keyword', args['command'])
-        self.assertEqual(8000, args['quota'])
         self.assertEqual(('name1', 'name2'), args['talents_names'])
         self.assertEqual('2024-01-01 01:01:01+00:00', args['start_search_date'])
         self.assertEqual('2024-02-01 01:01:01+00:00', args['end_search_date'])
@@ -45,7 +42,6 @@ class testParseArguments(unittest.TestCase):
     ])
     def test_parse_arguments_no_arguments(self):
         args = vtc_main.parse_arguments()
-        self.assertNotIn('quota', args)
         self.assertNotIn('talents_names', args)
         self.assertNotIn('start_search_date', args)
         self.assertNotIn('start_search_date', args)
