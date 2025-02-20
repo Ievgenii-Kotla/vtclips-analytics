@@ -56,14 +56,14 @@ def parse_arguments() -> dict:
                                 help='Searches will use only keywords related to talents with specified names.'
                                 )
     keyword_parser.add_argument('-ssd',
-                                '--start_search_date',
+                                '--start_search_datetime',
                                 type=validate_datetime,
                                 default=argparse.SUPPRESS,
                                 help='Date and time. "YYYY-MM-DD HH:MM:SS+HH:SS"'
                                      'Searches will start no earlier than this point in time.'
                                 )
     keyword_parser.add_argument('-esd',
-                                '--end_search_date',
+                                '--end_search_datetime',
                                 type=validate_datetime,
                                 default=argparse.SUPPRESS,
                                 help='Date and time. "YYYY-MM-DD HH:MM:SS+HH:SS"'
