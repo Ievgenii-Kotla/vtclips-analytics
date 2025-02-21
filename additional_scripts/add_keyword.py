@@ -9,11 +9,25 @@ from vtc import connect_to_db
 
 
 def show_info():
-    """Display info about what data will be requested from the user."""
+    """
+    Display info about what data will be requested from the user.
+
+    Guidelines for priority values:
+    0 - channel id
+    1 - channel alt id
+    2 - firstname last name
+    3 - last name first name
+    4 - first name
+    5 - last name
+    6 - middle name
+    7 - nicknames popular
+    8 - nicknames rare
+    9 - other
+    """
     print("keyword:                 keyword itself",
           "talent's name:           first name of the associated talent",
           "usage enabled:           y or n, default = y",
-          "priority:                top is 0, low is 4, default = 1",
+          "priority:                top is 0, low is 9, default = 9",
           "date since relevant:     date since keyword became relevant;",
           "                         format: 'YYYY-MM-DD'; ",
           "                         default = 3 months before talent's debut",
@@ -81,7 +95,7 @@ def prepare_values(values: list, connection):
 
     # Prepare priority value.
     if not values[3]:
-        values[3] = 1
+        values[3] = 9
     else:
         values[3] = int(values[3])
 
