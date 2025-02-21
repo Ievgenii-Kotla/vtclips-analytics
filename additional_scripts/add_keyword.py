@@ -5,7 +5,7 @@ A tool to add keywords to the DB.
 """
 
 import datetime
-from vc_modules import connect_to_db
+from vtc import connect_to_db
 
 
 def show_info():
