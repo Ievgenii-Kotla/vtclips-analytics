@@ -3,7 +3,7 @@
 
 from psycopg2 import Error
 import datetime as dt
-import connect_to_db
+from vtc import connect_to_db
 
 
 def pick_talent() -> str:
@@ -30,11 +30,11 @@ def insert_data(connection, data_to_insert):
 
         # SQL statement for inserting data into the table
         insert_query = """
-        INSERT INTO talent (talent_first_name_eng, talent_last_name_eng, group_name, debut_datetime)
+        INSERT INTO talent (first_name_eng, last_name_eng, group_name, debut_datetime)
         SELECT %(name)s, %(sur)s, %(gen)s, %(debut)s
         WHERE 
         NOT EXISTS (
-        SELECT talent_first_name_eng FROM talent WHERE talent_first_name_eng = %(name)s
+        SELECT first_name_eng FROM talent WHERE first_name_eng = %(name)s
         );
         """
 
