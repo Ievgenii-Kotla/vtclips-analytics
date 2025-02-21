@@ -75,6 +75,10 @@ def main():
         {'name': 'Shiori', 'sur': 'Novella', 'gen': 'advent', 'debut': '2023-07-30 00:00:00+00'},
         {'name': 'Fuwawa', 'sur': 'Abyssgard', 'gen': 'advent', 'debut': '2023-07-31 00:00:00+00'},
         {'name': 'Mococo', 'sur': 'Abyssgard', 'gen': 'advent', 'debut': '2023-07-31 00:00:00+00'},
+        {'name': 'Elizabeth', 'sur': 'Rose Bloodflame', 'gen': 'justice', 'debut': '2024-06-21 00:00:00+00'},
+        {'name': 'Gigi', 'sur': 'Murin', 'gen': 'justice', 'debut': '2024-06-21 00:00:00+00'},
+        {'name': 'Cecilia', 'sur': 'Immergreen', 'gen': 'justice', 'debut': '2024-06-22 00:00:00+00'},
+        {'name': 'Raora', 'sur': 'Panthera', 'gen': 'justice', 'debut': '2024-06-22 00:00:00+00'},
     ]
     # Connect to the database
     connection = connect_to_db.connect_to_db()
