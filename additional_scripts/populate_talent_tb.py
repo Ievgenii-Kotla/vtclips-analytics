@@ -69,6 +69,7 @@ def main():
         {'name': 'Fauna', 'sur': 'Ceres', 'gen': 'promise', 'debut': '2021-08-23 00:00:00+00'},
         {'name': 'Mumei', 'sur': 'Nanashi', 'gen': 'promise', 'debut': '2021-08-23 00:00:00+00'},
         {'name': 'Baelz', 'sur': 'Hakos', 'gen': 'promise', 'debut': '2021-08-23 00:00:00+00'},
+        {'name': 'Sana', 'sur': 'Tsukumo', 'gen': 'council', 'debut': '2021-08-23 00:00:00+00'},
         {'name': 'IRyS', 'sur': '', 'gen': 'promise', 'debut': '2021-07-11 00:00:00+00'},
         {'name': 'Bijou', 'sur': 'Koseki', 'gen': 'advent', 'debut': '2023-07-30 00:00:00+00'},
         {'name': 'Nerissa', 'sur': 'Ravencroft', 'gen': 'advent', 'debut': '2023-07-31 00:00:00+00'},
