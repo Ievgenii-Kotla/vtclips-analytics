@@ -10,46 +10,46 @@ from vtc import connect_to_db
 
 # value = [keyword, talent_first_name, usage_enabled, priority, date_since_relevant, purity]
 default_keywords = [
-    ["@TakanashiKiara", "Kiara",True, 0, None, "pure"],
-    ["UCHsx4Hqa-1ORjQTh9TYDhww" , "Kiara",True, 1, None, "pure"],
-    ["@MoriCalliope", "Calliope", True, 0, None, "pure"],
-    ["UCL_qhgtOy0dy1Agp8vkySQg", "Calliope", True, 1, None, "pure"],
-    ["@WatsonAmelia","Amelia", True, 0, None, "pure"],
-    ["UCyl1z3jo3XHR1riLFKG5UAg", "Amelia", True, 1, None, "pure"],
-    ["@NinomaeInanis", "Ina'nis", True, 0, None, "pure"],
-    ["UCMwGHR0BTZuLsmjY_NT5Pwg", "Ina'nis", True, 1, None, "pure"],
-    ["@GawrGura", "Gura", True, 0, None, "pure"],
-    ["UCoSrY_IQQVpmIRZ9Xf-y93g", "Gura", True, 1, None, "pure"],
-    ["@IRyS", "IRyS", True, 0, None, "pure"],
-    ["UC8rcEBzJSleTkf_-agPM20g", "IRys", True, 1, None, "pure"],
-    ["@CeresFauna", "Fauna", True, 0, None, "pure"],
-    ["UCO_aKKYxn4tvrqPjcTzZ6EQ", "Fauna", True, 1, None, "pure"],
-    ["@NanashiMumei", "Mumei", True, 0, None, "pure"],
-    ["UC3n5uGu18FoCy23ggWWp8tA", "Mumei", True, 1, None, "pure"],
-    ["@HakosBaelz", "Baelz", True, 0, None, "pure"],
-    ["UCgmPnx-EEeOrZSg5Tiw7ZRQ", "Baelz", True, 1, None, "pure"],
-    ["@OuroKronii", "Kronii", True, 0, None, "pure"],
-    ["UCmbs8T6MWqUHP1tIQvSgKrg", "Kronii", True, 1, None, "pure"],
-    ["@TsukumoSana", "Sana", True, 0, None, "pure"],
-    ["UCsUj0dszADCGbF3gNrQEuSQ", "Sana", True, 1, None, "pure"],
-    ["@KosekiBijou", "Bijou", True, 0, None, "pure"],
-    ["UC9p_lqQ0FEDz327Vgf5JwqA", "Bijou", True, 1, None, "pure"],
-    ["@ShioriNovella", "Shiori", True, 0, None, "pure"],
-    ["UCgnfPPb9JI3e9A4cXHnWbyg", "Shiori", True, 1, None, "pure"],
-    ["@NerissaRavencroft", "Nerissa", True, 0, None, "pure"],
-    ["UC_sFNM0z0MWm9A6WlKPuMMg", "Nerissa", True, 1, None, "pure"],
-    ["@holoen_gigimurin","Gigi", True, 0, None, "pure"],
-    ["UCDHABijvPBnJm7F-KlNME3w", "Gigi", True, 1, None, "pure"],
-    ["@holoen_erbloodflame", "Elizabeth", True, 0, None, "pure"],
-    ["UCW5uhrG1eCBYditmhL0Ykjw", "Elizabeth", True, 1, None, "pure"],
-    ["@holoen_ceciliaimmergreen", "Cecilia", True, 0, None, "pure"],
-    ["UCvN5h1ShZtc7nly3pezRayg", "Cecilia", True, 1, None, "pure"],
-    ["@holoen_raorapanthera", "Raora", True, 0, None, "pure"],
-    ["UCl69AEx4MdqMZH7Jtsm7Tig", "Raora", True, 1, None, "pure"],
-    ["@FUWAMOCOch", "Fuwawa", True, 0, None, "pure"],
-    ["@FUWAMOCOch", "Mococo", True, 0, None, "pure"],
-    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Fuwawa", True, 1, None, "pure"],
-    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Mococo", True, 1, None, "pure"],
+    ["@TakanashiKiara", "Kiara", "y", 0, None, "pure"],
+    ["UCHsx4Hqa-1ORjQTh9TYDhww", "Kiara", "y", 1, None, "pure"],
+    ["@MoriCalliope", "Calliope", "y", 0, None, "pure"],
+    ["UCL_qhgtOy0dy1Agp8vkySQg", "Calliope", "y", 1, None, "pure"],
+    ["@WatsonAmelia", "Amelia", "y", 0, None, "pure"],
+    ["UCyl1z3jo3XHR1riLFKG5UAg", "Amelia", "y", 1, None, "pure"],
+    ["@NinomaeInanis", "Ina'nis", "y", 0, None, "pure"],
+    ["UCMwGHR0BTZuLsmjY_NT5Pwg", "Ina'nis", "y", 1, None, "pure"],
+    ["@GawrGura", "Gura", "y", 0, None, "pure"],
+    ["UCoSrY_IQQVpmIRZ9Xf-y93g", "Gura", "y", 1, None, "pure"],
+    ["@IRyS", "IRyS", "y", 0, None, "pure"],
+    ["UC8rcEBzJSleTkf_-agPM20g", "IRys", "y", 1, None, "pure"],
+    ["@CeresFauna", "Fauna", "y", 0, None, "pure"],
+    ["UCO_aKKYxn4tvrqPjcTzZ6EQ", "Fauna", "y", 1, None, "pure"],
+    ["@NanashiMumei", "Mumei", "y", 0, None, "pure"],
+    ["UC3n5uGu18FoCy23ggWWp8tA", "Mumei", "y", 1, None, "pure"],
+    ["@HakosBaelz", "Baelz", "y", 0, None, "pure"],
+    ["UCgmPnx-EEeOrZSg5Tiw7ZRQ", "Baelz", "y", 1, None, "pure"],
+    ["@OuroKronii", "Kronii", "y", 0, None, "pure"],
+    ["UCmbs8T6MWqUHP1tIQvSgKrg", "Kronii", "y", 1, None, "pure"],
+    ["@TsukumoSana", "Sana", "y", 0, None, "pure"],
+    ["UCsUj0dszADCGbF3gNrQEuSQ", "Sana", "y", 1, None, "pure"],
+    ["@KosekiBijou", "Bijou", "y", 0, None, "pure"],
+    ["UC9p_lqQ0FEDz327Vgf5JwqA", "Bijou", "y", 1, None, "pure"],
+    ["@ShioriNovella", "Shiori", "y", 0, None, "pure"],
+    ["UCgnfPPb9JI3e9A4cXHnWbyg", "Shiori", "y", 1, None, "pure"],
+    ["@NerissaRavencroft", "Nerissa", "y", 0, None, "pure"],
+    ["UC_sFNM0z0MWm9A6WlKPuMMg", "Nerissa", "y", 1, None, "pure"],
+    ["@holoen_gigimurin", "Gigi", "y", 0, None, "pure"],
+    ["UCDHABijvPBnJm7F-KlNME3w", "Gigi", "y", 1, None, "pure"],
+    ["@holoen_erbloodflame", "Elizabeth", "y", 0, None, "pure"],
+    ["UCW5uhrG1eCBYditmhL0Ykjw", "Elizabeth", "y", 1, None, "pure"],
+    ["@holoen_ceciliaimmergreen", "Cecilia", "y", 0, None, "pure"],
+    ["UCvN5h1ShZtc7nly3pezRayg", "Cecilia", "y", 1, None, "pure"],
+    ["@holoen_raorapanthera", "Raora", "y", 0, None, "pure"],
+    ["UCl69AEx4MdqMZH7Jtsm7Tig", "Raora", "y", 1, None, "pure"],
+    ["@FUWAMOCOch", "Fuwawa", "y", 0, None, "pure"],
+    ["@FUWAMOCOch", "Mococo", "y", 0, None, "pure"],
+    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Fuwawa", "y", 1, None, "pure"],
+    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Mococo", "y", 1, None, "pure"],
 ]
 
 
@@ -198,9 +198,10 @@ def write_to_keyword(values: list, connection):
     cur = connection.cursor()
     cur.execute(check_keyword_unique_query, (values[0],))
     if cur.fetchone():
-        print("The keyword already exists in the db.")
+        print(f"The keyword already exists in the db.    "
+              f"keyword: {values[0]}")
         cur.close()
-        return None
+        return 0
 
     insert_query = """
     INSERT INTO keyword(keyword_word, usage_enabled, priority, date_since_relevant, purity)
@@ -211,6 +212,7 @@ def write_to_keyword(values: list, connection):
     cur.execute(insert_query, (values[0], values[2], values[3], values[4], values[5]))
     cur.close()
     print('Keyword added successfully.')
+    return 1
 
 
 def write_to_keyword_talent(values: list, connection):
@@ -233,9 +235,10 @@ def write_to_keyword_talent(values: list, connection):
     """
     cur.execute(check_record_unique_query, (values[6], values[1]))
     if cur.fetchone():
-        print("This combination of a talent and a keyword already exists in the db.")
+        print(f"This combination of a talent and a keyword already exists in the db.    "
+              f"keyword: {values[0]}; talent_id: {values[1]}")
         cur.close()
-        return None
+        return 0
 
     # Add new record into keyword_talent junction table.
     set_keyword_talent = """
@@ -245,22 +248,36 @@ def write_to_keyword_talent(values: list, connection):
     cur.execute(set_keyword_talent, (values[6], values[1]))
     print("Keyword-talent relation added successfully.")
     cur.close()
+    return 1
 
 
 def main():
     connection = connect_to_db.connect_to_db()
     if connection:
-        while True:
-            show_info()
-            values_raw = input_values()
-            values_clean = prepare_values(values_raw, connection)
-            show_values(values_clean)
-            if not input('Enter an empty line to write to db, enter anything to discard. '):
-                write_to_keyword(values_clean, connection)
-                write_to_keyword_talent(values_clean, connection)
+        choice = input("0 - add default keywords\n1 - add keywords manually\n: ")
+        if choice == "0":
+            default_keywords_lower_case = [[item.lower() if isinstance(item, str) else item for item in sublist]
+                                           for sublist in default_keywords]
+            keyword_counter = 0
+            keyword_talent_counter = 0
+            for keyword in default_keywords_lower_case:
+                values_clean = prepare_values(keyword, connection)
+                keyword_counter += write_to_keyword(values_clean, connection)
+                keyword_talent_counter += write_to_keyword_talent(values_clean, connection)
                 connection.commit()
-            if input('Enter an empty line to continue, enter anything to quit. '):
-                break
+            print(f"Added {keyword_counter} keywords, and {keyword_talent_counter} keyword-talent links")
+        elif choice == "1":
+            while True:
+                show_info()
+                values_raw = input_values()
+                values_clean = prepare_values(values_raw, connection)
+                show_values(values_clean)
+                if not input('Enter an empty line to write to db, enter anything to discard. '):
+                    write_to_keyword(values_clean, connection)
+                    write_to_keyword_talent(values_clean, connection)
+                    connection.commit()
+                if input('Enter an empty line to continue, enter anything to quit. '):
+                    break
     else:
         print('Could not connect to the database')
     connection.close()
