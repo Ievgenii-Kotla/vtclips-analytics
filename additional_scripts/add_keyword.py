@@ -8,6 +8,51 @@ import datetime
 from vtc import connect_to_db
 
 
+# value = [keyword, talent_first_name, usage_enabled, priority, date_since_relevant, purity]
+default_keywords = [
+    ["@TakanashiKiara", "Kiara",True, 0, None, "pure"],
+    ["UCHsx4Hqa-1ORjQTh9TYDhww" , "Kiara",True, 1, None, "pure"],
+    ["@MoriCalliope", "Calliope", True, 0, None, "pure"],
+    ["UCL_qhgtOy0dy1Agp8vkySQg", "Calliope", True, 1, None, "pure"],
+    ["@WatsonAmelia","Amelia", True, 0, None, "pure"],
+    ["UCyl1z3jo3XHR1riLFKG5UAg", "Amelia", True, 1, None, "pure"],
+    ["@NinomaeInanis", "Ina'nis", True, 0, None, "pure"],
+    ["UCMwGHR0BTZuLsmjY_NT5Pwg", "Ina'nis", True, 1, None, "pure"],
+    ["@GawrGura", "Gura", True, 0, None, "pure"],
+    ["UCoSrY_IQQVpmIRZ9Xf-y93g", "Gura", True, 1, None, "pure"],
+    ["@IRyS", "IRyS", True, 0, None, "pure"],
+    ["UC8rcEBzJSleTkf_-agPM20g", "IRys", True, 1, None, "pure"],
+    ["@CeresFauna", "Fauna", True, 0, None, "pure"],
+    ["UCO_aKKYxn4tvrqPjcTzZ6EQ", "Fauna", True, 1, None, "pure"],
+    ["@NanashiMumei", "Mumei", True, 0, None, "pure"],
+    ["UC3n5uGu18FoCy23ggWWp8tA", "Mumei", True, 1, None, "pure"],
+    ["@HakosBaelz", "Baelz", True, 0, None, "pure"],
+    ["UCgmPnx-EEeOrZSg5Tiw7ZRQ", "Baelz", True, 1, None, "pure"],
+    ["@OuroKronii", "Kronii", True, 0, None, "pure"],
+    ["UCmbs8T6MWqUHP1tIQvSgKrg", "Kronii", True, 1, None, "pure"],
+    ["@TsukumoSana", "Sana", True, 0, None, "pure"],
+    ["UCsUj0dszADCGbF3gNrQEuSQ", "Sana", True, 1, None, "pure"],
+    ["@KosekiBijou", "Bijou", True, 0, None, "pure"],
+    ["UC9p_lqQ0FEDz327Vgf5JwqA", "Bijou", True, 1, None, "pure"],
+    ["@ShioriNovella", "Shiori", True, 0, None, "pure"],
+    ["UCgnfPPb9JI3e9A4cXHnWbyg", "Shiori", True, 1, None, "pure"],
+    ["@NerissaRavencroft", "Nerissa", True, 0, None, "pure"],
+    ["UC_sFNM0z0MWm9A6WlKPuMMg", "Nerissa", True, 1, None, "pure"],
+    ["@holoen_gigimurin","Gigi", True, 0, None, "pure"],
+    ["UCDHABijvPBnJm7F-KlNME3w", "Gigi", True, 1, None, "pure"],
+    ["@holoen_erbloodflame", "Elizabeth", True, 0, None, "pure"],
+    ["UCW5uhrG1eCBYditmhL0Ykjw", "Elizabeth", True, 1, None, "pure"],
+    ["@holoen_ceciliaimmergreen", "Cecilia", True, 0, None, "pure"],
+    ["UCvN5h1ShZtc7nly3pezRayg", "Cecilia", True, 1, None, "pure"],
+    ["@holoen_raorapanthera", "Raora", True, 0, None, "pure"],
+    ["UCl69AEx4MdqMZH7Jtsm7Tig", "Raora", True, 1, None, "pure"],
+    ["@FUWAMOCOch", "Fuwawa", True, 0, None, "pure"],
+    ["@FUWAMOCOch", "Mococo", True, 0, None, "pure"],
+    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Fuwawa", True, 1, None, "pure"],
+    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Mococo", True, 1, None, "pure"],
+]
+
+
 def show_info():
     """
     Display info about what data will be requested from the user.
