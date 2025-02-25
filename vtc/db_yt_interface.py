@@ -309,8 +309,8 @@ non_searched_periods AS (
         kcsr.keyword_id,
         kcsr.keyword_word,
         tstzmultirange(
-            tstzrange('-infinity', %(datetimenow)s, '[]') 
-            - tstzrange('-infinity', kcsr.date_since_relevant, '[]')
+            tstzrange('-infinity', LEAST(%(datetimenow)s, %(end_dt)s), '[]') 
+            - tstzrange('-infinity', GREATEST(kcsr.date_since_relevant, %(start_dt)s), '[]')
         ) - kcsr.search_periods AS non_searched
     FROM
         keyword_combined_search_raw AS kcsr
