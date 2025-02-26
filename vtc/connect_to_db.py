@@ -5,7 +5,7 @@ import os
 
 def connect_to_db():
     """ Connect to the main PostgreSQL database. """
-    user, password, host, port, database = os.getenv("VC_conn_info").split(',')
+    user, password, host, port, database = os.getenv("vtc_conn_info").split(',')
     try:
         # Connect to the PostgreSQL database
         connection = psycopg2.connect(
