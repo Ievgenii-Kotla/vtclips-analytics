@@ -75,7 +75,7 @@ def show_info():
           "priority:                top is 0, low is 9, default = 9",
           "date since relevant:     date since keyword became relevant;",
           "                         format: 'YYYY-MM-DD'; ",
-          "                         default = 3 months before talent's debut",
+          "                         default = 1 month before talent's debut",
           "purity:                  pure, mixed or dirt. Estimation of how relevant search result is",
           "answers are not case sensitive",
           "enter empty line for a default value (where applicable)\n",
@@ -149,7 +149,7 @@ def prepare_values(values: list, connection):
     # Prepare date_since_relevant value.
     if not values[4]:
         retrieve_debut_date_query = """
-        SELECT debut_datetime - INTERVAL '3 months' AS date_since_relevant
+        SELECT debut_datetime - INTERVAL '1 months' AS date_since_relevant
         FROM talent
         WHERE talent_id = %s
         """
