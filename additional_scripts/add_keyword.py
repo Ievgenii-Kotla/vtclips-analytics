@@ -10,46 +10,46 @@ from vtc import connect_to_db
 
 # value = [keyword, talent_first_name, usage_enabled, priority, date_since_relevant, purity]
 default_keywords = [
-    ["@TakanashiKiara", "Kiara", "y", 0, None, "pure"],
-    ["UCHsx4Hqa-1ORjQTh9TYDhww", "Kiara", "y", 1, None, "pure"],
-    ["@MoriCalliope", "Calliope", "y", 0, None, "pure"],
-    ["UCL_qhgtOy0dy1Agp8vkySQg", "Calliope", "y", 1, None, "pure"],
-    ["@WatsonAmelia", "Amelia", "y", 0, None, "pure"],
-    ["UCyl1z3jo3XHR1riLFKG5UAg", "Amelia", "y", 1, None, "pure"],
-    ["@NinomaeInanis", "Ina'nis", "y", 0, None, "pure"],
-    ["UCMwGHR0BTZuLsmjY_NT5Pwg", "Ina'nis", "y", 1, None, "pure"],
-    ["@GawrGura", "Gura", "y", 0, None, "pure"],
-    ["UCoSrY_IQQVpmIRZ9Xf-y93g", "Gura", "y", 1, None, "pure"],
-    ["@IRyS", "IRyS", "y", 0, None, "pure"],
-    ["UC8rcEBzJSleTkf_-agPM20g", "IRys", "y", 1, None, "pure"],
-    ["@CeresFauna", "Fauna", "y", 0, None, "pure"],
-    ["UCO_aKKYxn4tvrqPjcTzZ6EQ", "Fauna", "y", 1, None, "pure"],
-    ["@NanashiMumei", "Mumei", "y", 0, None, "pure"],
-    ["UC3n5uGu18FoCy23ggWWp8tA", "Mumei", "y", 1, None, "pure"],
-    ["@HakosBaelz", "Baelz", "y", 0, None, "pure"],
-    ["UCgmPnx-EEeOrZSg5Tiw7ZRQ", "Baelz", "y", 1, None, "pure"],
-    ["@OuroKronii", "Kronii", "y", 0, None, "pure"],
-    ["UCmbs8T6MWqUHP1tIQvSgKrg", "Kronii", "y", 1, None, "pure"],
-    ["@TsukumoSana", "Sana", "y", 0, None, "pure"],
-    ["UCsUj0dszADCGbF3gNrQEuSQ", "Sana", "y", 1, None, "pure"],
-    ["@KosekiBijou", "Bijou", "y", 0, None, "pure"],
-    ["UC9p_lqQ0FEDz327Vgf5JwqA", "Bijou", "y", 1, None, "pure"],
-    ["@ShioriNovella", "Shiori", "y", 0, None, "pure"],
-    ["UCgnfPPb9JI3e9A4cXHnWbyg", "Shiori", "y", 1, None, "pure"],
-    ["@NerissaRavencroft", "Nerissa", "y", 0, None, "pure"],
-    ["UC_sFNM0z0MWm9A6WlKPuMMg", "Nerissa", "y", 1, None, "pure"],
-    ["@holoen_gigimurin", "Gigi", "y", 0, None, "pure"],
-    ["UCDHABijvPBnJm7F-KlNME3w", "Gigi", "y", 1, None, "pure"],
-    ["@holoen_erbloodflame", "Elizabeth", "y", 0, None, "pure"],
-    ["UCW5uhrG1eCBYditmhL0Ykjw", "Elizabeth", "y", 1, None, "pure"],
-    ["@holoen_ceciliaimmergreen", "Cecilia", "y", 0, None, "pure"],
-    ["UCvN5h1ShZtc7nly3pezRayg", "Cecilia", "y", 1, None, "pure"],
-    ["@holoen_raorapanthera", "Raora", "y", 0, None, "pure"],
-    ["UCl69AEx4MdqMZH7Jtsm7Tig", "Raora", "y", 1, None, "pure"],
-    ["@FUWAMOCOch", "Fuwawa", "y", 0, None, "pure"],
-    ["@FUWAMOCOch", "Mococo", "y", 0, None, "pure"],
-    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Fuwawa", "y", 1, None, "pure"],
-    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Mococo", "y", 1, None, "pure"],
+    ["@TakanashiKiara", "Kiara", "y", 0, "", "pure"],
+    ["UCHsx4Hqa-1ORjQTh9TYDhww", "Kiara", "y", 1, "", "pure"],
+    ["@MoriCalliope", "Calliope", "y", 0, "", "pure"],
+    ["UCL_qhgtOy0dy1Agp8vkySQg", "Calliope", "y", 1, "", "pure"],
+    ["@WatsonAmelia", "Amelia", "y", 0, "", "pure"],
+    ["UCyl1z3jo3XHR1riLFKG5UAg", "Amelia", "y", 1, "", "pure"],
+    ["@NinomaeInanis", "Ina'nis", "y", 0, "", "pure"],
+    ["UCMwGHR0BTZuLsmjY_NT5Pwg", "Ina'nis", "y", 1, "", "pure"],
+    ["@GawrGura", "Gura", "y", 0, "", "pure"],
+    ["UCoSrY_IQQVpmIRZ9Xf-y93g", "Gura", "y", 1, "", "pure"],
+    ["@IRyS", "IRyS", "y", 0, "", "pure"],
+    ["UC8rcEBzJSleTkf_-agPM20g", "IRys", "y", 1, "", "pure"],
+    ["@CeresFauna", "Fauna", "y", 0, "", "pure"],
+    ["UCO_aKKYxn4tvrqPjcTzZ6EQ", "Fauna", "y", 1, "", "pure"],
+    ["@NanashiMumei", "Mumei", "y", 0, "", "pure"],
+    ["UC3n5uGu18FoCy23ggWWp8tA", "Mumei", "y", 1, "", "pure"],
+    ["@HakosBaelz", "Baelz", "y", 0, "", "pure"],
+    ["UCgmPnx-EEeOrZSg5Tiw7ZRQ", "Baelz", "y", 1, "", "pure"],
+    ["@OuroKronii", "Kronii", "y", 0, "", "pure"],
+    ["UCmbs8T6MWqUHP1tIQvSgKrg", "Kronii", "y", 1, "", "pure"],
+    ["@TsukumoSana", "Sana", "y", 0, "", "pure"],
+    ["UCsUj0dszADCGbF3gNrQEuSQ", "Sana", "y", 1, "", "pure"],
+    ["@KosekiBijou", "Bijou", "y", 0, "", "pure"],
+    ["UC9p_lqQ0FEDz327Vgf5JwqA", "Bijou", "y", 1, "", "pure"],
+    ["@ShioriNovella", "Shiori", "y", 0, "", "pure"],
+    ["UCgnfPPb9JI3e9A4cXHnWbyg", "Shiori", "y", 1, "", "pure"],
+    ["@NerissaRavencroft", "Nerissa", "y", 0, "", "pure"],
+    ["UC_sFNM0z0MWm9A6WlKPuMMg", "Nerissa", "y", 1, "", "pure"],
+    ["@holoen_gigimurin", "Gigi", "y", 0, "", "pure"],
+    ["UCDHABijvPBnJm7F-KlNME3w", "Gigi", "y", 1, "", "pure"],
+    ["@holoen_erbloodflame", "Elizabeth", "y", 0, "", "pure"],
+    ["UCW5uhrG1eCBYditmhL0Ykjw", "Elizabeth", "y", 1, "", "pure"],
+    ["@holoen_ceciliaimmergreen", "Cecilia", "y", 0, "", "pure"],
+    ["UCvN5h1ShZtc7nly3pezRayg", "Cecilia", "y", 1, "", "pure"],
+    ["@holoen_raorapanthera", "Raora", "y", 0, "", "pure"],
+    ["UCl69AEx4MdqMZH7Jtsm7Tig", "Raora", "y", 1, "", "pure"],
+    ["@FUWAMOCOch", "Fuwawa", "y", 0, "", "pure"],
+    ["@FUWAMOCOch", "Mococo", "y", 0, "", "pure"],
+    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Fuwawa", "y", 1, "", "pure"],
+    ["UCt9H_RpQzhxzlyBxFqrdHqA", "Mococo", "y", 1, "", "pure"],
 ]
 
 
@@ -131,7 +131,7 @@ def prepare_values(values: list, connection):
     cur.close()
 
     # Prepare usage_enabled value.
-    if not values[2]:
+    if values[2] == "":
         values[2] = True
     elif values[2][0] == "y":
         values[2] = True
@@ -139,7 +139,7 @@ def prepare_values(values: list, connection):
         values[2] = False
 
     # Prepare priority value.
-    if not values[3]:
+    if values[3] == "":
         values[3] = 9
     else:
         values[3] = int(values[3])
@@ -147,7 +147,7 @@ def prepare_values(values: list, connection):
     # TODO: figure out how I would test all of this
     # todo: fix error when no talent found
     # Prepare date_since_relevant value.
-    if not values[4]:
+    if values[4] == "":
         retrieve_debut_date_query = """
         SELECT debut_datetime - INTERVAL '1 months' AS date_since_relevant
         FROM talent
