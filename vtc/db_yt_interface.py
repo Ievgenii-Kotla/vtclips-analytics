@@ -243,8 +243,6 @@ WITH RECURSIVE keyword_processed AS (
         AND k.purity IN %(purity)s
         AND (kt.talent_id IN %(talents_ids)s OR %(all_talents)s = TRUE)
     GROUP BY k.keyword_word, k.keyword_id, k.date_since_relevant
-    -- Only include keywords that match a single talent
-    HAVING COUNT(*) = 1    
 ),
 -- Select search instances that lie within the time scope. 
 search_processed AS (
