@@ -179,7 +179,8 @@ class SearchYTByKeyword:
         self.search_yt_id = None
         self.youtube_video_values = None
         self.youtube_channel_values = None
-        self.datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
+        self.datetime_now = None
+        self.update_datetime_now()
 
         # Other
         self.session_videos_total: int = 0
@@ -187,6 +188,9 @@ class SearchYTByKeyword:
         self.session_channels_total: int = 0
         self.session_channels_new: int = 0
         self.session_searches: int = 0
+
+    def update_datetime_now(self):
+        self.datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
 
     def close(self):
         if self.cursor:
@@ -456,6 +460,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
     def prepare_search(self):
         """ Prepare all the necessary data and variables for the search. """
 
+        self.update_datetime_now()
         # Create the map of what keywords where searched already and at what time periods.
         self.set_search_map()
         # Current algorithm for providing the search details
