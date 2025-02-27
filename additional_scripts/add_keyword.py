@@ -116,7 +116,7 @@ def show_info():
           "date since relevant:     date since keyword became relevant;",
           "                         format: 'YYYY-MM-DD'; ",
           "                         default = 1 month before talent's debut",
-          "purity:                  pure, mixed or dirt. Estimation of how relevant search result is",
+          "purity:                  pure, mixed or dirty. Estimation of how relevant search result is",
           "answers are not case sensitive",
           "enter empty line for a default value (where applicable)\n",
           sep='\n')
@@ -206,11 +206,11 @@ def prepare_values(values: list, connection):
 
     # todo: add a feature that would allow using only the first letter of a word
     # Prepare purity value.
-    if values[5] not in ['pure', 'mixed', 'dirt', 'p', 'm', 'd']:
+    if values[5] not in ['pure', 'mixed', 'dirty', 'p', 'm', 'd']:
         values[5] = None
         print('Priority is set to NULL')
     elif values[5] in ['p', 'm', 'd']:
-        vmap = {'p': 'pure', 'm': 'mixed', 'd': 'dirt'}
+        vmap = {'p': 'pure', 'm': 'mixed', 'd': 'dirty'}
         values[5] = vmap[values[5]]
 
     return values
