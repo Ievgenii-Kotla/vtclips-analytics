@@ -441,7 +441,6 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.response = youtube.search().list(
             part="snippet",
             maxResults=self.max_results,
-            order="date",
             publishedAfter=self.published_after,
             publishedBefore=self.published_before,
             q=self.search_query,
