@@ -95,6 +95,14 @@ def parse_arguments() -> dict:
                                 default=0,
                                 help='Number of searches that will be conducted. (if 0, then as many as possible)'
                                 )
+    keyword_parser.add_argument('-sl',
+                                '--search_layer',
+                                type=int,
+                                default=argparse.SUPPRESS,
+                                help='Layer of the search. Allows searching over timeperiod that has already been '
+                                     'searched in other layers, by having a separate search_map for each layer.'
+                                     'default: current top layer'
+                                )
     args = vars(global_parser.parse_args())
 
     # Change data type, because future usage requires tuples instead of lists.

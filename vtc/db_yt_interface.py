@@ -135,22 +135,26 @@ class SearchYTByKeyword:
                  priority: tuple[int] = (0, 1),
                  usage_enabled: bool = True,
                  purity: tuple[str] = ('pure',),
-                 api_service: PrepareAPI = None
+                 api_service: PrepareAPI = None,
+                 search_layer: int = None
                  ):
         # Command line arguments that where provided
+        self.connection = connection
         self.talents_names = talents_names
         self.start_search_datetime = start_search_datetime
         self.end_search_datetime = end_search_datetime
         self.priority = priority
         self.usage_enabled = usage_enabled
         self.purity = purity
+        self.api_service = api_service or PrepareAPI()  # Use the first one that evaluates to True
+        self.search_layer = search_layer
+        if search_layer is None:
+            self.set_max_search_layer()
 
         # Variables that are necessary to prepare and make a YT search request
-        self.connection = connection
         self.cursor = self.connection.cursor()
         self.quota_points = 10000  # set by YT
         self.quota_left = self.quota_points
-        self.api_service = api_service or PrepareAPI()  # Use the first one that evaluates to True
 
         self.talents_ids = (None,)
         self.all_talents = True
@@ -188,6 +192,19 @@ class SearchYTByKeyword:
         self.session_channels_total: int = 0
         self.session_channels_new: int = 0
         self.session_searches: int = 0
+
+    def set_max_search_layer(self):
+        query = """
+SELECT MAX(search_layer)
+FROM search_yt
+"""
+        cursor = self.connection.cursor()
+        cursor.execute(query)
+        max_search_layer = cursor.fetchone()[0]
+        if max_search_layer is None:
+            max_search_layer = 1
+        self.search_layer = max_search_layer
+        cursor.close()
 
     def update_datetime_now(self):
         self.datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
@@ -577,7 +594,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         next_page_token,
         total_results,
         region_code,
-        q
+        q,
+        search_layer
     )
     VALUES %s
     RETURNING search_yt_id;
@@ -594,14 +612,15 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                 self.response.get("nextPageToken"),
                 self.response["pageInfo"]["totalResults"],
                 self.response["regionCode"],
-                self.search_query
+                self.search_query,
+                self.search_layer
             ]
         ]
         search_yt_ids = execute_values(
             self.cursor,
             search_yt_query,
             search_yt_values,
-            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             fetch=True
         )
         self.search_yt_id = search_yt_ids[0][0]
