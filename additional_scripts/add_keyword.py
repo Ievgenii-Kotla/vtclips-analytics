@@ -105,6 +105,7 @@ def show_info():
     4 - first name
     5 - last name
     6 - middle name
+    7 - channel alt id without '@'
     100+ - nicknames popular
     200+ - nicknames rare
     300+ - other
