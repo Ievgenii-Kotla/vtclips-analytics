@@ -280,6 +280,7 @@ search_processed AS (
         s.search_yt_id = ks.search_yt_id
         AND s.published_before > %(start_dt)s
         AND s.published_after < %(end_dt)s
+    WHERE s.search_layer = %(search_layer)s
 ),
 -- Combine data and cast search periods into tstzrange for further computations
 keyword_search AS (
@@ -369,7 +370,8 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             'all_talents': self.all_talents,
             'start_dt': self.start_search_datetime,
             'end_dt': self.end_search_datetime,
-            'datetimenow': self.datetime_now
+            'datetimenow': self.datetime_now,
+            'search_layer': self.search_layer
         }
         cursor = self.connection.cursor()
         logger.info("Creating the search map...")
