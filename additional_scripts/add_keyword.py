@@ -98,8 +98,8 @@ def show_info():
     Display info about what data will be requested from the user.
 
     Guidelines for priority values:
-    0 - channel id
-    1 - channel alt id
+    0 - channel id (@channelID)
+    1 - channel alt id (line of random characters)
     2 - firstname last name
     3 - last name first name
     4 - first name
