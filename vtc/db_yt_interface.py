@@ -471,7 +471,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         logger.info(f"max results: {self.max_results}\n"
                     f"publishedAfter: {self.published_after}\n"
                     f"publishedBefore: {self.published_before}\n"
-                    f"q: {self.search_query}\n")
+                    f"q: {self.search_query}")
         self.api_service.change_quota(api_key, -100)
         self.quota_left = self.api_service.get_quota_left(api_key)
 
@@ -704,7 +704,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                     f'Total: {len(self.youtube_channel_values)}\n'
                     f'New  : {len(self.new_yt_channel_ids)}')
         logger.info(f'Newest search id: {self.search_yt_id}')
-        logger.info(f'Quota left for current key: {self.quota_left}')
+        logger.info(f'Quota left for current key: {self.quota_left}\n')
 
         self.session_videos_total += len(self.youtube_video_values)
         self.session_videos_new += len(self.new_yt_video_ids)
