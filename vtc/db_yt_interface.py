@@ -401,7 +401,7 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
                 end = new_end
 
         end = min(
-            start + datetime.timedelta(hours=23, minutes=59, seconds=59),
+            start + datetime.timedelta(days=1, hours=23, minutes=59, seconds=59),
             self.datetime_now,
             end
         )
