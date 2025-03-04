@@ -485,6 +485,8 @@ SELECT * FROM search_yt;
                 None,  # page_num
                 "test_keyword_for_save",  # q (searched text)
                 "youtube#searchListResponse",  # kind
+                1,  # layer
+                None,  # parent id
             )
         ]
         self.assertEqual(expected, actual)

@@ -23,7 +23,9 @@ class testParseArguments(unittest.TestCase):
         'pure',
         'mixed',
         '-r',
-        '0'
+        '0',
+        '-sl',
+        '1'
     ])
     def test_parse_arguments_single_dash(self):
         args = vtc_main.parse_arguments()
@@ -49,6 +51,7 @@ class testParseArguments(unittest.TestCase):
         self.assertNotIn('usage_enabled', args)
         self.assertNotIn('purity', args)
         self.assertEqual(0, args['repetitions'])
+        self.assertNotIn('search_layer', args)
 
     @patch('sys.argv', [
         'vtc_main.py',
@@ -68,7 +71,9 @@ class testParseArguments(unittest.TestCase):
         'pure',
         'mixed',
         '-r',
-        '0'
+        '0',
+        '-sl',
+        '1'
     ])
     @patch('vtc_main.db_yt_interface.SearchYTByKeyword.set_talents_ids')
     def test_integration_parse_arguments_SearchYTKeyword___init__(self, mock_set_talents_ids):
@@ -84,3 +89,4 @@ class testParseArguments(unittest.TestCase):
         self.assertEqual((0,), instance.priority)
         self.assertEqual(True, instance.usage_enabled)
         self.assertEqual(('pure', 'mixed'), instance.purity)
+        self.assertEqual(1, instance.search_layer)

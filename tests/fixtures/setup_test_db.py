@@ -197,14 +197,16 @@ INSERT INTO search_yt (
     published_before,
     results_per_page_max,
     results_per_page,
-    total_results
+    total_results,
+    search_layer
 )
 VALUES (
     %(published_after)s,
     %(published_before)s,
     %(results_per_page_max)s,
     %(results_per_page)s,
-    %(total_results)s
+    %(total_results)s,
+    %(search_layer)s
 )
 RETURNING search_yt_id;
 """
@@ -214,148 +216,168 @@ RETURNING search_yt_id;
                 'published_before': datetime(2020, 6, 13, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 15, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 16, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 778
+                'total_results': 778,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 13, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 13, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 13, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 16, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 17, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 12, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 12, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 15, 10, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 16, 10, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 16, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 12, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 12, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
-
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 16, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 17, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 16, 12, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 17, 12, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 13, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 13, 23, 59, 59, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 14, 23, 59, 59, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 13, 0, 0, 1, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 14, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
             {
                 'published_after': datetime(2020, 6, 14, 0, 0, 1, tzinfo=timezone.utc),
                 'published_before': datetime(2020, 6, 15, 0, 0, 0, tzinfo=timezone.utc),
                 'results_per_page_max': 5,
                 'results_per_page': 2,
-                'total_results': 777
+                'total_results': 777,
+                'search_layer': 1,
             },
 
         ]
@@ -364,33 +386,6 @@ RETURNING search_yt_id;
             cursor.execute(query, data)
             ids.append(cursor.fetchone()[0])
         return ids
-
-    def populate_search_yt_youtube_channel(search_yt_ids, youtube_channel_ids):
-        query = """
-INSERT INTO search_yt_youtube_channel (
-    search_yt_id,
-    youtube_channel_id
-)
-VALUES (
-    %(search_yt_id)s,
-    %(youtube_channel_id)s
-)"""
-        dataset = [
-            {
-                'search_yt_id': search_yt_ids[0],
-                'youtube_channel_id': youtube_channel_ids[0]
-            },
-            {
-                'search_yt_id': search_yt_ids[1],
-                'youtube_channel_id': youtube_channel_ids[1]
-            },
-            {
-                'search_yt_id': search_yt_ids[1],
-                'youtube_channel_id': youtube_channel_ids[2]
-            }
-        ]
-        for data in dataset:
-            cursor.execute(query, data)
 
     def populate_search_yt_youtube_video(search_yt_ids, youtube_video_ids):
         query = """
@@ -631,7 +626,7 @@ RETURNING youtube_video_id;
     talent_ids = populate_talent()
     populate_keyword_talent(keyword_ids, talent_ids)
     youtube_channel_ids = populate_youtube_channel()
-    populate_search_yt_youtube_channel(search_yt_ids, youtube_channel_ids)
+    #populate_search_yt_youtube_channel(search_yt_ids, youtube_channel_ids)
     youtube_video_ids = populate_youtube_video(youtube_channel_ids)
     populate_search_yt_youtube_video(search_yt_ids, youtube_video_ids)
 
@@ -680,7 +675,7 @@ def _truncate_all(connection, cursor):
         'TRUNCATE TABLE keyword_search_yt CASCADE;',
         'TRUNCATE TABLE keyword_talent CASCADE;',
         'TRUNCATE TABLE search_yt CASCADE;',
-        'TRUNCATE TABLE search_yt_youtube_channel CASCADE;',
+        #'TRUNCATE TABLE search_yt_youtube_channel CASCADE;',
         'TRUNCATE TABLE search_yt_youtube_video CASCADE;',
         'TRUNCATE TABLE talent CASCADE;',
         'TRUNCATE TABLE youtube_channel CASCADE;',
