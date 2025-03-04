@@ -24,7 +24,7 @@ def connect_to_db():
 
 def connect_to_test_db():
     """ Connect to the test PostgreSQL database. """
-    user, password, host, port, database = os.getenv("test_VC_v0.1_conn_info").split(',')
+    user, password, host, port, database = os.getenv("test_VC_v0.2_conn_info").split(',')
     try:
         # Connect to the PostgreSQL database
         connection = psycopg2.connect(
