@@ -429,9 +429,9 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         2. Previous search is not recent
             return default
         3. Any period, 11 to 40 matches
-            keep period of the previous search
+            return period of the previous search
         4. Any period, 41 to 50
-            keep period of the previous search
+            return period of the previous search or default search period (whatever is smaller)
         5. Pre-debut period search AND previous search had 5 or less per day
             return 7 days, but must not go further then the debut datetime
         6. Previous search got 0 matches
@@ -491,7 +491,7 @@ LIMIT 1;
 
         # Any period, 41 to 50 matches
         if 41 <= quantity <= 50:
-            return prev_search_period
+            return min(prev_search_period, default_search_interval)
 
         # Pre-debut period AND previous search had 5 or less per day
         if debut_date > end and matches_per_day <= 5:
