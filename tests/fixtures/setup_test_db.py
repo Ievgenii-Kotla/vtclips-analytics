@@ -626,7 +626,6 @@ RETURNING youtube_video_id;
     talent_ids = populate_talent()
     populate_keyword_talent(keyword_ids, talent_ids)
     youtube_channel_ids = populate_youtube_channel()
-    #populate_search_yt_youtube_channel(search_yt_ids, youtube_channel_ids)
     youtube_video_ids = populate_youtube_video(youtube_channel_ids)
     populate_search_yt_youtube_video(search_yt_ids, youtube_video_ids)
 
@@ -675,7 +674,6 @@ def _truncate_all(connection, cursor):
         'TRUNCATE TABLE keyword_search_yt CASCADE;',
         'TRUNCATE TABLE keyword_talent CASCADE;',
         'TRUNCATE TABLE search_yt CASCADE;',
-        #'TRUNCATE TABLE search_yt_youtube_channel CASCADE;',
         'TRUNCATE TABLE search_yt_youtube_video CASCADE;',
         'TRUNCATE TABLE talent CASCADE;',
         'TRUNCATE TABLE youtube_channel CASCADE;',
@@ -688,6 +686,228 @@ def _truncate_all(connection, cursor):
     ]
     for query in truncate_table_queries:
         cursor.execute(query)
+
+
+def _populate_all_for_search_interval(cursor):
+    """ Populate test db with all the data necessary for testing calculate_search_interval. """
+
+    def populate_search_yt():
+        query = """
+        INSERT INTO search_yt (
+        published_after,
+        published_before,
+        results_per_page,
+        q,
+        results_per_page_max,
+        total_results
+        )
+        VALUES (
+        %(published_after)s,
+        %(published_before)s,
+        %(results_per_page)s,
+        %(q)s,
+        %(results_per_page_max)s,
+        %(total_results)s
+        )
+        RETURNING search_yt_id;
+        """
+        dataset = [
+            # pre-debut, 5 or less matches per day
+            {
+                'published_after': '2023-12-01 00:00:00+00:00',
+                'published_before': '2023-12-02 23:59:59+00:00',
+                'results_per_page': 3,
+                'q': 'keyword_1',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # pre-debut, 5 or less matches per day, but right before debut
+            {
+                'published_after': '2023-12-28 00:00:00+00:00',
+                'published_before': '2023-12-29 23:59:59+00:00',
+                'results_per_page': 3,
+                'q': 'keyword_2',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # post-debut, zero matches
+            {
+                'published_after': '2024-01-03 00:00:00+00:00',
+                'published_before': '2024-01-04 23:59:59+00:00',
+                'results_per_page': 0,
+                'q': 'keyword_3',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # post-debut, 1 to 10 matches. Big previous search
+            {
+                'published_after': '2024-01-05 00:00:00+00:00',
+                'published_before': '2024-01-11 23:59:59+00:00',
+                'results_per_page': 9,
+                'q': 'keyword_4',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # post-debut, 1 to 10 matches. Normal previous search
+            {
+                'published_after': '2024-01-05 00:00:00+00:00',
+                'published_before': '2024-01-06 23:59:59+00:00',
+                'results_per_page': 9,
+                'q': 'keyword_5',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # any period, 11 to 40 matches.
+            {
+                'published_after': '2024-01-05 00:00:00+00:00',
+                'published_before': '2024-01-08 23:59:59+00:00',
+                'results_per_page': 25,
+                'q': 'keyword_6',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # any period, 41 to 50 matches
+            {
+                'published_after': '2024-01-04 00:00:00+00:00',
+                'published_before': '2024-01-06 23:59:59+00:00',
+                'results_per_page': 45,
+                'q': 'keyword_7',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # old search (ended more than 1 second before current search starts)
+            {
+                'published_after': '2024-01-05 00:00:00+00:00',
+                'published_before': '2024-01-06 23:59:59+00:00',
+                'results_per_page': 25,
+                'q': 'keyword_8',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+        ]
+        ids = []
+        for data in dataset:
+            cursor.execute(query, data)
+            ids.append(cursor.fetchone()[0])
+        return ids
+
+    def populate_talent():
+        query = """
+        INSERT INTO talent (
+        debut_datetime,
+        first_name_eng
+        )
+        VALUES (
+        %(debut_datetime)s,
+        %(first_name_eng)s
+        )
+        RETURNING talent_id;
+        """
+        dataset = [
+            {
+                'debut_datetime': '2024-01-01 00:00:00+00:00',
+                'first_name_eng': 'talent_name_one'
+            },
+        ]
+        ids = []
+        for data in dataset:
+            cursor.execute(query, data)
+            ids.append(cursor.fetchone()[0])
+        return ids
+
+    def populate_keyword():
+        query = """
+        INSERT INTO keyword (
+        keyword_word,
+        priority
+        )
+        VALUES (
+        %(keyword_word)s,
+        %(priority)s
+        )
+        RETURNING keyword_id;
+        """
+        dataset = [
+            {
+                'keyword_word': 'keyword_1',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_2',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_3',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_4',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_5',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_6',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_7',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_8',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_9',
+                'priority': 1
+            },
+            {
+                'keyword_word': 'keyword_10',  # no searches
+                'priority': 1
+            },
+        ]
+        ids = []
+        for data in dataset:
+            cursor.execute(query, data)
+            ids.append(cursor.fetchone()[0])
+        return ids
+
+    def populate_keyword_search_yt(keyword_ids, search_yt_ids):
+        query = """
+        INSERT INTO keyword_search_yt (
+        keyword_id,
+        search_yt_id
+        )
+        VALUES (
+        %(keyword_id)s,
+        %(search_yt_id)s
+        );
+        """
+        for keyword_id, search_yt_id in zip(keyword_ids, search_yt_ids):
+            cursor.execute(query, {'keyword_id': keyword_id, 'search_yt_id': search_yt_id})
+
+    def populate_keyword_talent(keyword_ids, talent_ids):
+        query = """
+        INSERT INTO keyword_talent (
+        keyword_id,
+        talent_id
+        )
+        VALUES (
+        %(keyword_id)s,
+        %(talent_id)s
+        );
+        """
+        for keyword_id in keyword_ids:
+            cursor.execute(query, {'keyword_id': keyword_id, 'talent_id': talent_ids[0]})
+
+    search_yt_ids = populate_search_yt()
+    talent_ids = populate_talent()
+    keyword_ids = populate_keyword()
+    populate_keyword_search_yt(keyword_ids, search_yt_ids)
+    populate_keyword_talent(keyword_ids, talent_ids)
 
 
 def reset_for_map():
@@ -712,6 +932,19 @@ def reset_for_save():
     print('Test DB was reset for save() testing.')
 
 
+def reset_for_interval():
+    """ Reset the DB for testing related to the length of the search. """
+    connection = connect_to_test_db()
+    cursor = connection.cursor()
+    _truncate_all(connection, cursor)
+    _populate_all_for_search_interval(cursor)
+    cursor.close()
+    connection.commit()
+    connection_close(connection)
+    print('Test DB was reset for search interval testing')
+
+
 if __name__ == '__main__':
     reset_for_map()
     reset_for_save()
+    reset_for_interval()
