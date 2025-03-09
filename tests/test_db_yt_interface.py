@@ -736,5 +736,78 @@ class TestPrepareAPI(unittest.TestCase):
         self.assertEqual(expected, actual, "Data in the file didn't update properly after reset adn reload. ")
 
 
+class TestSearchYTByKeywordCalculateSearchInterval(unittest.TestCase):
+    """ Test SearchYTByKeyword.calculate_search_interval method. """
+
+    connection = None
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        setup_test_db.reset_for_interval()
+        cls.connection = connect_to_db.connect_to_test_db()
+        cls.instance = db_yt_interface.SearchYTByKeyword(
+            cls.connection,
+            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json')
+        )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        connect_to_db.connection_close(cls.connection)
+
+    def test_calculate_search_interval_first_search(self):
+        date = datetime.datetime.fromisoformat('2025-01-01 00:00:00+00:00')
+        keyword = 'keyword_10'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=1, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_pre_debut_full(self):
+        date = datetime.datetime.fromisoformat('2023-12-03 00:00:00+00:00')
+        keyword = 'keyword_1'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=6, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_pre_debut_short(self):
+        date = datetime.datetime.fromisoformat('2023-12-30 00:00:00+00:00')
+        keyword = 'keyword_2'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=1, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_post_debut_zero_matches(self):
+        date = datetime.datetime.fromisoformat('2024-01-05 00:00:00+00:00')
+        keyword = 'keyword_3'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=6, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_post_debut_1to10_big(self):
+        date = datetime.datetime.fromisoformat('2024-01-12 00:00:00+00:00')
+        keyword = 'keyword_4'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=6, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_post_debut_1to10_medium(self):
+        date = datetime.datetime.fromisoformat('2024-01-07 00:00:00+00:00')
+        keyword = 'keyword_5'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=3, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_11to40(self):
+        date = datetime.datetime.fromisoformat('2024-01-09 00:00:00+00:00')
+        keyword = 'keyword_6'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=3, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_41to50(self):
+        date = datetime.datetime.fromisoformat('2024-01-07 00:00:00+00:00')
+        keyword = 'keyword_7'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=2, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_old_search(self):
+        date = datetime.datetime.fromisoformat('2024-01-07 00:00:01+00:00')
+        keyword = 'keyword_8'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=1, hours=23, minutes=59, seconds=59), interval)
+
+
 if __name__ == 'main':
     unittest.main()
