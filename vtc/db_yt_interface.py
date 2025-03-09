@@ -169,8 +169,8 @@ class SearchYTByKeyword:
         self.part = "snippet"
         self.max_results = 50
         self.order = None
-        self.published_after = start_search_datetime
-        self.published_before = end_search_datetime
+        self.published_after = datetime.datetime.fromisoformat(start_search_datetime)
+        self.published_before = datetime.datetime.fromisoformat(end_search_datetime)
         self.search_query = None
         self.region_code = "US"
         self.safe_Search = "none"
@@ -401,17 +401,120 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
                 end = new_end
 
         end = min(
-            start + datetime.timedelta(days=1, hours=23, minutes=59, seconds=59),
+            start + self.calculate_search_interval(keyword_word=keyword_word, published_after=start),
             self.datetime_now,
             end
         )
         self.keyword_id = (keyword_id,)
         self.search_query = keyword_word
-        self.published_after = start.isoformat()
-        self.published_before = end.isoformat()
+        self.published_after = start
+        self.published_before = end
 
         if end - start < datetime.timedelta(hours=23, minutes=59, seconds=59):
             logger.info(f"Current search's length is {end - start} hh:mm:ss")
+
+    def calculate_search_interval(self, keyword_word=None, published_after=None):
+        """
+        Calculate search interval.
+
+        Parameters:
+            keyword_word (str): Keyword itself, e.g. '@irys'
+            published_after (datetime.datetime): Start of the current search
+        return:
+            datetime.timedelta
+
+        Behavior (all conditions except the first two imply very recent search):
+        1. No previous search
+            return default
+        2. Previous search is not recent
+            return default
+        3. Any period, 11 to 40 matches
+            keep period of the previous search
+        4. Any period, 41 to 50
+            keep period of the previous search
+        5. Pre-debut period search AND previous search had 5 or less per day
+            return 7 days, but must not go further then the debut datetime
+        6. Previous search got 0 matches
+            return 7 days
+        7. Previous search got 1 to 10 matches
+            return 4 days or previous search length (whatever is bigger)
+        8. else
+            log a warning
+            return default or previous search length (whatever is bigger)
+        """
+
+        if keyword_word is None:
+            keyword_word = self.search_query
+        if published_after is None:
+            published_after = self.published_before
+        default_search_interval = datetime.timedelta(days=1, hours=23, minutes=59, seconds=59)
+        query = """
+SELECT s.published_after, s.published_before, s.results_per_page, t.debut_datetime
+FROM search_yt AS s
+JOIN keyword_search_yt AS ks
+    ON s.search_yt_id = ks.search_yt_id
+JOIN keyword AS k
+    ON ks.keyword_id = k.keyword_id
+JOIN keyword_talent AS kt
+    ON k.keyword_id = kt.keyword_id
+JOIN talent AS t
+    ON kt.talent_id = t.talent_id
+WHERE q = %(keyword_word)s
+    AND published_after < %(published_after)s
+ORDER BY published_before DESC
+LIMIT 1;
+"""
+        values = {
+            'keyword_word': keyword_word,
+            'published_after': published_after
+        }
+        cursor = self.connection.cursor()
+        cursor.execute(query, values)
+        data = cursor.fetchone()  # Info about the latest search
+        cursor.close()
+
+        # No previous search
+        if data is None:
+            return default_search_interval
+
+        start, end, quantity, debut_date = data
+        prev_search_period: datetime.timedelta = end - start
+        matches_per_day = int(quantity/(prev_search_period.total_seconds()/86400))
+
+        # Previous search is not recent
+        if published_after - end < datetime.timedelta(seconds=1):
+            return default_search_interval
+
+        # Any period, 11 to 40 matches
+        if 11 <= quantity < 40:
+            return prev_search_period
+
+        # Any period, 41 to 50 matches
+        if 41 <= quantity <= 50:
+            return prev_search_period
+
+        # Pre-debut period AND previous search had 5 or less per day
+        if debut_date > end and matches_per_day <= 5:
+            return min(
+                datetime.timedelta(days=6, hours=23, minutes=59, seconds=59),
+                # -1 second because both boundaries in yt search are inclusive
+                debut_date - published_after - datetime.timedelta(seconds=1)
+            )
+
+        # Previous search had 0 matches
+        if quantity == 0:
+            return datetime.timedelta(days=6, hours=23, minutes=59, seconds=59)
+
+        # Previous search had 1 to 10 matches
+        if 1 <= quantity <= 10:
+            return max(
+                datetime.timedelta(days=3, hours=23, minutes=59, seconds=59),
+                prev_search_period
+            )
+
+        # Behaviour for other situations
+        logger.warning('Unexpected calculation of the search interval')
+        return default_search_interval
 
     # TBI
     def updated_quota(self):
@@ -460,8 +563,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.response = youtube.search().list(
             part="snippet",
             maxResults=self.max_results,
-            publishedAfter=self.published_after,
-            publishedBefore=self.published_before,
+            publishedAfter=self.published_after.isoformat(),
+            publishedBefore=self.published_before.isoformat(),
             q=self.search_query,
             regionCode="US",
             safeSearch="none",
