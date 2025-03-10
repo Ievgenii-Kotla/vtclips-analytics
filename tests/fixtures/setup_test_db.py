@@ -766,7 +766,7 @@ def _populate_all_for_search_interval(cursor):
                 'results_per_page_max': 50,
                 'total_results': 1000
             },
-            # any period, 41 to 50 matches
+            # any period, 41 to 50 matches. Big previous search
             {
                 'published_after': '2024-01-04 00:00:00+00:00',
                 'published_before': '2024-01-06 23:59:59+00:00',
@@ -781,6 +781,15 @@ def _populate_all_for_search_interval(cursor):
                 'published_before': '2024-01-06 23:59:59+00:00',
                 'results_per_page': 25,
                 'q': 'keyword_8',
+                'results_per_page_max': 50,
+                'total_results': 1000
+            },
+            # any period, 41 to 50 matches. Small previous search
+            {
+                'published_after': '2024-01-04 00:00:00+00:00',
+                'published_before': '2024-01-04 23:59:59+00:00',
+                'results_per_page': 45,
+                'q': 'keyword_9',
                 'results_per_page_max': 50,
                 'total_results': 1000
             },

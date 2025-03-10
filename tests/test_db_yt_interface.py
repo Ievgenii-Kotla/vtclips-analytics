@@ -796,17 +796,23 @@ class TestSearchYTByKeywordCalculateSearchInterval(unittest.TestCase):
         interval = self.instance.calculate_search_interval(keyword, date)
         self.assertEqual(datetime.timedelta(days=3, hours=23, minutes=59, seconds=59), interval)
 
-    def test_calculate_search_interval_41to50(self):
+    def test_calculate_search_interval_41to50_big(self):
         date = datetime.datetime.fromisoformat('2024-01-07 00:00:00+00:00')
         keyword = 'keyword_7'
         interval = self.instance.calculate_search_interval(keyword, date)
-        self.assertEqual(datetime.timedelta(days=2, hours=23, minutes=59, seconds=59), interval)
+        self.assertEqual(datetime.timedelta(days=1, hours=23, minutes=59, seconds=59), interval)
 
     def test_calculate_search_interval_old_search(self):
         date = datetime.datetime.fromisoformat('2024-01-07 00:00:01+00:00')
         keyword = 'keyword_8'
         interval = self.instance.calculate_search_interval(keyword, date)
         self.assertEqual(datetime.timedelta(days=1, hours=23, minutes=59, seconds=59), interval)
+
+    def test_calculate_search_interval_41to50_small(self):
+        date = datetime.datetime.fromisoformat('2024-01-05 00:00:00+00:00')
+        keyword = 'keyword_9'
+        interval = self.instance.calculate_search_interval(keyword, date)
+        self.assertEqual(datetime.timedelta(days=0, hours=23, minutes=59, seconds=59), interval)
 
 
 if __name__ == 'main':
