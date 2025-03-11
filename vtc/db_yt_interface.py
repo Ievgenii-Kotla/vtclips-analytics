@@ -6,7 +6,7 @@ import traceback
 import json
 import logging
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, HttpError
 from psycopg2.extras import execute_values
 
 from vtc import connect_to_db, vtc_logging
@@ -91,11 +91,14 @@ class PrepareAPI:
         min_quota_key = min(quotas_over_threshold, key=quotas_over_threshold.get)
         return self.api_keys[min_quota_key]
 
+    def get_api_key_id(self, api_key):
+        """Return corresponding dictionary key (id) associated with the given API key."""
+        return next(key for key, value in self.api_keys.items() if value == api_key)
+
     def change_quota(self, api_key: str, change: int):
         """ Change quota by the 'change' value for a specified API key in the file and for the current instance. """
-        # Find corresponding dictionary key associated with the given API key
-        key = next(key for key, value in self.api_keys.items() if value == api_key)
 
+        key = self.get_api_key_id(api_key)
         # Update
         self.api_quotas[key] = self.api_quotas[key] + change
         self.save_api_quotas_info(
@@ -570,7 +573,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             safeSearch="none",
             type="video",
         ).execute()
-        # todo: replace with a proper logging
+
         logger.info(f"max results: {self.max_results}\n"
                     f"publishedAfter: {self.published_after}\n"
                     f"publishedBefore: {self.published_before}\n"
@@ -589,11 +592,19 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
 
     def search_next_and_save(self):
         """ Coordinate the process of searching YT. """
-        self.prepare_search()
-        self.search()
-        self.filter_response()
-        self.validate_results_per_page_qty()
-        self.save()
+        try:
+            self.prepare_search()
+            self.search()
+            self.filter_response()
+            self.validate_results_per_page_qty()
+            self.save()
+        except HttpError as err:
+            if err.resp.status == 403:
+                logger.info(f'Quota exceeded (prematurely). '
+                            f'API key: {self.api_service.get_api_key_id(self.api_service.get_api_key())}. '
+                            f'Quota left: {self.api_service.get_quota_left(self.api_service.get_api_key())}')
+            else:
+                logger.info(err)
 
     def save_youtube_channel(self):
         """ Save new information to the 'youtube_channel' table. """
