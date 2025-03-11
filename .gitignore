@@ -177,6 +177,7 @@ data/api_quota_state.json
 data/test_api_quota_state.json
 todo
 logs
+known_issues.txt
 
 
 # other
