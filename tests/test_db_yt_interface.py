@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from unittest.mock import patch, ANY
+from unittest.mock import patch, ANY, MagicMock
 import json
 import os
 
@@ -813,6 +813,188 @@ class TestSearchYTByKeywordCalculateSearchInterval(unittest.TestCase):
         keyword = 'keyword_9'
         interval = self.instance.calculate_search_interval(keyword, date)
         self.assertEqual(datetime.timedelta(days=0, hours=23, minutes=59, seconds=59), interval)
+
+
+class TestSearchYTByKeywordSubsearch(unittest.TestCase):
+    connection = None
+    instance = None
+    cursor = None
+    searches = {
+        'search_1': {
+            'searched_at': '2025-01-10 00:00:01+00:00',
+            'published_after': '2025-01-10 00:00:00+00:00',
+            'published_before': '2025-01-11 23:59:59+00:00',
+            'q': 'keyword_1',
+            'region_code': 'US',
+            'search_layer': 1,
+            'parent_id': None,
+            'results_per_page': 50,
+            'total_results': 100,
+            'results_per_page_max': 50
+        },
+        'search_2': {
+            'searched_at': '2025-01-10 00:00:02+00:00',
+            'published_after': '2025-01-10 00:00:00+00:00',
+            'published_before': '2025-01-11 23:59:59+00:00',
+            'q': 'keyword_2',
+            'region_code': 'US',
+            'search_layer': 1,
+            'parent_id': None,
+            'results_per_page': 50,
+            'total_results': 100,
+            'results_per_page_max': 50
+        },
+        'search_3': {
+            'searched_at': '2025-01-10 00:00:03+00:00',
+            'published_after': '2025-01-10 00:00:00+00:00',
+            'published_before': '2025-01-11 23:59:59+00:00',
+            'q': 'keyword_3',
+            'region_code': 'US',
+            'search_layer': 1,
+            'parent_id': None,
+            'results_per_page': 50,
+            'total_results': 100,
+            'results_per_page_max': 50
+        },
+    }
+    subsearches = {
+        'search_1_subsearch_1': {
+            'searched_at': '2025-01-10 00:00:11+00:00',
+            'published_after': '2025-01-10 00:00:00+00:00',
+            'published_before': '2025-01-10 23:59:59+00:00',
+            'q': 'keyword_1',
+            'region_code': 'US',
+            'search_layer': 1,
+            'parent_id': 1,
+            'results_per_page': 30,
+            'total_results': 100,
+            'results_per_page_max': 50
+        },
+        'search_1_subsearch_2': {
+            'searched_at': '2025-01-10 00:00:21+00:00',
+            'published_after': '2025-01-11 00:00:00+00:00',
+            'published_before': '2025-01-11 23:59:59+00:00',
+            'q': 'keyword_1',
+            'region_code': 'US',
+            'search_layer': 1,
+            'parent_id': 1,
+            'results_per_page': 30,
+            'total_results': 100,
+            'results_per_page_max': 50
+        },
+        'search_2_subsearch_1': {
+            'searched_at': '2025-01-10 00:00:12+00:00',
+            'published_after': '2025-01-10 00:00:00+00:00',
+            'published_before': '2025-01-10 23:59:59+00:00',
+            'q': 'keyword_2',
+            'region_code': 'US',
+            'search_layer': 1,
+            'parent_id': 2,
+            'results_per_page': 30,
+            'total_results': 100,
+            'results_per_page_max': 50
+        },
+    }
+
+    def populate_search_yt(self, search_ids, subsearch_ids):
+        query = """
+        INSERT INTO search_yt (
+            searched_at,
+            published_after,
+            published_before,
+            q,
+            region_code,
+            search_layer,
+            parent_id,
+            results_per_page,
+            total_results,
+            results_per_page_max
+        )
+        VALUES (
+            %(searched_at)s,
+            %(published_after)s,
+            %(published_before)s,
+            %(q)s,
+            %(region_code)s,
+            %(search_layer)s,
+            %(parent_id)s,
+            %(results_per_page)s,
+            %(total_results)s,
+            %(results_per_page_max)s
+        )
+        RETURNING search_yt_id;
+        """
+        dataset = [self.searches[search_id] for search_id in search_ids]
+        ids = []
+        for data in dataset:
+            self.cursor.execute(query, data)
+            ids.append(self.cursor.fetchone()[0])
+
+        dataset = [self.subsearches[subsearch_id] for subsearch_id in subsearch_ids]
+        id_ = ids.pop()
+        for data in dataset:
+            data['parent_id'] = id_
+            self.cursor.execute(query, data)
+
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.connection = connect_to_db.connect_to_test_db()
+        cls.cursor = cls.connection.cursor()
+        cls.instance = db_yt_interface.SearchYTByKeyword(
+            cls.connection,
+            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json')
+        )
+        while True:
+            success = cls.instance.subsearch_next_and_save()
+            if not success:
+                break
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.cursor.execute('TRUNCATE TABLE search_yt CASCADE;')
+        cls.cursor.close()
+        connect_to_db.connection_close(cls.connection)
+
+    def setUp(self) -> None:
+        self.cursor.execute('TRUNCATE TABLE search_yt CASCADE;')
+
+    def test_subsearch_no_subsearch(self):
+        search_ids = ['search_3', ]
+        subsearch_ids = []
+        self.populate_search_yt(search_ids, subsearch_ids)
+        self.instance.set_subsearch_map()
+        self.instance.prepare_subsearch_query()
+
+        self.assertEqual(datetime.datetime.fromisoformat('2025-01-10 00:00:00+00:00'), self.instance.published_after)
+        self.assertEqual(datetime.datetime.fromisoformat('2025-01-10 23:59:59+00:00'), self.instance.published_before)
+
+    def test_subsearch_one_subsearch(self):
+        search_ids = ['search_2', ]
+        subsearch_ids = ['search_2_subsearch_1', ]
+        self.populate_search_yt(search_ids, subsearch_ids)
+        self.instance.set_subsearch_map()
+        self.instance.prepare_subsearch_query()
+
+        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 00:00:00+00:00'), self.instance.published_after)
+        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 23:59:59+00:00'), self.instance.published_before)
+
+    def test_subsearch_two_subsearches(self):
+        search_ids = ['search_1', ]
+        subsearch_ids = ['search_1_subsearch_1', 'search_1_subsearch_2', ]
+        self.populate_search_yt(search_ids, subsearch_ids)
+        success = self.instance.set_subsearch_map()
+        self.assertFalse(success, 'Should not create map under those conditions')
+
+    def test_subsearch_order(self):
+        search_ids = ['search_3', 'search_2', ]
+        subsearch_ids = ['search_2_subsearch_1', ]
+        self.populate_search_yt(search_ids, subsearch_ids)
+        self.instance.set_subsearch_map()
+        self.instance.prepare_subsearch_query()
+
+        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 00:00:00+00:00'), self.instance.published_after)
+        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 23:59:59+00:00'), self.instance.published_before)
 
 
 if __name__ == 'main':
