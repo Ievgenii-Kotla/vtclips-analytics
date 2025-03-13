@@ -167,6 +167,7 @@ class SearchYTByKeyword:
 
         self.search_map: List[Tuple[int, str, datetime.datetime, datetime.datetime], ] | None = None
         self.response = None
+        self.subsearch_map: List[Tuple[int, datetime.datetime, datetime.datetime, str, str, int], ] | None = None
 
         # Default values for constant YT search parameters
         self.part = "snippet"
@@ -187,6 +188,7 @@ class SearchYTByKeyword:
         self.youtube_video_values = None
         self.youtube_channel_values = None
         self.datetime_now = None
+        self.parent_search_id: int | None = None
         self.update_datetime_now()
 
         # Other
@@ -585,10 +587,87 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         """ Prepare all the necessary data and variables for the search. """
 
         self.update_datetime_now()
+        self.parent_search_id = None
         # Create the map of what keywords where searched already and at what time periods.
         self.set_search_map()
         # Current algorithm for providing the search details
         self.prepare_query_and_period_alg1()
+
+    def subsearch_next_and_save(self):
+        self.set_subsearch_map()
+        if not self.subsearch_map:
+            return False
+        self.prepare_subsearch_query()
+        self.search()
+        self.save()
+
+    def set_subsearch_map(self):
+        """Create a map with all searches that need to be subsearched.
+        (ones that have 50 videos per search and have not been sub-searched) """
+
+        query = """
+SELECT 1;
+SET TIME ZONE UTC;
+WITH subsearch AS (
+    SELECT parent_id, COUNT(*) AS quantity
+    FROM search_yt
+    GROUP BY parent_id
+)
+SELECT
+    s1.search_yt_id,
+    s1.published_after,
+    s1.published_before,
+    s1.q,
+    s1.region_code,
+    s1.search_layer,
+    COALESCE(sb.quantity, 0) AS subsearch_qty,
+    s2.published_after,
+    s2.published_before
+FROM search_yt AS s1
+LEFT JOIN subsearch AS sb
+    ON s1.search_yt_id = sb.parent_id
+LEFT JOIN search_yt AS s2
+    ON s1.search_yt_id = s2.parent_id
+WHERE s1.results_per_page = 50
+ORDER BY s1.searched_at;
+"""
+        cursor = self.connection.cursor()
+        cursor.execute(query)
+        self.subsearch_map = cursor.fetchall()
+        cursor.close()
+
+    def prepare_subsearch_query(self):
+        self.update_datetime_now()
+        logger.info(f'Searches in need for subsearching: {len(self.subsearch_map)}\n'
+                    f'Total subsearches needed: {sum([2 - num[6] for num in self.subsearch_map])}')
+
+        data = self.subsearch_map.pop(0)
+        (
+            parent_id,
+            parent_published_after,
+            parent_published_before,
+            q,
+            region_code,
+            search_layer,
+            subsearch_qty,
+            child_published_after,
+            child_published_before
+        ) = data
+
+        if subsearch_qty == 0:
+            parent_search_period: datetime.timedelta = parent_published_before - parent_published_after
+            child_search_period: datetime.timedelta = datetime.timedelta(
+                seconds=parent_search_period.total_seconds() // 2)
+            self.published_after = parent_published_after
+            self.published_before = parent_published_after + child_search_period
+        elif subsearch_qty == 1:
+            self.published_after = child_published_before + datetime.timedelta(seconds=1)
+            self.published_before = parent_published_before
+        else:
+            raise ValueError(f'subsearch_qty value {subsearch_qty} is unsupported')
+        self.search_layer = search_layer
+        self.search_query = q
+        self.parent_search_id = parent_id
 
     def search_next_and_save(self):
         """ Coordinate the process of searching YT. """
@@ -711,7 +790,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         total_results,
         region_code,
         q,
-        search_layer
+        search_layer,
+        parent_id
     )
     VALUES %s
     RETURNING search_yt_id;
@@ -729,14 +809,15 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                 self.response["pageInfo"]["totalResults"],
                 self.response["regionCode"],
                 self.search_query,
-                self.search_layer
+                self.search_layer,
+                self.parent_search_id
             ]
         ]
         search_yt_ids = execute_values(
             self.cursor,
             search_yt_query,
             search_yt_values,
-            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             fetch=True
         )
         self.search_yt_id = search_yt_ids[0][0]
