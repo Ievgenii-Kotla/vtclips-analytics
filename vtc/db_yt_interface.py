@@ -449,6 +449,8 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         """
 
         if keyword_word is None:
+            # todo: fix: self. search_query is None on the fisrt run.
+            #  Meaning it stores value of the previous run on non-first runs
             keyword_word = self.search_query
         if published_after is None:
             published_after = self.published_before
@@ -490,14 +492,6 @@ LIMIT 1;
         if published_after - end < datetime.timedelta(seconds=1):
             return default_search_interval
 
-        # Any period, 11 to 40 matches
-        if 11 <= quantity < 40:
-            return prev_search_period
-
-        # Any period, 41 to 50 matches
-        if 41 <= quantity <= 50:
-            return min(prev_search_period, default_search_interval)
-
         # Pre-debut period AND previous search had 5 or less per day
         if debut_date > end and matches_per_day <= 5:
             return min(
@@ -516,6 +510,15 @@ LIMIT 1;
                 datetime.timedelta(days=3, hours=23, minutes=59, seconds=59),
                 prev_search_period
             )
+
+        # Previous search had 11 to 40 matches
+        if 11 <= quantity < 40:
+            return prev_search_period
+
+        # Previous search had 41 to 50 matches
+        if 41 <= quantity <= 50:
+            return min(prev_search_period, default_search_interval)
+
 
         # Behaviour for other situations
         logger.warning('Unexpected calculation of the search interval')
