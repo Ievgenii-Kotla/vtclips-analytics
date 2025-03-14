@@ -433,17 +433,19 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             return default
         2. Previous search is not recent
             return default
-        3. Any period, 11 to 40 matches
-            return period of the previous search
-        4. Any period, 41 to 50
-            return period of the previous search or default search period (whatever is smaller)
-        5. Pre-debut period search AND previous search had 5 or less per day
-            return 7 days, but must not go further then the debut datetime
-        6. Previous search got 0 matches
+        3. Pre-debut period search AND previous search had 5 or less
+            return 7 days, but must not go further than the debut datetime
+        4. Pre-debut period search AND previous search had 6 to 50 matches
+            return 2 day, but must not go further than the debut datetime
+        5. Previous search got 0 matches
             return 7 days
-        7. Previous search got 1 to 10 matches
+        6. Previous search got 1 to 10 matches
             return 4 days or previous search length (whatever is bigger)
-        8. else
+        7. Any period, 11 to 40 matches
+            return period of the previous search
+        8. Any period, 41 to 50
+            return period of the previous search or default search period (whatever is smaller)
+        9. else
             log a warning
             return default or previous search length (whatever is bigger)
         """
@@ -486,16 +488,23 @@ LIMIT 1;
 
         start, end, quantity, debut_date = data
         prev_search_period: datetime.timedelta = end - start
-        matches_per_day = int(quantity/(prev_search_period.total_seconds()/86400))
 
         # Previous search is not recent
         if published_after - end < datetime.timedelta(seconds=1):
             return default_search_interval
 
         # Pre-debut period AND previous search had 5 or less per day
-        if debut_date > end and matches_per_day <= 5:
+        if debut_date > end and quantity <= 5:
             return min(
                 datetime.timedelta(days=6, hours=23, minutes=59, seconds=59),
+                # -1 second because both boundaries in yt search are inclusive
+                debut_date - published_after - datetime.timedelta(seconds=1)
+            )
+
+        # Pre-debut period AND previous search had 6 to 50 matches
+        if debut_date > end and 6 <= quantity <= 50:
+            return min(
+                datetime.timedelta(days=1, hours=23, minutes=59, seconds=59),
                 # -1 second because both boundaries in yt search are inclusive
                 debut_date - published_after - datetime.timedelta(seconds=1)
             )
@@ -518,7 +527,6 @@ LIMIT 1;
         # Previous search had 41 to 50 matches
         if 41 <= quantity <= 50:
             return min(prev_search_period, default_search_interval)
-
 
         # Behaviour for other situations
         logger.warning('Unexpected calculation of the search interval')
