@@ -80,6 +80,7 @@ class testParseArguments(unittest.TestCase):
         kwargs = vtc_main.parse_arguments()
         command = kwargs.pop('command')
         repetitions = kwargs.pop('repetitions')
+        do_subsearch = not kwargs.pop('no_subsearch')
         mock_conn = Mock()
         instance = db_yt_interface.SearchYTByKeyword(connection=mock_conn, api_service=Mock(), **kwargs)
         self.assertEqual(mock_conn, instance.connection)
