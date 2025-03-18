@@ -11,7 +11,12 @@ from vtc import db_yt_interface, connect_to_db, vtc_logging
 def search_yt_by_keyword(args: dict):
     connection = connect_to_db.connect_to_db()
     repetitions = args.pop('repetitions')
+    do_subsearch = not args.pop('no_subsearch')
     search_instance = db_yt_interface.SearchYTByKeyword(connection, **args)
+    while do_subsearch:
+        if not search_instance.subsearch_next_and_save():
+            break
+
     if repetitions == 0:
         while True:
             time.sleep(random.triangular(0.1, 4, 0.1))
@@ -105,6 +110,12 @@ def parse_arguments() -> dict:
                                      'searched in other layers, by having a separate search_map for each layer.'
                                      'default: current top layer'
                                 )
+    keyword_parser.add_argument('-ns',
+                                '--no_subsearch',
+                                action='store_true',
+                                help='Disable sub-searches. Default: does sub-searches'
+                                )
+
     args = vars(global_parser.parse_args())
 
     # Change data type, because future usage requires tuples instead of lists.
