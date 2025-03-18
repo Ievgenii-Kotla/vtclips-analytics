@@ -437,15 +437,17 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             return 7 days, but must not go further than the debut datetime
         4. Pre-debut period search AND previous search had 6 to 50 matches
             return 2 day, but must not go further than the debut datetime
-        5. Previous search got 0 matches
+        5. Debut. Search starts exactly at the debut date
+            return 1 day
+        6. Previous search got 0 matches
             return 7 days
-        6. Previous search got 1 to 10 matches
+        7. Previous search got 1 to 10 matches
             return 4 days or previous search length (whatever is bigger)
-        7. Any period, 11 to 40 matches
+        8. Any period, 11 to 40 matches
             return period of the previous search
-        8. Any period, 41 to 50
+        9. Any period, 41 to 50
             return period of the previous search or default search period (whatever is smaller)
-        9. else
+        10. else
             log a warning
             return default or previous search length (whatever is bigger)
         """
@@ -493,21 +495,25 @@ LIMIT 1;
         if published_after - end < datetime.timedelta(seconds=1):
             return default_search_interval
 
-        # Pre-debut period AND previous search had 5 or less per day
-        if debut_date > end and quantity <= 5:
+        # Pre-debut period AND previous search had 5 or fewer matches
+        # +1 and -1 second because both boundaries in yt search are inclusive
+        if debut_date > end + datetime.timedelta(seconds=1) and quantity <= 5:
             return min(
                 datetime.timedelta(days=6, hours=23, minutes=59, seconds=59),
-                # -1 second because both boundaries in yt search are inclusive
                 debut_date - published_after - datetime.timedelta(seconds=1)
             )
 
         # Pre-debut period AND previous search had 6 to 50 matches
-        if debut_date > end and 6 <= quantity <= 50:
+        # +1 and -1 second because both boundaries in yt search are inclusive
+        if debut_date > end + datetime.timedelta(seconds=1) and 6 <= quantity <= 50:
             return min(
                 datetime.timedelta(days=1, hours=23, minutes=59, seconds=59),
-                # -1 second because both boundaries in yt search are inclusive
                 debut_date - published_after - datetime.timedelta(seconds=1)
             )
+
+        # Debut
+        if debut_date == published_after:
+            return datetime.timedelta(days=0, hours=23, minutes=59, seconds=59)
 
         # Previous search had 0 matches
         if quantity == 0:
@@ -611,6 +617,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.prepare_subsearch_query()
         self.search()
         self.save()
+        return True
 
     def set_subsearch_map(self):
         """Create a map with all searches that need to be subsearched.
