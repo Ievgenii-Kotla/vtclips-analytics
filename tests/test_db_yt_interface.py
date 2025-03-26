@@ -3,6 +3,7 @@ import datetime
 from unittest.mock import patch, ANY, MagicMock
 import json
 import os
+from contextlib import ExitStack
 
 from vtc import connect_to_db, db_yt_interface
 from vtc.db_yt_interface import PrepareAPI
@@ -539,13 +540,25 @@ class TestPrepareAPI(unittest.TestCase):
     def setUp(self) -> None:
         """ Create proper .json file with necessary info inside """
         filepath = "../data/test_api_quota_state.json"
+        self.quotas_test_values = {
+            "API_key0": {
+                "max": 10000,
+                "available": 5500,
+                "reserve": 4500
+            },
+            "API_key1": {
+                "max": 10000,
+                "available": 3100,
+                "reserve": 6900
+            },
+            "API_key2": {
+                "max": 10000,
+                "available": 7800,
+                "reserve": 2200
+            }
+        }
         file_content = {
-            "API_quotas":
-                {
-                    "API_key0": 10000,
-                    "API_key1": 10000,
-                    "API_key2": 10000
-                },
+            "API_quotas": self.quotas_test_values,
             "last_reset_at": "2024-01-01T07:00:00+00:00",
             "last_update_at": "2024-01-01T01:00:00+00:00"
         }
@@ -581,6 +594,11 @@ class TestPrepareAPI(unittest.TestCase):
             datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"),
             datetime.datetime.fromisoformat("2024-01-01T01:00:00+00:00")
         )
+        expected = (
+            self.quotas_test_values,
+            datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"),
+            datetime.datetime.fromisoformat("2024-01-01T01:00:00+00:00")
+        )
         self.instance.load_api_quotas_info()
         actual = (self.instance.api_quotas, self.instance.last_reset_at, self.instance.last_update_at)
         self.assertEqual(expected, actual)
@@ -588,11 +606,7 @@ class TestPrepareAPI(unittest.TestCase):
     def test_save_api_quotas_info(self):
         last_reset_at_str = "2024-01-01T07:00:00+00:00"
         last_update_at_str = "2024-01-01T01:00:00+00:00"
-        quotas = {
-            "API_key0": 1000,
-            "API_key1": 100,
-            "API_key2": 10
-        }
+        quotas = self.quotas_test_values
         last_reset_at = datetime.datetime.fromisoformat(last_reset_at_str)
         last_update_at = datetime.datetime.fromisoformat(last_update_at_str)
         expected = {"API_quotas": quotas} \
@@ -610,9 +624,21 @@ class TestPrepareAPI(unittest.TestCase):
 
     def test_get_api_key(self):
         self.instance.api_quotas = {
-            "API_key0": 1000,
-            "API_key1": 100,
-            "API_key2": 10
+            "API_key0": {
+                "max": 10000,
+                "available": 5500,
+                "reserve": 4500
+            },
+            "API_key1": {
+                "max": 10000,
+                "available": 100,
+                "reserve": 6900
+            },
+            "API_key2": {
+                "max": 10000,
+                "available": 10,
+                "reserve": 2200
+            }
         }
         expected = "key1"
         actual = self.instance.get_api_key()
@@ -627,9 +653,21 @@ class TestPrepareAPI(unittest.TestCase):
             self.instance.change_quota("key2", -500)
         expected = {
             "API_quotas": {
-                "API_key0": 10000,
-                "API_key1": 10000,
-                "API_key2": 9500
+                "API_key0": {
+                    "max": 10000,
+                    "available": 5500,
+                    "reserve": 4500
+                },
+                "API_key1": {
+                    "max": 10000,
+                    "available": 3100,
+                    "reserve": 6900
+                },
+                "API_key2": {
+                    "max": 10000,
+                    "available": 7300,
+                    "reserve": 2200
+                }
             },
             "last_reset_at": "2024-01-01T07:00:00+00:00",
             "last_update_at": "2024-01-01T01:00:00+00:00"
@@ -648,9 +686,21 @@ class TestPrepareAPI(unittest.TestCase):
             self.instance.change_quota("key2", -500)
         expected = (
             {
-                "API_key0": 10000,
-                "API_key1": 10000,
-                "API_key2": 9500
+                "API_key0": {
+                    "max": 10000,
+                    "available": 5500,
+                    "reserve": 4500
+                },
+                "API_key1": {
+                    "max": 10000,
+                    "available": 3100,
+                    "reserve": 6900
+                },
+                "API_key2": {
+                    "max": 10000,
+                    "available": 7300,
+                    "reserve": 2200
+                }
             },
             datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"),
             datetime.datetime.fromisoformat("2024-01-01T01:00:00+00:00")
@@ -664,19 +714,17 @@ class TestPrepareAPI(unittest.TestCase):
     def test__reset_quotas(self):
         with open(self.instance.filepath, "w", encoding="utf-8") as file:
             json.dump({"API_key0": 9999}, file)
-        with patch.object(
+        with ExitStack() as stack:
+            stack.enter_context(patch.dict(os.environ, {'API_keys': 'key0,key1,key2'}))
+            stack.enter_context(patch.object(db_yt_interface, 'randint', side_effect=[55, 31, 78]))
+            stack.enter_context(patch.object(
                 PrepareAPI,
                 "current_time_utc",
-                return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00")
-        ):
+                return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"))
+            )
             self.instance._reset_quotas()
         expected = {
-            "API_quotas":
-                {
-                    "API_key0": 10000,
-                    "API_key1": 10000,
-                    "API_key2": 10000
-                },
+            "API_quotas": self.quotas_test_values,
             "last_reset_at": "2024-01-01T07:00:00+00:00",
             "last_update_at": "2024-01-01T07:00:00+00:00"
         }
@@ -687,19 +735,17 @@ class TestPrepareAPI(unittest.TestCase):
     def test_reset_and_reload_quotas_instance(self):
         with open(self.instance.filepath, "w", encoding="utf-8") as file:
             json.dump({"API_key0": 9999}, file)
-        with patch.object(
+        with ExitStack() as stack:
+            stack.enter_context(patch.dict(os.environ, {'API_keys': 'key0,key1,key2'}))
+            stack.enter_context(patch.object(db_yt_interface, 'randint', side_effect=[55, 31, 78]))
+            stack.enter_context(patch.object(
                 PrepareAPI,
                 "current_time_utc",
-                return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00")
-        ):
+                return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"))
+            )
             self.instance.reset_and_reload_quotas()
         expected = {
-            "API_quotas":
-                {
-                    "API_key0": 10000,
-                    "API_key1": 10000,
-                    "API_key2": 10000
-                },
+            "API_quotas": self.quotas_test_values,
             "last_reset_at": datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"),
             "last_update_at": datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00")
         }
@@ -715,19 +761,17 @@ class TestPrepareAPI(unittest.TestCase):
     def test_reset_and_reload_quotas_file(self):
         with open(self.instance.filepath, "w", encoding="utf-8") as file:
             json.dump({"API_key0": 9999}, file)
-        with patch.object(
+        with ExitStack() as stack:
+            stack.enter_context(patch.dict(os.environ, {'API_keys': 'key0,key1,key2'}))
+            stack.enter_context(patch.object(db_yt_interface, 'randint', side_effect=[55, 31, 78]))
+            stack.enter_context(patch.object(
                 PrepareAPI,
                 "current_time_utc",
-                return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00")
-        ):
+                return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"))
+            )
             self.instance.reset_and_reload_quotas()
         expected = {
-            "API_quotas":
-                {
-                    "API_key0": 10000,
-                    "API_key1": 10000,
-                    "API_key2": 10000
-                },
+            "API_quotas": self.quotas_test_values,
             "last_reset_at": "2024-01-01T07:00:00+00:00",
             "last_update_at": "2024-01-01T07:00:00+00:00"
         }
