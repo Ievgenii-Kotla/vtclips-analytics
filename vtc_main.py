@@ -2,8 +2,6 @@ from __future__ import annotations
 import argparse
 import datetime
 import logging
-import time
-import random
 
 from vtc import db_yt_interface, connect_to_db, vtc_logging
 
@@ -19,7 +17,6 @@ def search_yt_by_keyword(args: dict):
 
     if repetitions == 0:
         while True:
-            time.sleep(random.triangular(0.1, 4, 0.1))
             try:
                 search_instance.search_next_and_save()
             # todo: add exception that occurs on no quota left or YT server connection error
