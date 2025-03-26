@@ -6,6 +6,8 @@ import traceback
 import json
 import logging
 from random import randint
+import time
+import random
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2.extras import execute_values
@@ -26,7 +28,7 @@ class PrepareAPI:
     def current_time_utc():
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
-    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json"):
+    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json", delay=True):
         def get_reset_target_time() -> datetime.datetime:
             time_now = self.current_time_utc()
             target_time = time_now.replace(hour=7, minute=0, second=0)
@@ -42,6 +44,7 @@ class PrepareAPI:
         self.last_update_at: datetime.datetime = None
         self.api_keys: dict[str, str] = self.load_api_keys()
         self.load_api_quotas_info()
+        self.delay = delay
 
         if self.last_reset_at < get_reset_target_time() or len(self.api_keys) != len(self.api_quotas):
             self.reset_and_reload_quotas()
@@ -97,11 +100,15 @@ class PrepareAPI:
         with open(self.filepath, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4)
 
-    def get_api_key(self, threshold=100) -> str:
+    def get_api_key(self, threshold=100, delay=None) -> str:
         """ Get working API key to access YT. """
         quotas_over_threshold = {
             key_id: stats['available'] for key_id, stats in self.api_quotas.items() if stats['available'] >= threshold}
         min_quota_key = min(quotas_over_threshold, key=quotas_over_threshold.get)
+        if delay is None:
+            delay = self.delay
+        if delay:
+            time.sleep(randint(60, 600))
         return self.api_keys[min_quota_key]
 
     def get_api_key_id(self, api_key):
