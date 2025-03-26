@@ -31,8 +31,10 @@ class TestSearchYTByKeywordSetMap(unittest.TestCase):
         setup_test_db.reset_for_map()
 
         connection = connect_to_db.connect_to_test_db()
-        instance = db_yt_interface.SearchYTByKeyword(connection=connection,
-                                                     api_service=PrepareAPI(filepath='../data/test_api_quota_state.json'))
+        instance = db_yt_interface.SearchYTByKeyword(
+            connection=connection,
+            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
+        )
         instance.set_search_map()
         connect_to_db.connection_close(connection)
 
@@ -318,7 +320,7 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         connection = connect_to_db.connect_to_test_db()
         search_instance = db_yt_interface.SearchYTByKeyword(
             connection=connection,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json')
+            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
         )
         search_instance.response = json.loads(json_response)
 
@@ -571,7 +573,7 @@ class TestPrepareAPI(unittest.TestCase):
                     return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00")
             ):
                 quota_points = 10000
-                self.instance = PrepareAPI(quota_points, filepath)
+                self.instance = PrepareAPI(quota_points=quota_points, filepath=filepath, delay=False)
 
     def test_load_api_keys(self):
         expected = {
@@ -791,7 +793,7 @@ class TestSearchYTByKeywordCalculateSearchInterval(unittest.TestCase):
         cls.connection = connect_to_db.connect_to_test_db()
         cls.instance = db_yt_interface.SearchYTByKeyword(
             cls.connection,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json')
+            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
         )
 
     @classmethod
@@ -987,7 +989,7 @@ class TestSearchYTByKeywordSubsearch(unittest.TestCase):
         cls.cursor = cls.connection.cursor()
         cls.instance = db_yt_interface.SearchYTByKeyword(
             cls.connection,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json')
+            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
         )
         while True:
             success = cls.instance.subsearch_next_and_save()
