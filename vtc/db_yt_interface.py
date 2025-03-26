@@ -5,6 +5,7 @@ import os
 import traceback
 import json
 import logging
+from random import randint
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2.extras import execute_values
@@ -33,10 +34,10 @@ class PrepareAPI:
                 target_time -= datetime.timedelta(days=1)
             return target_time
 
-        self.quota_points = quota_points
+        self.quota_points_max = quota_points
         self.filepath = filepath
         self.active_key: str = None
-        self.api_quotas: dict[str, int] = None
+        self.api_quotas: dict[str, dict[str, int]] = None
         self.last_reset_at: datetime.datetime = None
         self.last_update_at: datetime.datetime = None
         self.api_keys: dict[str, str] = self.load_api_keys()
@@ -53,7 +54,18 @@ class PrepareAPI:
         return api_keys_dict
 
     def load_api_quotas_info(self) -> None:
-        """ Load quota values for each API key, last reset and last update(other than reset) times from a file. """
+        """
+        Load information about API keys from a file.
+
+        Per API key:
+        - max quota points
+        - available quota points
+        - quota points that are reserved
+        General:
+        - last reset time
+        - last update time
+         """
+
         try:
             with open(self.filepath, "r", encoding="utf-8") as file:
                 data = json.load(file)
@@ -87,7 +99,8 @@ class PrepareAPI:
 
     def get_api_key(self, threshold=100) -> str:
         """ Get working API key to access YT. """
-        quotas_over_threshold = {key: value for key, value in self.api_quotas.items() if value >= threshold}
+        quotas_over_threshold = {
+            key_id: stats['available'] for key_id, stats in self.api_quotas.items() if stats['available'] >= threshold}
         min_quota_key = min(quotas_over_threshold, key=quotas_over_threshold.get)
         return self.api_keys[min_quota_key]
 
@@ -100,7 +113,7 @@ class PrepareAPI:
 
         key = self.get_api_key_id(api_key)
         # Update
-        self.api_quotas[key] = self.api_quotas[key] + change
+        self.api_quotas[key]['available'] = self.api_quotas[key]['available'] + change
         self.save_api_quotas_info(
             self.api_quotas,
             self.last_reset_at,
@@ -110,12 +123,17 @@ class PrepareAPI:
 
     def get_quota_left(self, api_key):
         key = next(key for key, value in self.api_keys.items() if value == api_key)
-        quota_left = self.api_quotas[key]
+        quota_left = self.api_quotas[key]['available']
         return quota_left
 
-    def _reset_quotas(self):
+    def _reset_quotas(self, lower_boundary=30, upper_boundary=80):
         """ Reset the file that stores quota counters, and times of last reset and last update. """
-        quotas = {f"API_key{i}": self.quota_points for i, _ in enumerate(self.api_keys)}
+        quotas = {
+            f"API_key{i}": {
+                'max': self.quota_points_max,
+                'available': (available_points := randint(lower_boundary, upper_boundary) * 100),
+                'reserve': self.quota_points_max - available_points
+            } for i, _ in enumerate(self.api_keys)}
         self.save_api_quotas_info(
             quotas,
             self.current_time_utc(),
