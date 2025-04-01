@@ -643,7 +643,7 @@ class TestPrepareAPI(unittest.TestCase):
             }
         }
         expected = "key1"
-        actual = self.instance.get_api_key()
+        actual = self.instance.get_api_key(random_key=False)
         self.assertEqual(expected, actual)
 
     def test_change_quota_file(self):
