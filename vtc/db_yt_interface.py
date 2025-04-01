@@ -5,7 +5,7 @@ import os
 import traceback
 import json
 import logging
-from random import randint
+from random import randint, choices
 import time
 import random
 
@@ -100,16 +100,31 @@ class PrepareAPI:
         with open(self.filepath, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4)
 
-    def get_api_key(self, threshold=100, delay=None) -> str:
+    def get_api_key(self, threshold=100, delay=None, random_key=True) -> str:
         """ Get working API key to access YT. """
+
+        # Using '// threshold' to ignore small quota leftovers that can't be used
         quotas_over_threshold = {
-            key_id: stats['available'] for key_id, stats in self.api_quotas.items() if stats['available'] >= threshold}
-        min_quota_key = min(quotas_over_threshold, key=quotas_over_threshold.get)
+            key_id: stats['available'] // threshold
+            for key_id, stats in self.api_quotas.items()
+            if stats['available'] >= threshold
+        }
+
+        if random_key:
+            total_quota_available = sum(quotas_over_threshold.values())
+            if total_quota_available == 0:
+                key_id = None
+            key_id = choices(list(quotas_over_threshold.keys()),
+                             weights=[value/total_quota_available for value in quotas_over_threshold.values()],
+                             k=1)[0]
+        else:
+            key_id = min(quotas_over_threshold, key=quotas_over_threshold.get)
+
         if delay is None:
             delay = self.delay
         if delay:
             time.sleep(randint(60, 600))
-        return self.api_keys[min_quota_key]
+        return self.api_keys[key_id]
 
     def get_api_key_id(self, api_key):
         """Return corresponding dictionary key (id) associated with the given API key."""
