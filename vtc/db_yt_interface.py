@@ -123,7 +123,9 @@ class PrepareAPI:
         if delay is None:
             delay = self.delay
         if delay:
-            time.sleep(randint(60, 600))
+            delay_sec = randint(60, 600)
+            logger.info(f'Delay: {delay_sec} seconds.')
+            time.sleep(delay_sec)
         return self.api_keys[key_id]
 
     def get_api_key_id(self, api_key):
