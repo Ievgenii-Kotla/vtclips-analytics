@@ -694,9 +694,8 @@ LEFT JOIN subsearch AS sb
 LEFT JOIN search_yt AS s2
     ON s1.search_yt_id = s2.parent_id
 WHERE s1.results_per_page = 50
-    AND sb.quantity IN (0, 1)
+    AND (sb.quantity = 1 OR sb.quantity is NULL)
 ORDER BY s1.searched_at;
-
 """
         cursor = self.connection.cursor()
         cursor.execute(query)
