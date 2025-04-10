@@ -123,7 +123,7 @@ class PrepareAPI:
         if delay is None:
             delay = self.delay
         if delay:
-            delay_sec = randint(60, 600)
+            delay_sec = randint(10, 100)
             logger.info(f'Delay: {delay_sec} seconds.')
             time.sleep(delay_sec)
         return self.api_keys[key_id]
@@ -223,7 +223,7 @@ class SearchYTByKeyword:
         self.type = "video"
 
         # Variables used to save to DB
-        self.keyword_id = (None,)
+        self.keyword_id: tuple[int] = (None,)
         self.new_yt_channel_ids = None
         self.new_yt_video_ids = None
         self.search_yt_id = None
@@ -682,14 +682,21 @@ SELECT
     s1.search_layer,
     COALESCE(sb.quantity, 0) AS subsearch_qty,
     s2.published_after,
-    s2.published_before
-FROM search_yt AS s1
+    s2.published_before,
+    (
+        SELECT array_agg(ks.keyword_id)
+        FROM keyword_search_yt as ks
+        WHERE ks.search_yt_id = s1.search_yt_id
+    )
+FROM search_yt AS s1 
 LEFT JOIN subsearch AS sb
     ON s1.search_yt_id = sb.parent_id
 LEFT JOIN search_yt AS s2
     ON s1.search_yt_id = s2.parent_id
 WHERE s1.results_per_page = 50
+    AND sb.quantity IN (0, 1)
 ORDER BY s1.searched_at;
+
 """
         cursor = self.connection.cursor()
         cursor.execute(query)
@@ -711,7 +718,8 @@ ORDER BY s1.searched_at;
             search_layer,
             subsearch_qty,
             child_published_after,
-            child_published_before
+            child_published_before,
+            keyword_ids
         ) = data
 
         if subsearch_qty == 0:
@@ -728,6 +736,8 @@ ORDER BY s1.searched_at;
         self.search_layer = search_layer
         self.search_query = q
         self.parent_search_id = parent_id
+
+        self.keyword_id = keyword_ids
 
     def search_next_and_save(self):
         """ Coordinate the process of searching YT. """
