@@ -12,13 +12,15 @@ def search_yt_by_keyword(args: dict):
     do_subsearch = not args.pop('no_subsearch')
     search_instance = db_yt_interface.SearchYTByKeyword(connection, **args)
 
+    # todo: make it properly stop when quota ends
+
     while repetitions != 0:
         # do subsearch if necessary
         if do_subsearch:
             success = search_instance.subsearch_next_and_save()
             if success:
                 repetitions -= 1
-            continue
+                continue
         # do normal search
         search_instance.search_next_and_save()
         repetitions -= 1
