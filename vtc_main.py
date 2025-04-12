@@ -11,21 +11,18 @@ def search_yt_by_keyword(args: dict):
     repetitions = args.pop('repetitions')
     do_subsearch = not args.pop('no_subsearch')
     search_instance = db_yt_interface.SearchYTByKeyword(connection, **args)
-    while do_subsearch:
-        if not search_instance.subsearch_next_and_save():
-            break
 
-    if repetitions == 0:
-        while True:
-            try:
-                search_instance.search_next_and_save()
-            # todo: add exception that occurs on no quota left or YT server connection error
-            except Exception as err:
-                print(f'Sequence of searches stopped because: \n {err}')
-                break
-    else:
-        for _ in range(repetitions):
-            search_instance.search_next_and_save()
+    while repetitions != 0:
+        # do subsearch if necessary
+        if do_subsearch:
+            success = search_instance.subsearch_next_and_save()
+            if success:
+                repetitions -= 1
+            continue
+        # do normal search
+        search_instance.search_next_and_save()
+        repetitions -= 1
+
     search_instance.session_stats()
     connect_to_db.connection_close(search_instance.connection)
 
@@ -96,8 +93,8 @@ def parse_arguments() -> dict:
     keyword_parser.add_argument('-r',
                                 '--repetitions',
                                 type=int,
-                                default=0,
-                                help='Number of searches that will be conducted. (if 0, then as many as possible)'
+                                default=-1,
+                                help='Number of searches that will be conducted. (if -1, then as many as possible)'
                                 )
     keyword_parser.add_argument('-sl',
                                 '--search_layer',
