@@ -569,7 +569,7 @@ LIMIT 1;
             )
 
         # Previous search had 11 to 40 matches
-        if 11 <= quantity < 40:
+        if 11 <= quantity <= 40:
             return prev_search_period
 
         # Previous search had 41 to 50 matches
