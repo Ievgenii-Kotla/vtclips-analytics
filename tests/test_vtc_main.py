@@ -50,7 +50,7 @@ class testParseArguments(unittest.TestCase):
         self.assertNotIn('priority', args)
         self.assertNotIn('usage_enabled', args)
         self.assertNotIn('purity', args)
-        self.assertEqual(0, args['repetitions'])
+        self.assertEqual(-1, args['repetitions'])
         self.assertNotIn('search_layer', args)
 
     @patch('sys.argv', [
