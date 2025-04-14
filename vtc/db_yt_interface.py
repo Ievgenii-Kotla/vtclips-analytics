@@ -653,12 +653,20 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.prepare_query_and_period_alg1()
 
     def subsearch_next_and_save(self):
-        self.set_subsearch_map()
-        if not self.subsearch_map:
-            return False
-        self.prepare_subsearch_query()
-        self.search()
-        self.save()
+        try:
+            self.set_subsearch_map()
+            if not self.subsearch_map:
+                return False
+            self.prepare_subsearch_query()
+            self.search()
+            self.save()
+        except HttpError as err:
+            if err.resp.status == 403:
+                logger.info(f'Quota exceeded (prematurely). '
+                            f'API key: {self.api_service.get_api_key_id(self.api_service.get_api_key())}. '
+                            f'Quota left: {self.api_service.get_quota_left(self.api_service.get_api_key())}')
+            else:
+                logger.info(err)
         return True
 
     def set_subsearch_map(self):
