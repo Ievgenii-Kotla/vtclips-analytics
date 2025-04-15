@@ -210,6 +210,7 @@ class SearchYTByKeyword:
         self.cursor = self.connection.cursor()
         self.quota_points = 10000  # set by YT
         self.quota_left = self.quota_points
+        self.api_key = None
 
         self.talents_ids = (None,)
         self.all_talents = True
@@ -626,11 +627,10 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
 
     def search(self):
         """ Conduct prepared search. """
-        # Authenticate with the API using your API key
-        api_key = self.api_service.get_api_key()
-        if api_key is None:
+
+        if self.api_key is None:
             logger.error("API key not found.")
-        youtube = build('youtube', 'v3', developerKey=api_key)
+        youtube = build('youtube', 'v3', developerKey=self.api_key)
 
         # todo: add an exception for not enough quota left
         # Search for videos related to a specific query
@@ -649,8 +649,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                     f"publishedAfter: {self.published_after}\n"
                     f"publishedBefore: {self.published_before}\n"
                     f"q: {self.search_query}")
-        self.api_service.change_quota(api_key, -100)
-        self.quota_left = self.api_service.get_quota_left(api_key)
+        self.api_service.change_quota(self.api_key, -100)
+        self.quota_left = self.api_service.get_quota_left(self.api_key)
 
     def prepare_search(self):
         """ Prepare all the necessary data and variables for the search. """
@@ -663,6 +663,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.prepare_query_and_period_alg1()
 
     def subsearch_next_and_save(self):
+        self.api_key = self.api_service.get_api_key()
         try:
             self.set_subsearch_map()
             if not self.subsearch_map:
@@ -758,7 +759,9 @@ ORDER BY s1.searched_at;
 
     def search_next_and_save(self):
         """ Coordinate the process of searching YT. """
-        try:
+
+        self.api_key = self.api_service.get_api_key()
+        try:g
             self.prepare_search()
             self.search()
             self.filter_response()
