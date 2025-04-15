@@ -131,10 +131,16 @@ class PrepareAPI:
 
         if delay is None:
             delay = self.delay
+
         if delay:
             delay_sec = randint(10, 100)
             logger.info(f'Delay: {delay_sec} seconds.')
-            time.sleep(delay_sec)
+            while delay_sec > 0:
+                print(f'Time left: {delay_sec} seconds.')
+                sleep_time = min(100, delay_sec)
+                time.sleep(sleep_time)
+                delay_sec -= sleep_time
+
         return self.api_keys[key_id]
 
     def get_api_key_id(self, api_key):
@@ -761,7 +767,7 @@ ORDER BY s1.searched_at;
         """ Coordinate the process of searching YT. """
 
         self.api_key = self.api_service.get_api_key()
-        try:g
+        try:
             self.prepare_search()
             self.search()
             self.filter_response()
