@@ -7,6 +7,7 @@ import json
 import logging
 from random import randint, choices
 import time
+from zoneinfo import ZoneInfo
 import random
 
 from googleapiclient.discovery import build, HttpError
@@ -29,12 +30,6 @@ class PrepareAPI:
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
     def __init__(self, quota_points=10000, filepath="data/api_quota_state.json", delay=True):
-        def get_reset_target_time() -> datetime.datetime:
-            time_now = self.current_time_utc()
-            target_time = time_now.replace(hour=7, minute=0, second=0)
-            if target_time > time_now:
-                target_time -= datetime.timedelta(days=1)
-            return target_time
 
         self.quota_points_max = quota_points
         self.filepath = filepath
@@ -46,8 +41,20 @@ class PrepareAPI:
         self.load_api_quotas_info()
         self.delay = delay
 
-        if self.last_reset_at < get_reset_target_time() or len(self.api_keys) != len(self.api_quotas):
-            self.reset_and_reload_quotas()
+    def needs_reset(self):
+        """Check if it is time to reset."""
+
+        pacific_tz = ZoneInfo("America/Los_Angeles")
+        utc_tz = ZoneInfo("UTC")
+
+        now = datetime.datetime.now(pacific_tz)
+        midnight = datetime.datetime.combine(now.date(), datetime.time.min, tzinfo=pacific_tz)
+        target_reset_time = midnight.astimezone(utc_tz)
+
+        if self.last_reset_at < target_reset_time or len(self.api_keys) != len(self.api_quotas):
+            return True
+        else:
+            return False
 
     @staticmethod
     def load_api_keys() -> dict[str, str]:
@@ -102,6 +109,8 @@ class PrepareAPI:
 
     def get_api_key(self, threshold=100, delay=None, random_key=True) -> str:
         """ Get working API key to access YT. """
+        if self.needs_reset():
+            self.reset_and_reload_quotas()
 
         # Using '// threshold' to ignore small quota leftovers that can't be used
         quotas_over_threshold = {
@@ -169,6 +178,7 @@ class PrepareAPI:
         Update instance attributes with the new content of the file. """
         self._reset_quotas()
         self.load_api_quotas_info()
+        logger.info('Quotas updated and reloaded.')
 
 
 class SearchYTByKeyword:
