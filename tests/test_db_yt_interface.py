@@ -643,7 +643,9 @@ class TestPrepareAPI(unittest.TestCase):
             }
         }
         expected = "key1"
-        actual = self.instance.get_api_key(random_key=False)
+        with patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime) as mock_object:
+            mock_object.now.return_value=datetime.datetime.fromisoformat("2023-01-01T09:33:00+00:00")
+            actual = self.instance.get_api_key(random_key=False)
         self.assertEqual(expected, actual)
 
     def test_change_quota_file(self):
