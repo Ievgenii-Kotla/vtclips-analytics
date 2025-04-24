@@ -114,7 +114,16 @@ class PrepareAPI:
             json.dump(data, file, indent=4)
 
     def get_api_key(self, threshold=100, delay=None, random_key=True, purpose=None) -> str:
-        """ Get working API key to access YT. """
+        """
+        Get working API key to access YT.
+
+        Parameters:
+            threshold (int): quota price of the action (cuts off keys with not enough quota)
+            delay (bool): delay on/off
+            random_key (bool): give random key on/off. Off - give key with the least amount of quota
+            purpose (str): selects keys that are dedicated for this purpose
+        """
+
         if self.needs_reset():
             self.reset_and_reload_quotas()
 
@@ -125,21 +134,25 @@ class PrepareAPI:
             if stats['available'] >= threshold and stats.get('purpose', None) in [purpose, PrepareAPI.UNIVERSAL]
         }
 
+        total_quota_available = sum(valid_quotas.values())
         if random_key:
-            total_quota_available = sum(valid_quotas.values())
-            if total_quota_available == 0:
-                key_id = None
             key_id = choices(list(valid_quotas.keys()),
                              weights=[value / total_quota_available for value in valid_quotas.values()],
                              k=1)[0]
         else:
             key_id = min(valid_quotas, key=valid_quotas.get)
 
-        if delay is None:
-            delay = self.delay
+        if delay is not None:
+            self.delay = delay
 
-        if delay:
-            delay_sec = randint(10, 100)
+        if self.delay:
+            # make minimal delay directly proportional to the price of an action
+            # (lower price - more possible actions - lower delay)
+            base_time = threshold
+            min_delay = base_time
+            # 172800 - 2 days, aiming for using up almost all actions on average
+            max_delay = max(172800 // total_quota_available, base_time * 3)
+            delay_sec = randint(min_delay, max_delay)
             logger.info(f'Delay: {delay_sec} seconds.')
             while delay_sec > 0:
                 print(f'Time left: {delay_sec} seconds.')
