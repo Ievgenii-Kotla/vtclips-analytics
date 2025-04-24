@@ -6,7 +6,7 @@ import json
 
 def main():
     api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
-    api_key = api_service.get_api_key(delay=False)
+    api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.search().list(
         part='snippet',
