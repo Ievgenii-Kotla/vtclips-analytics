@@ -24,9 +24,9 @@ class ConsistentANY:
 
 class TestSearchYTByKeywordSetMap(unittest.TestCase):
     @classmethod
-    @patch('vtc.db_yt_interface.datetime', wraps=datetime)
-    def setUpClass(cls, mock_datetime) -> None:
-        mock_datetime.datetime.now.return_value = datetime.datetime(
+    @patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime)
+    def setUpClass(cls, mock_datetime_datetime) -> None:
+        mock_datetime_datetime.now.return_value = datetime.datetime(
             2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc)
         setup_test_db.reset_for_map()
 
@@ -230,9 +230,9 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         return actual
 
     @classmethod
-    @patch('vtc.db_yt_interface.datetime', wraps=datetime)
-    def setUpClass(cls, mock_datetime):
-        mock_datetime.datetime.now.return_value = datetime.datetime(
+    @patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime)
+    def setUpClass(cls, mock_datetime_datetime):
+        mock_datetime_datetime.now.return_value = datetime.datetime(
             2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc)
         json_response = """{
           "kind": "youtube#searchListResponse",
@@ -566,12 +566,13 @@ class TestPrepareAPI(unittest.TestCase):
         }
         with open(filepath, "w", encoding="utf-8") as file:
             json.dump(file_content, file)
-        with patch.dict(os.environ, {'API_keys': 'key0,key1,key2'}):
-            with patch.object(
-                    PrepareAPI,
-                    "current_time_utc",
-                    return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00")
-            ):
+        with patch.dict(os.environ, {'API_keys': 'key0,key1,key2'}), \
+            patch.object(PrepareAPI,
+                         "current_time_utc",
+                         return_value=datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00")), \
+            patch.object(PrepareAPI,
+                         "needs_reset",
+                         return_value=False):
                 quota_points = 10000
                 self.instance = PrepareAPI(quota_points=quota_points, filepath=filepath, delay=False)
 
