@@ -33,7 +33,7 @@ class PrepareAPI:
     def current_time_utc():
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
-    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json", delay=True):
+    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json", delay=False):
 
         self.quota_points_max = quota_points
         self.filepath = filepath
@@ -134,10 +134,10 @@ class PrepareAPI:
             if stats['available'] >= threshold and stats.get('purpose', None) in [purpose, PrepareAPI.UNIVERSAL]
         }
 
-        total_quota_available = sum(valid_quotas.values())
+        total_actions_available = sum(valid_quotas.values())
         if random_key:
             key_id = choices(list(valid_quotas.keys()),
-                             weights=[value / total_quota_available for value in valid_quotas.values()],
+                             weights=[value / total_actions_available for value in valid_quotas.values()],
                              k=1)[0]
         else:
             key_id = min(valid_quotas, key=valid_quotas.get)
@@ -151,7 +151,7 @@ class PrepareAPI:
             base_time = threshold
             min_delay = base_time
             # 172800 - 2 days, aiming for using up almost all actions on average
-            max_delay = max(172800 // total_quota_available, base_time * 3)
+            max_delay = max(172800 // total_actions_available, base_time * 3)
             delay_sec = randint(min_delay, max_delay)
             logger.info(f'Delay: {delay_sec} seconds.')
             while delay_sec > 0:
