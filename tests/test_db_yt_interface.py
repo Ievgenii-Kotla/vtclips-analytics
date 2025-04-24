@@ -546,17 +546,23 @@ class TestPrepareAPI(unittest.TestCase):
             "API_key0": {
                 "max": 10000,
                 "available": 5500,
-                "reserve": 4500
+                "reserve": 4500,
+                "purpose": "test",
+                "coefficient": 1
             },
             "API_key1": {
                 "max": 10000,
                 "available": 3100,
-                "reserve": 6900
+                "reserve": 6900,
+                "purpose": "universal",
+                "coefficient": 1
             },
             "API_key2": {
                 "max": 10000,
                 "available": 7800,
-                "reserve": 2200
+                "reserve": 2200,
+                "purpose": "universal",
+                "coefficient": 1
             }
         }
         file_content = {
@@ -625,25 +631,62 @@ class TestPrepareAPI(unittest.TestCase):
             actual = json.load(file)
         self.assertEqual(expected, actual, "Quotas didn't save properly to the file.")
 
-    def test_get_api_key(self):
+    def test_get_api_key_min(self):
         self.instance.api_quotas = {
             "API_key0": {
                 "max": 10000,
                 "available": 5500,
-                "reserve": 4500
+                "reserve": 4500,
+                "purpose": "universal",
+                "coefficient": 1
             },
             "API_key1": {
                 "max": 10000,
                 "available": 100,
-                "reserve": 6900
+                "reserve": 6900,
+                "purpose": "universal",
+                "coefficient": 1
             },
             "API_key2": {
                 "max": 10000,
                 "available": 10,
-                "reserve": 2200
+                "reserve": 2200,
+                "purpose": "universal",
+                "coefficient": 1
             }
         }
         expected = "key1"
+        with patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime) as mock_object:
+            mock_object.now.return_value=datetime.datetime.fromisoformat("2023-01-01T09:33:00+00:00")
+            actual = self.instance.get_api_key(random_key=False)
+        self.assertEqual(expected, actual)
+
+
+    def test_get_api_key_purpose(self):
+        self.instance.api_quotas = {
+            "API_key0": {
+                "max": 10000,
+                "available": 5500,
+                "reserve": 4500,
+                "purpose": "universal",
+                "coefficient": 1
+            },
+            "API_key1": {
+                "max": 10000,
+                "available": 100,
+                "reserve": 6900,
+                "purpose": "wrong",
+                "coefficient": 1
+            },
+            "API_key2": {
+                "max": 10000,
+                "available": 10,
+                "reserve": 2200,
+                "purpose": "universal",
+                "coefficient": 1
+            }
+        }
+        expected = "key0"
         with patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime) as mock_object:
             mock_object.now.return_value=datetime.datetime.fromisoformat("2023-01-01T09:33:00+00:00")
             actual = self.instance.get_api_key(random_key=False)
@@ -661,17 +704,23 @@ class TestPrepareAPI(unittest.TestCase):
                 "API_key0": {
                     "max": 10000,
                     "available": 5500,
-                    "reserve": 4500
+                    "reserve": 4500,
+                    "purpose": "test",
+                    "coefficient": 1
                 },
                 "API_key1": {
                     "max": 10000,
                     "available": 3100,
-                    "reserve": 6900
+                    "reserve": 6900,
+                    "purpose": "universal",
+                    "coefficient": 1
                 },
                 "API_key2": {
                     "max": 10000,
                     "available": 7300,
-                    "reserve": 2200
+                    "reserve": 2200,
+                    "purpose": "universal",
+                    "coefficient": 1
                 }
             },
             "last_reset_at": "2024-01-01T07:00:00+00:00",
@@ -694,17 +743,23 @@ class TestPrepareAPI(unittest.TestCase):
                 "API_key0": {
                     "max": 10000,
                     "available": 5500,
-                    "reserve": 4500
+                    "reserve": 4500,
+                    "purpose": "test",
+                    "coefficient": 1
                 },
                 "API_key1": {
                     "max": 10000,
                     "available": 3100,
-                    "reserve": 6900
+                    "reserve": 6900,
+                    "purpose": "universal",
+                    "coefficient": 1
                 },
                 "API_key2": {
                     "max": 10000,
                     "available": 7300,
-                    "reserve": 2200
+                    "reserve": 2200,
+                    "purpose": "universal",
+                    "coefficient": 1
                 }
             },
             datetime.datetime.fromisoformat("2024-01-01T07:00:00+00:00"),
