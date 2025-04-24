@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 
 
 class PrepareAPI:
+    # options for key's purpose
+    UNIVERSAL = 'universal'
+    SEARCH = 'search'
+
     @staticmethod
     def current_time_utc():
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
@@ -109,27 +113,27 @@ class PrepareAPI:
         with open(self.filepath, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4)
 
-    def get_api_key(self, threshold=100, delay=None, random_key=True) -> str:
+    def get_api_key(self, threshold=100, delay=None, random_key=True, purpose=None) -> str:
         """ Get working API key to access YT. """
         if self.needs_reset():
             self.reset_and_reload_quotas()
 
         # Using '// threshold' to ignore small quota leftovers that can't be used
-        quotas_over_threshold = {
+        valid_quotas = {
             key_id: stats['available'] // threshold
             for key_id, stats in self.api_quotas.items()
-            if stats['available'] >= threshold
+            if stats['available'] >= threshold and stats.get('purpose', None) in [purpose, PrepareAPI.UNIVERSAL]
         }
 
         if random_key:
-            total_quota_available = sum(quotas_over_threshold.values())
+            total_quota_available = sum(valid_quotas.values())
             if total_quota_available == 0:
                 key_id = None
-            key_id = choices(list(quotas_over_threshold.keys()),
-                             weights=[value/total_quota_available for value in quotas_over_threshold.values()],
+            key_id = choices(list(valid_quotas.keys()),
+                             weights=[value / total_quota_available for value in valid_quotas.values()],
                              k=1)[0]
         else:
-            key_id = min(quotas_over_threshold, key=quotas_over_threshold.get)
+            key_id = min(valid_quotas, key=valid_quotas.get)
 
         if delay is None:
             delay = self.delay
@@ -169,11 +173,15 @@ class PrepareAPI:
 
     def _reset_quotas(self, lower_boundary=30, upper_boundary=80):
         """ Reset the file that stores quota counters, and times of last reset and last update. """
+        self.api_keys = self.load_api_keys()
         quotas = {
             f"API_key{i}": {
                 'max': self.quota_points_max,
-                'available': (available_points := randint(lower_boundary, upper_boundary) * 100),
-                'reserve': self.quota_points_max - available_points
+                'available': int(available_points := randint(lower_boundary, upper_boundary) * 100
+                                 * self.api_quotas.get(f'API_key{i}', {}).get('coefficient', 1)),
+                'reserve': self.quota_points_max - available_points,
+                'purpose': self.api_quotas.get(f'API_key{i}', {}).get('purpose', 'universal'),
+                'coefficient': self.api_quotas.get(f'API_key{i}', {}).get('coefficient', 1),
             } for i, _ in enumerate(self.api_keys)}
         self.save_api_quotas_info(
             quotas,
@@ -671,7 +679,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.prepare_query_and_period_alg1()
 
     def subsearch_next_and_save(self):
-        self.api_key = self.api_service.get_api_key()
+        self.api_key = self.api_service.get_api_key(purpose=PrepareAPI.SEARCH)
         try:
             self.set_subsearch_map()
             if not self.subsearch_map:
@@ -681,9 +689,12 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             self.save()
         except HttpError as err:
             if err.resp.status == 403:
+                # todo: make sure it returns current key
+                api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
+                quota_left = self.api_service.get_quota_left(api_key=self.api_key)
                 logger.info(f'Quota exceeded (prematurely). '
-                            f'API key: {self.api_service.get_api_key_id(self.api_service.get_api_key())}. '
-                            f'Quota left: {self.api_service.get_quota_left(self.api_service.get_api_key())}')
+                            f'API key: {api_key_id}. '
+                            f'Quota left: {quota_left}')
             else:
                 logger.info(err)
         return True
@@ -768,7 +779,7 @@ ORDER BY s1.searched_at;
     def search_next_and_save(self):
         """ Coordinate the process of searching YT. """
 
-        self.api_key = self.api_service.get_api_key()
+        self.api_key = self.api_service.get_api_key(purpose=PrepareAPI.SEARCH)
         try:
             self.prepare_search()
             self.search()
@@ -777,9 +788,11 @@ ORDER BY s1.searched_at;
             self.save()
         except HttpError as err:
             if err.resp.status == 403:
+                api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
+                quota_left = self.api_service.get_quota_left(api_key=self.api_key)
                 logger.info(f'Quota exceeded (prematurely). '
-                            f'API key: {self.api_service.get_api_key_id(self.api_service.get_api_key())}. '
-                            f'Quota left: {self.api_service.get_quota_left(self.api_service.get_api_key())}')
+                            f'API key: {api_key_id}. '
+                            f'Quota left: {quota_left}')
             else:
                 logger.info(err)
 
