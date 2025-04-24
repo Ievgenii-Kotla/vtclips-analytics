@@ -33,7 +33,7 @@ class PrepareAPI:
     def current_time_utc():
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
-    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json", delay=False):
+    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json", delay=True):
 
         self.quota_points_max = quota_points
         self.filepath = filepath
