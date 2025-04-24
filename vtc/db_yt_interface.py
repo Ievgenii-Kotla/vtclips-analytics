@@ -40,6 +40,8 @@ class PrepareAPI:
         self.api_keys: dict[str, str] = self.load_api_keys()
         self.load_api_quotas_info()
         self.delay = delay
+        if self.needs_reset():
+            self.reset_and_reload_quotas()
 
     def needs_reset(self):
         """Check if it is time to reset."""
