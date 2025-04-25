@@ -467,6 +467,11 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         self.search_map = cursor.fetchall()
         cursor.close()
 
+        if self.search_map:
+            return True
+        else:
+            return False
+
     def prepare_query_and_period_alg1(self):
         """
         Set the query text and the period that'll be used in YT search request
@@ -753,6 +758,11 @@ ORDER BY s1.searched_at;
         self.subsearch_map = cursor.fetchall()
         cursor.close()
 
+        if self.subsearch_map:
+            return True
+        else:
+            return False
+
     def prepare_subsearch_query(self):
         self.update_datetime_now()
         logger.info(f'Searches in need for subsearching: {len(self.subsearch_map)}\n'
@@ -795,6 +805,8 @@ ORDER BY s1.searched_at;
         self.api_key = self.api_service.get_api_key(purpose=PrepareAPI.SEARCH)
         try:
             self.prepare_search()
+            if not self.search_map:
+                return False
             self.search()
             self.filter_response()
             self.validate_results_per_page_qty()
@@ -808,6 +820,7 @@ ORDER BY s1.searched_at;
                             f'Quota left: {quota_left}')
             else:
                 logger.info(err)
+        return True
 
     def save_youtube_channel(self):
         """ Save new information to the 'youtube_channel' table. """

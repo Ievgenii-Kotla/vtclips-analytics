@@ -16,14 +16,17 @@ def search_yt_by_keyword(args: dict):
 
     while repetitions != 0:
         # do subsearch if necessary
-        if do_subsearch:
+        if do_subsearch and search_instance.set_subsearch_map():
             success = search_instance.subsearch_next_and_save()
             if success:
                 repetitions -= 1
-                continue
         # do normal search
-        search_instance.search_next_and_save()
-        repetitions -= 1
+        elif search_instance.set_search_map():
+            search_instance.search_next_and_save()
+            repetitions -= 1
+        else:
+            logger.info("No search map and no subsearch map; or no search map and subsearch disabled.")
+            break
 
     search_instance.session_stats()
     connect_to_db.connection_close(search_instance.connection)
@@ -124,6 +127,7 @@ def parse_arguments() -> dict:
 
 if __name__ == '__main__':
     vtc_logging.setup_logger()
+    logger = logging.getLogger(__name__)
     args = parse_arguments()
     print('Received arguments: ', args)
     command = args.pop('command')
