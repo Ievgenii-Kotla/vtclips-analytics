@@ -62,6 +62,17 @@ class PrepareAPI:
         else:
             return False
 
+    def seconds_until_reset(self):
+        """Return number of seconds left until reset."""
+
+        pacific_tz = ZoneInfo("America/Los_Angeles")
+        now = datetime.datetime.now(pacific_tz)
+        midnight = datetime.datetime.combine(now.date(), datetime.time.min, tzinfo=pacific_tz)
+        next_midnight = midnight + datetime.timedelta(days=1)
+        seconds_until_midnight = int((next_midnight - now).total_seconds())
+        return seconds_until_midnight
+
+
     @staticmethod
     def load_api_keys() -> dict[str, str]:
         """ Load API keys from environmental variables. """
@@ -150,8 +161,7 @@ class PrepareAPI:
             # (lower price - more possible actions - lower delay)
             base_time = threshold
             min_delay = base_time
-            # 172800 - 2 days, aiming for using up almost all actions on average
-            max_delay = max(172800 // total_actions_available, base_time * 3)
+            max_delay = max(self.seconds_until_reset() // total_actions_available, base_time * 3)
             delay_sec = randint(min_delay, max_delay)
             logger.info(f'Delay: {delay_sec} seconds.')
             while delay_sec > 0:
