@@ -202,7 +202,7 @@ class PrepareAPI:
                 'max': self.quota_points_max,
                 'available': int(available_points := randint(lower_boundary, upper_boundary) * 100
                                  * self.api_quotas.get(f'API_key{i}', {}).get('coefficient', 1)),
-                'reserve': self.quota_points_max - available_points,
+                'reserve': int(self.quota_points_max - available_points),
                 'purpose': self.api_quotas.get(f'API_key{i}', {}).get('purpose', 'universal'),
                 'coefficient': self.api_quotas.get(f'API_key{i}', {}).get('coefficient', 1),
             } for i, _ in enumerate(self.api_keys)}
