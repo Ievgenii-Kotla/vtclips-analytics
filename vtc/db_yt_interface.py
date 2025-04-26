@@ -161,7 +161,7 @@ class PrepareAPI:
             # (lower price - more possible actions - lower delay)
             base_time = threshold
             min_delay = base_time
-            max_delay = max(self.seconds_until_reset() // total_actions_available, base_time * 3)
+            max_delay = max((self.seconds_until_reset() * 2) // total_actions_available, base_time * 3)
             delay_sec = randint(min_delay, max_delay)
             logger.info(f'Delay: {delay_sec} seconds.')
             while delay_sec > 0:
