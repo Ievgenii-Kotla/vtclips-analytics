@@ -135,17 +135,22 @@ class PrepareAPI:
             purpose (str): selects keys that are dedicated for this purpose
         """
 
-        if self.needs_reset():
-            self.reset_and_reload_quotas()
+        while True:
+            if self.needs_reset():
+                self.reset_and_reload_quotas()
 
-        # Using '// threshold' to ignore small quota leftovers that can't be used
-        valid_quotas = {
-            key_id: stats['available'] // threshold
-            for key_id, stats in self.api_quotas.items()
-            if stats['available'] >= threshold and stats.get('purpose', None) in [purpose, PrepareAPI.UNIVERSAL]
-        }
+            # Using '// threshold' to ignore small quota leftovers that can't be used
+            valid_quotas = {
+                key_id: stats['available'] // threshold
+                for key_id, stats in self.api_quotas.items()
+                if stats['available'] >= threshold and stats.get('purpose', None) in [purpose, PrepareAPI.UNIVERSAL]
+            }
+            total_actions_available = sum(valid_quotas.values())
+            if total_actions_available > 0:
+                break
+            else:
+                time.sleep(600)
 
-        total_actions_available = sum(valid_quotas.values())
         if random_key:
             key_id = choices(list(valid_quotas.keys()),
                              weights=[value / total_actions_available for value in valid_quotas.values()],
