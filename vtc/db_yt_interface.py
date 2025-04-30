@@ -149,7 +149,9 @@ class PrepareAPI:
             if total_actions_available > 0:
                 break
             else:
-                time.sleep(600)
+                seconds = 600
+                logger.info("No available quota. Retry in {seconds} seconds.")
+                time.sleep(seconds)
 
         if random_key:
             key_id = choices(list(valid_quotas.keys()),
