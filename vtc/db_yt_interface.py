@@ -585,26 +585,6 @@ LIMIT 1;
         if published_after - end < datetime.timedelta(seconds=1):
             return default_search_interval
 
-        # Pre-debut period AND previous search had 5 or fewer matches
-        # +1 and -1 second because both boundaries in yt search are inclusive
-        if debut_date > end + datetime.timedelta(seconds=1) and quantity <= 5:
-            return min(
-                days(7),
-                debut_date - published_after - datetime.timedelta(seconds=1)
-            )
-
-        # Pre-debut period AND previous search had 6 to 50 matches
-        # +1 and -1 second because both boundaries in yt search are inclusive
-        if debut_date > end + datetime.timedelta(seconds=1) and 6 <= quantity <= 50:
-            return min(
-                days(2),
-                debut_date - published_after - datetime.timedelta(seconds=1)
-            )
-
-        # Debut
-        if debut_date == published_after:
-            return days(1)
-
         # Previous search had 0 matches
         if quantity == 0:
             return days(7)
