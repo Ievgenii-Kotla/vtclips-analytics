@@ -539,13 +539,16 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             return default or previous search length (whatever is bigger)
         """
 
+        def days(total_days: int):
+            return datetime.timedelta(days=total_days-1, hours=23, minutes=59, seconds=59)
+
         if keyword_word is None:
             # todo: fix: self. search_query is None on the fisrt run.
             #  Meaning it stores value of the previous run on non-first runs
             keyword_word = self.search_query
         if published_after is None:
             published_after = self.published_before
-        default_search_interval = datetime.timedelta(days=1, hours=23, minutes=59, seconds=59)
+        default_search_interval = days(2)
         query = """
 SELECT s.published_after, s.published_before, s.results_per_page, t.debut_datetime
 FROM search_yt AS s
@@ -586,7 +589,7 @@ LIMIT 1;
         # +1 and -1 second because both boundaries in yt search are inclusive
         if debut_date > end + datetime.timedelta(seconds=1) and quantity <= 5:
             return min(
-                datetime.timedelta(days=6, hours=23, minutes=59, seconds=59),
+                days(7),
                 debut_date - published_after - datetime.timedelta(seconds=1)
             )
 
@@ -594,22 +597,22 @@ LIMIT 1;
         # +1 and -1 second because both boundaries in yt search are inclusive
         if debut_date > end + datetime.timedelta(seconds=1) and 6 <= quantity <= 50:
             return min(
-                datetime.timedelta(days=1, hours=23, minutes=59, seconds=59),
+                days(2),
                 debut_date - published_after - datetime.timedelta(seconds=1)
             )
 
         # Debut
         if debut_date == published_after:
-            return datetime.timedelta(days=0, hours=23, minutes=59, seconds=59)
+            return days(1)
 
         # Previous search had 0 matches
         if quantity == 0:
-            return datetime.timedelta(days=6, hours=23, minutes=59, seconds=59)
+            return days(7)
 
         # Previous search had 1 to 10 matches
         if 1 <= quantity <= 10:
             return max(
-                datetime.timedelta(days=3, hours=23, minutes=59, seconds=59),
+                days(4),
                 prev_search_period
             )
 
