@@ -513,30 +513,7 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             keyword_word (str): Keyword itself, e.g. '@irys'
             published_after (datetime.datetime): Start of the current search
         return:
-            datetime.timedelta
-
-        Behavior (all conditions except the first two imply very recent search):
-        1. No previous search
-            return default
-        2. Previous search is not recent
-            return default
-        3. Pre-debut period search AND previous search had 5 or less
-            return 7 days, but must not go further than the debut datetime
-        4. Pre-debut period search AND previous search had 6 to 50 matches
-            return 2 day, but must not go further than the debut datetime
-        5. Debut. Search starts exactly at the debut date
-            return 1 day
-        6. Previous search got 0 matches
-            return 7 days
-        7. Previous search got 1 to 10 matches
-            return 4 days or previous search length (whatever is bigger)
-        8. Any period, 11 to 40 matches
-            return period of the previous search
-        9. Any period, 41 to 50
-            return period of the previous search or default search period (whatever is smaller)
-        10. else
-            log a warning
-            return default or previous search length (whatever is bigger)
+            datetime.timedelta: length of the new search interval
         """
 
         def days(total_days: int):
@@ -550,7 +527,7 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             published_after = self.published_before
         default_search_interval = days(2)
         query = """
-SELECT s.published_after, s.published_before, s.results_per_page, t.debut_datetime
+SELECT s.published_after, s.published_before, s.results_per_page
 FROM search_yt AS s
 JOIN keyword_search_yt AS ks
     ON s.search_yt_id = ks.search_yt_id
@@ -558,8 +535,6 @@ JOIN keyword AS k
     ON ks.keyword_id = k.keyword_id
 JOIN keyword_talent AS kt
     ON k.keyword_id = kt.keyword_id
-JOIN talent AS t
-    ON kt.talent_id = t.talent_id
 WHERE q = %(keyword_word)s
     AND published_after < %(published_after)s
 ORDER BY published_before DESC
@@ -571,37 +546,31 @@ LIMIT 1;
         }
         cursor = self.connection.cursor()
         cursor.execute(query, values)
-        data = cursor.fetchone()  # Info about the latest search
+        data = cursor.fetchone()
         cursor.close()
 
         # No previous search
         if data is None:
             return default_search_interval
 
-        start, end, quantity, debut_date = data
+        # Unpack information about the previous search
+        start, end, matches = data
         prev_search_period: datetime.timedelta = end - start
 
         # Previous search is not recent
         if published_after - end < datetime.timedelta(seconds=1):
             return default_search_interval
 
-        # Previous search had 0 matches
-        if quantity == 0:
+        if matches == 0:
             return days(7)
 
-        # Previous search had 1 to 10 matches
-        if 1 <= quantity <= 10:
-            return max(
-                days(4),
-                prev_search_period
-            )
+        if 1 <= matches <= 10:
+            return max(days(4), prev_search_period)
 
-        # Previous search had 11 to 40 matches
-        if 11 <= quantity <= 40:
+        if 11 <= matches <= 40:
             return prev_search_period
 
-        # Previous search had 41 to 50 matches
-        if 41 <= quantity <= 50:
+        if 41 <= matches <= 50:
             return min(prev_search_period, default_search_interval)
 
         # Behaviour for other situations
