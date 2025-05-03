@@ -35,7 +35,7 @@ default_keywords = [
     ['UCyl1z3jo3XHR1riLFKG5UAg', 'Amelia', 'y', 1, '', 'pure'],
     ['UCMwGHR0BTZuLsmjY_NT5Pwg', "Ina'nis", 'y', 1, '', 'pure'],
     ['UCoSrY_IQQVpmIRZ9Xf-y93g', 'Gura', 'y', 1, '', 'pure'],
-    ['UC8rcEBzJSleTkf_-agPM20g', 'IRys', 'y', 1, '', 'pure'],
+    ['UC8rcEBzJSleTkf_-agPM20g', 'IRyS', 'y', 1, '', 'pure'],
     ['UCO_aKKYxn4tvrqPjcTzZ6EQ', 'Fauna', 'y', 1, '', 'pure'],
     ['UC3n5uGu18FoCy23ggWWp8tA', 'Mumei', 'y', 1, '', 'pure'],
     ['UCgmPnx-EEeOrZSg5Tiw7ZRQ', 'Baelz', 'y', 1, '', 'pure'],
