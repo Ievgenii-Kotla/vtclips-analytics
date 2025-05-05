@@ -167,7 +167,7 @@ class PrepareAPI:
             # make minimal delay directly proportional to the price of an action
             # (lower price - more possible actions - lower delay)
             base_time = threshold
-            min_delay = base_time
+            min_delay = 0
             max_delay = max((self.seconds_until_reset() * 2) // total_actions_available, base_time * 2)
             delay_sec = randint(min_delay, max_delay)
             logger.info(f'Delay: {delay_sec} seconds.')
