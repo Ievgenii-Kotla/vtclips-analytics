@@ -150,7 +150,7 @@ class PrepareAPI:
                 break
             else:
                 seconds = 600
-                logger.info("No available quota. Retry in {seconds} seconds.")
+                logger.info(f"No available quota. Retry in {seconds} seconds.")
                 time.sleep(seconds)
 
         if random_key:
