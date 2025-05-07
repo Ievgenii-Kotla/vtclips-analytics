@@ -78,13 +78,15 @@ def search_channel_videos():
 
 
 def playlist_items():
+    # Ouro Kronii example playlist ID: UUmbs8T6MWqUHP1tIQvSgKrg
+    # Nerrev example playlist ID: UUUY4NGgaom5tDxhe4b1YX0g
     api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
     api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.playlistItems().list(
         part='snippet,status,id,contentDetails',
         maxResults=50,
-        playlistId='UUmbs8T6MWqUHP1tIQvSgKrg',
+        playlistId='UUTEKkDX7lafQVnJrqu55jrA',
         #pageToken='EAAaHlBUOkNESWlFRUZGTlRJeE1EUTRSa0ZFUXpGRFJEQQ'
 
     ).execute()
