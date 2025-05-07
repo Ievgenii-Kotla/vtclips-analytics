@@ -4,24 +4,107 @@ from googleapiclient.discovery import build
 import json
 
 
-def main():
+def search():
     api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
     api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.search().list(
         part='snippet',
-        maxResults=2,
-        publishedAfter='2025-02-01T00:00:00Z',
-        publishedBefore='2025-02-02T23:59:59Z',
-        q='boat',
+        maxResults=50,
+        #publishedAfter='2020-07-12T00:00:00Z',
+        #publishedBefore='2020-07-24T23:59:59Z',
+        q='DG_2g04HDl8',
         regionCode='US',
         safeSearch='none',
         type='video',
     ).execute()
     api_service.change_quota(api_key, -100)
     quota_left = api_service.get_quota_left(api_key)
-    print(quota_left)
+    print("Quota left: ", quota_left)
     print(json.dumps(response, indent=4))
+
+
+def channels_list():
+    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    response = youtube.channels().list(
+        part='brandingSettings,content'
+             'Details,contentOwnerDetails,id,localizations,snippet,statistics,status,topicDetails',
+        id='UCmbs8T6MWqUHP1tIQvSgKrg'
+    ).execute()
+    api_service.change_quota(api_key, -1)
+    quota_left = api_service.get_quota_left(api_key)
+    print("Quota left: ", quota_left)
+    print(json.dumps(response, indent=4))
+
+
+def videos_list():
+    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    response = youtube.videos().list(
+        part='contentDetails,id,liveStreamingDetails,localizations,paidProductPlacementDetails,player,'
+             'recordingDetails,snippet,statistics,status,topicDetails',
+        id='8cPU2uJWI98'
+
+
+    ).execute()
+    api_service.change_quota(api_key, -1)
+    quota_left = api_service.get_quota_left(api_key)
+    print("Quota left: ", quota_left)
+    print(json.dumps(response, indent=4))
+
+
+def search_channel_videos():
+    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    response = youtube.search().list(
+        part='snippet',
+        channelId='UCmbs8T6MWqUHP1tIQvSgKrg',
+        maxResults=50,
+        # publishedAfter='2020-07-12T00:00:00Z',
+        # publishedBefore='2020-07-24T23:59:59Z',
+        #q='DG_2g04HDl8',
+        regionCode='US',
+        safeSearch='none',
+        type='video',
+    ).execute()
+    api_service.change_quota(api_key, -100)
+    quota_left = api_service.get_quota_left(api_key)
+    print("Quota left: ", quota_left)
+    print(json.dumps(response, indent=4))
+
+
+def playlist_items():
+    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    response = youtube.playlistItems().list(
+        part='snippet,status,id,contentDetails',
+        maxResults=50,
+        playlistId='UUmbs8T6MWqUHP1tIQvSgKrg',
+        #pageToken='EAAaHlBUOkNESWlFRUZGTlRJeE1EUTRSa0ZFUXpGRFJEQQ'
+
+    ).execute()
+    api_service.change_quota(api_key, -1)
+    quota_left = api_service.get_quota_left(api_key)
+    print("Quota left: ", quota_left)
+    print(json.dumps(response, indent=4))
+
+
+def main():
+    if 0:
+        search()
+    if 0:
+        channels_list()
+    if 0:
+        videos_list()
+    if 0:
+        search_channel_videos()
+    if 1:
+        playlist_items()
 
 
 if __name__ == '__main__':
