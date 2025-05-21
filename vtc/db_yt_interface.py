@@ -869,8 +869,11 @@ ORDER BY s1.searched_at;
                 item["snippet"]["thumbnails"]["high"]["height"],
                 self.datetime_now
             ]
-            for item in self.response["items"]
+            for item in self.response["items"] if "videoId" in item["id"]
         ]
+        if len(self.response) != len(self.youtube_video_values):
+            logger.warning(f"Discarded {len(self.response) - len(self.youtube_video_values)} invalid items "
+                           f"when saving to youtube_video table ")
         self.new_yt_video_ids = execute_values(
             self.cursor,
             youtube_video_query,
