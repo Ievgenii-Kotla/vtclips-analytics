@@ -995,6 +995,8 @@ ORDER BY s1.searched_at;
             traceback.print_exc()
             self.connection.rollback()
             logger.error(f"An error occurred while saving: {e} \nTransaction rolled back. ")
+            logger.error(self.response)
+            raise
         else:
             self.connection.commit()
             logger.info("Changes committed.")
