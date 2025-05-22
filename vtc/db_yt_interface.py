@@ -626,7 +626,16 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
 
     def filter_response(self):
         """ Filter out planned and active livestreams. """
-        self.response["items"] = [d for d in self.response["items"] if d["snippet"]["liveBroadcastContent"] == "none"]
+
+        original_qty = len(self.response["items"])
+
+        self.response["items"] = [d for d in self.response["items"] if "videoId" in d["id"]]
+        video_qty = len(self.response["items"])
+
+        removed_non_video_qty = original_qty - video_qty
+
+        if removed_non_video_qty:
+            logger.warning(f"Discarded {removed_non_video_qty} non-video items from dataset")
 
     def search(self):
         """ Conduct prepared search. """
@@ -869,11 +878,8 @@ ORDER BY s1.searched_at;
                 item["snippet"]["thumbnails"]["high"]["height"],
                 self.datetime_now
             ]
-            for item in self.response["items"] if "videoId" in item["id"]
+            for item in self.response["items"]
         ]
-        if len(self.response) != len(self.youtube_video_values):
-            logger.warning(f"Discarded {len(self.response) - len(self.youtube_video_values)} invalid items "
-                           f"when saving to youtube_video table ")
         self.new_yt_video_ids = execute_values(
             self.cursor,
             youtube_video_query,
