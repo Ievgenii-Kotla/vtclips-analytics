@@ -362,7 +362,10 @@ SELECT * FROM youtube_channel;
                 None,  # YT channel thumbnail
                 None,  # country
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-                "UC58YRkZ2cMedl0AVv_rNoZw"  # YT channel id
+                "UC58YRkZ2cMedl0AVv_rNoZw", # YT channel id
+                None,
+                None,
+                None
             ),
             (
                 None,  # talent id
@@ -377,7 +380,10 @@ SELECT * FROM youtube_channel;
                 None,  # YT channel thumbnail
                 None,  # country
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-                "UCAnUBKzIF_oR4yNUfqIkCqw"  # YT channel id
+                "UCAnUBKzIF_oR4yNUfqIkCqw",  # YT channel id
+                None,
+                None,
+                None
             ),
         ]
         self.assertEqual(expected, actual)
@@ -425,6 +431,17 @@ SELECT * FROM youtube_video;
                 360,  # thumbnail_high_height
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             ),
             (
                 "IwhkBhUH0lc",  # youtube_video_id
@@ -462,7 +479,17 @@ SELECT * FROM youtube_video;
                 360,  # thumbnail_high_height
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             )
         ]
         self.assertEqual(expected, actual)
