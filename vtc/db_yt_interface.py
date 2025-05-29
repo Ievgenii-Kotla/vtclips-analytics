@@ -637,7 +637,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         removed_non_video_qty = original_qty - video_qty
 
         if removed_non_video_qty:
-            logger.warning(f"Discarded {removed_non_video_qty} non-video items from dataset")
+            logger.warning(f"Discarded {removed_non_video_qty} non-video items from dataset (search)")
 
     def search(self):
         """ Conduct prepared search. """
@@ -694,7 +694,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                             f'API key: {api_key_id}. '
                             f'Quota left: {quota_left}')
             else:
-                logger.info(err)
+                logger.error(err)
         return True
 
     def set_subsearch_map(self):
@@ -799,7 +799,7 @@ ORDER BY s1.searched_at;
                             f'API key: {api_key_id}. '
                             f'Quota left: {quota_left}')
             else:
-                logger.info(err)
+                logger.error(err)
         return True
 
     def save_youtube_channel(self):
