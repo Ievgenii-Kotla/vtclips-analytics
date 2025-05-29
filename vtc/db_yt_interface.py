@@ -1087,7 +1087,8 @@ class PlaylistItems:
     def _do_request_and_save(self):
         try:
             if not self.playlist_id:
-                self._set_playlist_id()
+                if not self._set_playlist_id():
+                    return False
             self._prepare_request()
             self._do_request()
             self._update_quota_after_request()
