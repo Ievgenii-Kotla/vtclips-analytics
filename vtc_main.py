@@ -69,7 +69,7 @@ def parse_arguments() -> dict:
     subparsers = global_parser.add_subparsers(title='Available Actions', dest='command')
     keyword_parser = subparsers.add_parser(
         'keyword',
-        help='search youtube using a keyword and add the results to the DB'
+        help='fetch and cache data from youtube searches'
     )
     keyword_parser.add_argument('-tn',
                                 '--talents_names',
@@ -115,7 +115,7 @@ def parse_arguments() -> dict:
                                 '--repetitions',
                                 type=int,
                                 default=-1,
-                                help='Number of searches that will be conducted. (if -1, then as many as possible)'
+                                help='Number of searches that will be conducted. Default: -1 (as many as possible)'
                                 )
     keyword_parser.add_argument('-sl',
                                 '--search_layer',
