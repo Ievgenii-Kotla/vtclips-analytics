@@ -1129,7 +1129,10 @@ class PlaylistItems:
             WHERE yc.playlist_id IS NOT NULL
                 AND (yc.is_other = FALSE OR yc.is_other IS NULL)
                 AND (%(channels)s IS NULL OR yc.youtube_channel_id = ANY(%(channels)s))
-                AND (pir.requested_at < CURRENT_TIMESTAMP - %(cooldown)s OR pir.requested_at IS NULL)
+                AND (
+                    pir.requested_at IS NULL
+                    OR (pir.requested_at < CURRENT_TIMESTAMP - %(cooldown)s OR pir.next_page_token IS NOT NULL)
+                )
             ORDER BY yc.playlist_id, pir.requested_at DESC, pir.playlist_items_request_id DESC
          )
          SELECT playlist_id
