@@ -919,6 +919,325 @@ def _populate_all_for_search_interval(cursor):
     populate_keyword_talent(keyword_ids, talent_ids)
 
 
+def _populate_all_for_playlist_items(cursor):
+
+    def populate_talent():
+        query = """
+        INSERT INTO talent (
+        talent_id,
+        debut_datetime,
+        first_name_eng
+        )
+        OVERRIDING SYSTEM VALUE
+        VALUES (
+        %(talent_id)s,
+        %(debut_datetime)s,
+        %(first_name_eng)s
+        )
+        RETURNING talent_id;
+        """
+        dataset = [
+            {
+                'talent_id': 1,
+                'debut_datetime': '2024-01-01 00:00:00+00:00',
+                'first_name_eng': 'talent_name_one'
+            },
+        ]
+        ids = []
+        for data in dataset:
+            cursor.execute(query, data)
+            ids.append(cursor.fetchone()[0])
+        return ids
+
+    def populate_youtube_channel_talent(channel_id):
+        query = """
+        INSERT INTO youtube_channel_talent (
+            talent_id,
+            youtube_channel_id
+        )
+        VALUES (
+            %(talent_id)s,
+            %(youtube_channel_id)s
+        );
+        """
+        values = [
+            {
+                'talent_id': 1,
+                'youtube_channel_id': channel_id
+            },
+        ]
+        for value_set in values:
+            cursor.execute(query, value_set)
+
+    def populate_youtube_channel():
+        query = """
+        INSERT INTO youtube_channel (
+            channel_info_last_updated,
+            title,
+            added_at,
+            youtube_channel_id,
+            playlist_id
+        )
+         VALUES (
+            %(channel_info_last_updated)s,
+            %(title)s,
+            %(added_at)s,
+            %(youtube_channel_id)s,
+            %(playlist_id)s
+         )
+         RETURNING youtube_channel_id, playlist_id;
+         """
+        values = [
+            {
+                'channel_info_last_updated': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'title': 'channel_full_upd_and_tal',
+                'added_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'youtube_channel_id': 'channel_id_0_full_upd_and_tal',
+                'playlist_id': 'playlist_id_0_full_upd_and_tal'
+            },
+            {
+                'channel_info_last_updated': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'title': 'channel_parsh_upd_no_tal',
+                'added_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'youtube_channel_id': 'channel_id_1_parsh_upd_no_tal',
+                'playlist_id': 'playlist_id_1_parsh_upd_no_tal'
+            },
+            {
+                'channel_info_last_updated': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'title': 'channel_no_upd_no_tal',
+                'added_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'youtube_channel_id': 'channel_id_2_no_upd_no_tal',
+                'playlist_id': 'playlist_id_2_no_upd_no_tal'
+            },
+        ]
+        channel_ids = []
+        playlist_ids = []
+        for value_set in values:
+            cursor.execute(query, value_set)
+            row = cursor.fetchone()
+            channel_ids.append(row[0])
+            playlist_ids.append(row[1])
+        return channel_ids[0], playlist_ids
+
+    def populate_playlist_items_request(playlist_ids):
+        query = """
+        INSERT INTO playlist_items_request (
+        playlist_items_request_id,
+        playlist_id,
+        requested_at,
+        max_results,
+        total_results,
+        results_per_page,
+        next_page_token
+        )
+        OVERRIDING SYSTEM VALUE
+        VALUES (
+            %(playlist_items_request_id)s,
+            %(playlist_id)s,
+            %(requested_at)s,
+            %(max_results)s,
+            %(total_results)s,
+            %(results_per_page)s,
+            %(next_page_token)s
+        );
+        """
+        values = [
+            {
+                'playlist_items_request_id': 0,
+                'playlist_id': playlist_ids[0],
+                'requested_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'max_results': 50,
+                'total_results': 99,
+                'results_per_page': 50,
+                'next_page_token': 'playlist_id_0_next_page_token_0'
+            },
+            {
+                'playlist_items_request_id': 1,
+                'playlist_id': playlist_ids[0],
+                'requested_at': datetime(2022, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+                'max_results': 50,
+                'total_results': 49,
+                'results_per_page': 50,
+                'next_page_token': None
+            },
+            {
+                'playlist_items_request_id': 2,
+                'playlist_id': playlist_ids[1],
+                'requested_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'max_results': 50,
+                'total_results': 100,
+                'results_per_page': 50,
+                'next_page_token': 'playlist_id_1_next_page_token_0'
+            },
+        ]
+        for value_set in values:
+            cursor.execute(query, value_set)
+
+    def populate_youtube_video():
+        query = """
+        INSERT INTO youtube_video (
+            youtube_video_id,
+            youtube_channel_id,
+            published_at,
+            title,
+            updated_at,
+            description_full,
+            kind,
+            thumbnail_default_url,
+            thumbnail_default_width,
+            thumbnail_default_height,
+            thumbnail_medium_url,
+            thumbnail_medium_width,
+            thumbnail_medium_height,
+            thumbnail_high_url,
+            thumbnail_high_width,
+            thumbnail_high_height,
+            added_at,
+            thumbnail_standard_url,
+            thumbnail_standard_width,
+            thumbnail_standard_height,
+            thumbnail_maxres_url,
+            thumbnail_maxres_width,
+            thumbnail_maxres_height,
+            playlist_item_id,
+            playlist_item_etag,
+            playlist_item_position,
+            playlist_item_published_at
+)
+        VALUES (
+            %(youtube_video_id)s,
+            %(youtube_channel_id)s,
+            %(published_at)s,
+            %(title)s,
+            %(updated_at)s,
+            %(description_full)s,
+            %(kind)s,
+            %(thumbnail_default_url)s,
+            %(thumbnail_default_width)s,
+            %(thumbnail_default_height)s,
+            %(thumbnail_medium_url)s,
+            %(thumbnail_medium_width)s,
+            %(thumbnail_medium_height)s,
+            %(thumbnail_high_url)s,
+            %(thumbnail_high_width)s,
+            %(thumbnail_high_height)s,
+            %(added_at)s,
+            %(thumbnail_standard_url)s,
+            %(thumbnail_standard_width)s,
+            %(thumbnail_standard_height)s,
+            %(thumbnail_maxres_url)s,
+            %(thumbnail_maxres_width)s,
+            %(thumbnail_maxres_height)s,
+            %(playlist_item_id)s,
+            %(playlist_item_etag)s,
+            %(playlist_item_position)s,
+            %(playlist_item_published_at)s
+        );
+        """
+        values = [
+            {
+                'youtube_video_id': 'video_id_0',
+                'youtube_channel_id': 'channel_id_0_full_upd_and_tal',
+                'published_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'title': 'video_id_0_title',
+                'updated_at': datetime(2022, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+                'description_full': 'video_id_0_description',
+                'kind': 'youtube#video',
+                'thumbnail_default_url': 'video_id_0_thumbnail_default_url',
+                'thumbnail_default_width': 1,
+                'thumbnail_default_height': 2,
+                'thumbnail_medium_url': 'video_id_0_thumbnail_medium_url',
+                'thumbnail_medium_width': 3,
+                'thumbnail_medium_height': 4,
+                'thumbnail_high_url': 'video_id_0_thumbnail_high_url',
+                'thumbnail_high_width': 5,
+                'thumbnail_high_height': 6,
+                'added_at': datetime(2022, 1, 1, 0, 0, 2, tzinfo=timezone.utc),
+                'thumbnail_standard_url': 'video_id_0_thumbnail_standard_url',
+                'thumbnail_standard_width': 7,
+                'thumbnail_standard_height': 8,
+                'thumbnail_maxres_url': 'video_id_0_thumbnail_maxres_url',
+                'thumbnail_maxres_width': 9,
+                'thumbnail_maxres_height': 10,
+                'playlist_item_id': 'video_id_0_playlist_item_id',
+                'playlist_item_etag': 'video_id_0_playlist_item_etag',
+                'playlist_item_position': 0,
+                'playlist_item_published_at': datetime(2022, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
+            },
+            {
+                'youtube_video_id': 'video_id_1',
+                'youtube_channel_id': 'channel_id_0_full_upd_and_tal',
+                'published_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'title': 'video_id_1_title',
+                'updated_at': datetime(2022, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+                'description_full': 'video_id_1_description',
+                'kind': 'youtube#video',
+                'thumbnail_default_url': 'video_id_1_thumbnail_default_url',
+                'thumbnail_default_width': 1,
+                'thumbnail_default_height': 2,
+                'thumbnail_medium_url': 'video_id_1_thumbnail_medium_url',
+                'thumbnail_medium_width': 3,
+                'thumbnail_medium_height': 4,
+                'thumbnail_high_url': 'video_id_1_thumbnail_high_url',
+                'thumbnail_high_width': 5,
+                'thumbnail_high_height': 6,
+                'added_at': datetime(2022, 1, 1, 0, 0, 2, tzinfo=timezone.utc),
+                'thumbnail_standard_url': 'video_id_1_thumbnail_standard_url',
+                'thumbnail_standard_width': 7,
+                'thumbnail_standard_height': 8,
+                'thumbnail_maxres_url': 'video_id_1_thumbnail_maxres_url',
+                'thumbnail_maxres_width': 9,
+                'thumbnail_maxres_height': 10,
+                'playlist_item_id': 'video_id_1_playlist_item_id',
+                'playlist_item_etag': 'video_id_1_playlist_item_etag',
+                'playlist_item_position': 0,
+                'playlist_item_published_at': datetime(2022, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
+            },
+            {
+                'youtube_video_id': 'video_id_2',
+                'youtube_channel_id': 'channel_id_0_full_upd_and_tal',
+                'published_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                'title': 'video_id_2_title',
+                'updated_at': datetime(2022, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+                'description_full': 'video_id_2_description',
+                'kind': 'youtube#video',
+                'thumbnail_default_url': 'video_id_2_thumbnail_default_url',
+                'thumbnail_default_width': 1,
+                'thumbnail_default_height': 2,
+                'thumbnail_medium_url': 'video_id_2_thumbnail_medium_url',
+                'thumbnail_medium_width': 3,
+                'thumbnail_medium_height': 4,
+                'thumbnail_high_url': 'video_id_2_thumbnail_high_url',
+                'thumbnail_high_width': 5,
+                'thumbnail_high_height': 6,
+                'added_at': datetime(2022, 1, 1, 0, 0, 2, tzinfo=timezone.utc),
+                'thumbnail_standard_url': 'video_id_2_thumbnail_standard_url',
+                'thumbnail_standard_width': 7,
+                'thumbnail_standard_height': 8,
+                'thumbnail_maxres_url': 'video_id_2_thumbnail_maxres_url',
+                'thumbnail_maxres_width': 9,
+                'thumbnail_maxres_height': 10,
+                'playlist_item_id': 'video_id_2_playlist_item_id',
+                'playlist_item_etag': 'video_id_2_playlist_item_etag',
+                'playlist_item_position': 0,
+                'playlist_item_published_at': datetime(2022, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
+            },
+        ]
+        for value_set in values:
+            cursor.execute(query, value_set)
+
+    def populate_playlist_items_request_youtube_video():
+        # TBI
+        pass
+
+    populate_talent()
+    channel_id, playlist_ids = populate_youtube_channel()
+    populate_youtube_channel_talent(channel_id)
+    populate_playlist_items_request(playlist_ids)
+    populate_youtube_video()
+    populate_playlist_items_request_youtube_video()
+
+
 def reset_for_map():
     connection = connect_to_test_db()
     cursor = connection.cursor()
@@ -953,7 +1272,23 @@ def reset_for_interval():
     print('Test DB was reset for search interval testing')
 
 
+def reset_for_playlist_items_request():
+    """ Reset the DB for testing related to the PlaylistItems class"""
+    connection = connect_to_test_db()
+    cursor = connection.cursor()
+    try:
+        truncate_all(connection, cursor)
+        _populate_all_for_playlist_items(cursor)
+    except psycopg2.DatabaseError as err:
+        print(err)
+    cursor.close()
+    connection.commit()
+    connection_close(connection)
+    print('Test DB was reset for PlaylistItems testing')
+
+
 if __name__ == '__main__':
     reset_for_map()
     reset_for_save()
     reset_for_interval()
+    reset_for_playlist_items_request()
