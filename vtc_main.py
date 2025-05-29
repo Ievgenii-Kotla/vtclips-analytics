@@ -32,6 +32,22 @@ def search_yt_by_keyword(args: dict):
     connect_to_db.connection_close(search_instance.connection)
 
 
+def request_playlist_items():
+    """Continuously fetch and save data available through the 'playlist_items' endpoint of YT API"""
+
+    connection = connect_to_db.connect_to_staging_test_db()
+    playlist_items = db_yt_interface.PlaylistItems(connection)
+    repetitions = args.pop('repetitions')
+    # todo: make it properly stop when quota ends
+    while repetitions != 0:
+        is_success = playlist_items.get_new_playlist_items(delay_sec=2)
+        if is_success:
+            repetitions -= 1
+        else:
+            logging.error('Something went wrong.')
+            break
+
+
 def parse_arguments() -> dict:
     def validate_datetime(value: str) -> str:
         try:
@@ -115,6 +131,22 @@ def parse_arguments() -> dict:
                                 help='Disable sub-searches. Default: does sub-searches'
                                 )
 
+    playlist_parser = subparsers.add_parser(
+        'playlist',
+        help='fetch and cache data from youtube playlists'
+    )
+    playlist_parser.add_argument('-ot',
+                                 '--only_talents',
+                                 action='store_true',
+                                 help="Limit data to only talent playlists"
+                                 )
+    playlist_parser.add_argument('-r',
+                                 '--repetitions',
+                                 type=int,
+                                 default=-1,
+                                 help='Number of playlists that will be updated. Default: -1 (as many as possible)'
+                                 )
+
     args = vars(global_parser.parse_args())
 
     # Change data type, because future usage requires tuples instead of lists.
@@ -133,3 +165,5 @@ if __name__ == '__main__':
     command = args.pop('command')
     if command == 'keyword':
         search_yt_by_keyword(args)
+    elif command == 'playlist':
+        request_playlist_items()
