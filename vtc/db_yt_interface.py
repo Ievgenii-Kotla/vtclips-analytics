@@ -684,6 +684,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                 return False
             self.prepare_subsearch_query()
             self.search()
+            self.filter_response()
             self.save()
         except HttpError as err:
             if err.resp.status == 403:
