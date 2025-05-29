@@ -5,6 +5,8 @@ import json
 import os
 from contextlib import ExitStack
 
+from psycopg2 import DatabaseError
+
 from vtc import connect_to_db, db_yt_interface
 from vtc.db_yt_interface import PrepareAPI
 from tests.fixtures import setup_test_db
@@ -1115,6 +1117,641 @@ class TestSearchYTByKeywordSubsearch(unittest.TestCase):
         self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 00:00:00+00:00'), self.instance.published_after)
         self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 23:59:59+00:00'), self.instance.published_before)
 
+
+class TestPlaylistItems(unittest.TestCase):
+    connection = None
+    cursor = None
+
+    def rows_in_tables_qty(self) -> dict:
+        with self.connection.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM playlist_items_request;")
+            pir_rows_qty = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM playlist_items_request_youtube_video")
+            piryv_rows_qty = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM youtube_video")
+            yv_rows_qty = cur.fetchone()[0]
+        return {'pir': pir_rows_qty, 'piryv': piryv_rows_qty, 'yv':yv_rows_qty}
+
+    def setUp(self) -> None:
+        self.connection = connect_to_db.connect_to_test_db()
+        self.cursor = self.connection.cursor()
+        setup_test_db.reset_for_playlist_items_request()
+        self.playlist_items = db_yt_interface.PlaylistItems(
+            connection=self.connection,
+            only_talents=False,
+            api_service=db_yt_interface.PrepareAPI(filepath='../data/test_api_quota_state.json'),
+            cooldown_period=datetime.timedelta(days=0)
+        )
+        self.fake_response = {
+            "kind": "youtube#playlistItemListResponse",
+            "etag": "GNPrWxCKsLNrFefUvZJrwcqWsV8",
+            "nextPageToken": "EAAaHlBUOkNBVWlFRE0zTTBSRU1FUXdRekkwTnpjMk9URQ",
+            "items": [
+                {
+                    "kind": "youtube#playlistItem",
+                    "etag": "fhZ-UPviRH2-h4-QH_9OvpTrIlk",
+                    "id": "VVVURUtrRFg3bGFmUVZuSnJxdTU1anJBLlBKVHFCNFRQZG4w",
+                    "snippet": {
+                        "publishedAt": "2025-05-25T15:00:40Z",
+                        "channelId": "UCTEKkDX7lafQVnJrqu55jrA",
+                        "title": "Gura Was This Close to Working for Children's Television",
+                        "description": "Check out the Full Stream source:\n\u25c6\u3010POWERWASH SIMULATOR\u3011time for your bath, stinklord\nhttps://www.youtube.com/live/Jvvc3nc_TPw?si=ckJmAU1nxgGRvIwD\n\nTalent:\n\u25cf Gawr Gura\nhttps://www.youtube.com/@GawrGura\n\n-----------------------------------------------------------------\n\n\u2605Thumbnail Art: DDOLBANG (\ub618\ubc29) (@DDOLBANG11)\nhttps://x.com/DDOLBANG11\nhttps://www.pixiv.net/en/users/38810706\n\n-----------------------------------------------------------------\n\nSashimi Twitter\nhttps://x.com/Sashimi_Clips\n\n-----------------------------------------------------------------\n\u25c7DOVA-SYNDROME HP\uff1ahttps://dova-s.jp\n#gawrgura\n#hololive\u200b #hololiveEnglish\u200b #holoMyth #shorts",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Sashimi Clips",
+                        "playlistId": "UUTEKkDX7lafQVnJrqu55jrA",
+                        "position": 0,
+                        "resourceId": {
+                            "kind": "youtube#video",
+                            "videoId": "video_id_0"
+                        },
+                        "videoOwnerChannelTitle": "Sashimi Clips",
+                        "videoOwnerChannelId": "channel_id_0_full_upd_and_tal"
+                    },
+                    "contentDetails": {
+                        "videoId": "video_id_0",
+                        "videoPublishedAt": "2025-05-25T15:00:40Z"
+                    },
+                    "status": {
+                        "privacyStatus": "public"
+                    }
+                },
+                {
+                    "kind": "youtube#playlistItem",
+                    "etag": "1SdNpCP6LiUS84wEC-Amp_McFTo",
+                    "id": "VVVURUtrRFg3bGFmUVZuSnJxdTU1anJBLnhtWXhEeU9ZM180",
+                    "snippet": {
+                        "publishedAt": "2025-05-24T16:01:25Z",
+                        "channelId": "UCTEKkDX7lafQVnJrqu55jrA",
+                        "title": "Why Raora Doesn't Like The Italian Brainrot Meme \u3010Raora Panthra / HololiveEN\u3011",
+                        "description": "Check out the Full Stream source:\n\u25c6\u3010HADES\u3011The Gods are watching and I am embarassing myself\u3010#2\u3011\nhttps://www.youtube.com/live/dGVc6mmT5LY?si=UV2eePeZL1iNMfOx\n\nTalent:\n\u25cf Raora Panthera\nhttps://www.youtube.com/@holoen_raorapanthera\n\n-----------------------------------------------------------------\n\n\u2605Thumbnail Art: Gardavwar (@Gardavwar)\nhttps://x.com/Gardavwar\nhttps://www.pixiv.net/en/users/19990655\n\n-----------------------------------------------------------------\n\nSashimi Twitter\nhttps://x.com/Sashimi_Clips\n\n-----------------------------------------------------------------\n\u25c7DOVA-SYNDROME HP\uff1ahttps://dova-s.jp\n\n#hololive\u200b #hololiveEnglish\u200b #holoJustice",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/xmYxDyOY3_4/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/xmYxDyOY3_4/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/xmYxDyOY3_4/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/xmYxDyOY3_4/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/xmYxDyOY3_4/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Sashimi Clips",
+                        "playlistId": "UUTEKkDX7lafQVnJrqu55jrA",
+                        "position": 1,
+                        "resourceId": {
+                            "kind": "youtube#channel",
+                            "videoId": "video_id_1"
+                        },
+                        "videoOwnerChannelTitle": "Sashimi Clips",
+                        "videoOwnerChannelId": "channel_id_0_full_upd_and_tal"
+                    },
+                    "contentDetails": {
+                        "videoId": "video_id_1",
+                        "videoPublishedAt": "2025-05-24T16:01:25Z"
+                    },
+                    "status": {
+                        "privacyStatus": "public"
+                    }
+                },
+                {
+                    "kind": "youtube#playlistItem",
+                    "etag": "NmtvEt34eeEZKtsXf3svWskQUMM",
+                    "id": "VVVURUtrRFg3bGFmUVZuSnJxdTU1anJBLjFEc3prWkdKV09z",
+                    "snippet": {
+                        "publishedAt": "2025-05-24T11:30:01Z",
+                        "channelId": "UCTEKkDX7lafQVnJrqu55jrA",
+                        "title": "Why It Took Almost 4 Years for Ina to Get Her 1 Million Sub Gift \u3010Ninomae Ina'nis  / HololiveEN\u3011",
+                        "description": "Check out the Full Stream source:\n\u25c6\u3010CHAT\u3011YUUSHA INA ON DUTY\nhttps://www.youtube.com/live/VWokgqvijRA?si=TQCcr1-f6SeVPtrV\n\nTalent:\n\u25cf Ninomae Ina'nis \nhttps://www.youtube.com/@NinomaeInanis\n\n-----------------------------------------------------------------\n\n\u2605Thumbnail Art: DDOLBANG (\ub618\ubc29) (@DDOLBANG11)\nhttps://x.com/DDOLBANG11\nhttps://www.pixiv.net/en/users/38810706\n\n-----------------------------------------------------------------\n\nSashimi Twitter\nhttps://x.com/Sashimi_Clips\n\n-----------------------------------------------------------------\n\u25c7DOVA-SYNDROME HP\uff1ahttps://dova-s.jp\n\n#hololive\u200b #hololiveEnglish\u200b #holoMyth",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/1DszkZGJWOs/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/1DszkZGJWOs/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/1DszkZGJWOs/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/1DszkZGJWOs/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/1DszkZGJWOs/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Sashimi Clips",
+                        "playlistId": "UUTEKkDX7lafQVnJrqu55jrA",
+                        "position": 2,
+                        "resourceId": {
+                            "kind": "youtube#video",
+                            "videoId": "video_id_2"
+                        },
+                        "videoOwnerChannelTitle": "Sashimi Clips",
+                        "videoOwnerChannelId": "channel_id_0_full_upd_and_tal"
+                    },
+                    "contentDetails": {
+                        "videoId": "video_id_2",
+                        "videoPublishedAt": "2025-05-24T11:30:01Z"
+                    },
+                    "status": {
+                        "privacyStatus": "public"
+                    }
+                }
+            ],
+            "pageInfo": {
+                "totalResults": 4432,
+                "resultsPerPage": 3
+            }
+        }
+
+    def tearDown(self) -> None:
+        self.cursor.close()
+        self.connection.rollback()
+        connect_to_db.connection_close(self.connection)
+
+    def test_get_new_playlist_items_stop_on_inner_method_fail(self):
+        self.playlist_items.next_page_token = 'placeholder_next_page_token'
+        self.playlist_items._do_request_and_save = MagicMock(side_effect=[True, True, False])
+        self.playlist_items._update_next_page_token = MagicMock()
+
+        try:
+            is_success = self.playlist_items.get_new_playlist_items()
+        except StopIteration:
+            self.fail(msg="didn't stop on _do_request_and_save failure")
+
+        self.assertEqual(3, self.playlist_items._do_request_and_save.call_count, msg='called wrong amount of times')
+        self.assertFalse(is_success, msg='should be False to mark unsuccessful run')
+
+    def test_get_new_playlist_items_stop_on_no_next_page_token(self):
+        def upd_next_page_token():
+            try:
+                self.playlist_items.next_page_token = next(page_token_gen)
+            except StopIteration:
+                self.fail(msg="didn't stop on no next_page_token")
+
+        self.playlist_items._do_request_and_save = MagicMock(return_value=True)
+        page_token_gen = (token for token in ['token1', 'token2', None])
+        self.playlist_items._update_next_page_token = MagicMock(side_effect=upd_next_page_token)
+
+        is_success = self.playlist_items.get_new_playlist_items()
+
+        self.assertEqual(3, self.playlist_items._do_request_and_save.call_count, msg='called wrong amount of times')
+        self.assertEqual(3, self.playlist_items._update_next_page_token.call_count, msg='called wrong amount of times')
+        self.assertTrue(is_success, msg='should be True to mark successful run')
+
+    def test__do_request_and_save_success(self):
+        def prepare_test_db():
+            with self.connection.cursor() as cur:
+                setup_test_db.truncate_all(self.connection, cur)
+                query = """
+                INSERT INTO youtube_channel (
+                    channel_info_last_updated,
+                    title,
+                    added_at,
+                    youtube_channel_id,
+                    playlist_id
+                )
+                VALUES (
+                    '2024-01-01T00:00:00Z',
+                    'channel_5_title',
+                    '2024-01-01T00:00:00Z',
+                    'channel_id_5',
+                    'playlist_id_5'
+                );
+                """
+                cur.execute(query)
+
+        prepare_test_db()
+        self.playlist_items.playlist_id = 'playlist_id_5'
+        self.playlist_items.response = self.fake_response
+        for i in range(len(self.playlist_items.response['items'])):
+            self.playlist_items.response['items'][i]['snippet']['channelId'] = 'channel_id_5'
+            self.playlist_items.response['items'][i]['snippet']['videoOwnerChannelId'] = 'channel_id_5'
+        self.playlist_items._do_request = MagicMock()
+
+        rows_before = self.rows_in_tables_qty()
+        is_success = self.playlist_items._do_request_and_save()
+        rows_after = self.rows_in_tables_qty()
+
+        self.assertNotEqual(rows_before, rows_after, msg='the qty of rows should be different')
+        self.assertTrue(is_success, msg='should be True')
+        self.assertEqual(1, rows_after['pir'] - rows_before['pir'],
+                         msg='wrong qty of new rows in playlist_items_request table')
+        self.assertEqual(2, rows_after['piryv'] - rows_before['piryv'],
+                         msg='wrong qty of new rows in playlist_items_request_youtube_video table')
+        self.assertEqual(2, rows_after['yv'] - rows_before['yv'],
+                         msg='wrong qty of new rows in youtube_video table')
+
+    def test__do_request_and_save_failure(self):
+        self.playlist_items.playlist_id = None
+        self.playlist_items._set_playlist_id = MagicMock(side_effect=DatabaseError('test case'))
+        with self.assertLogs(logger='vtc.db_yt_interface', level="ERROR") as cm:
+            is_success = self.playlist_items._do_request_and_save()
+        self.assertFalse(is_success, msg="didn't fail properly")
+
+    def test__set_playlist_id_ongoing(self):
+        self.playlist_items._set_playlist_id()
+        self.assertEqual('playlist_id_1_parsh_upd_no_tal', self.playlist_items.playlist_id)
+
+    def test__set_playlist_id_not_searched(self):
+        query = """
+        UPDATE youtube_channel
+        SET is_other = TRUE
+        WHERE youtube_channel_id = 'channel_id_1_parsh_upd_no_tal'
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query)
+            self.connection.commit()
+        self.playlist_items._set_playlist_id()
+        self.assertEqual('playlist_id_2_no_upd_no_tal', self.playlist_items.playlist_id)
+
+    def test__set_playlist_id_oldest(self):
+        query = """
+        UPDATE youtube_channel
+        SET is_other = TRUE
+        WHERE youtube_channel_id IN ('channel_id_1_parsh_upd_no_tal', 'channel_id_2_no_upd_no_tal')
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query)
+        self.playlist_items._set_playlist_id()
+        self.assertEqual('playlist_id_0_full_upd_and_tal', self.playlist_items.playlist_id)
+
+    def test__set_playlist_id_only_talents(self):
+        self.playlist_items.only_talents = True
+        self.playlist_items._set_playlist_id()
+        self.assertEqual('playlist_id_0_full_upd_and_tal', self.playlist_items.playlist_id)
+
+    def test__prepare_request(self):
+        self.playlist_items._prepare_request()
+        self.assertNotEqual(None, self.playlist_items.api_key)
+
+    def test__update_quota_after_request(self):
+        self.playlist_items._prepare_request()
+        quota_before = self.playlist_items.api_service.get_quota_left(self.playlist_items.api_key)
+        self.playlist_items._update_quota_after_request()
+        quota_after = self.playlist_items.api_service.get_quota_left(self.playlist_items.api_key)
+        quota_change = quota_before - quota_after
+        self.assertEqual(1, quota_change)
+
+    def test__filter_response(self):
+        self.playlist_items.response = self.fake_response
+        items_before = len(self.playlist_items.response['items'])
+        self.playlist_items._filter_response()
+        items_after = len(self.playlist_items.response['items'])
+        items_change = items_before - items_after
+        self.assertEqual(1, items_change)
+
+    def test__update_next_page_token_none(self):
+        self.playlist_items.playlist_id = 'playlist_id_2_no_upd_no_tal'
+        self.playlist_items._update_next_page_token()
+        self.assertEqual(None, self.playlist_items.next_page_token)
+
+    def test__update_next_page_token_not_none(self):
+        self.playlist_items.playlist_id = 'playlist_id_1_parsh_upd_no_tal'
+        self.playlist_items._update_next_page_token()
+        self.assertEqual('playlist_id_1_next_page_token_0', self.playlist_items.next_page_token)
+
+    def test__save_commit(self):
+        with self.connection.cursor() as cur:
+            self.playlist_items.response = self.fake_response
+            self.playlist_items.response['items'][0]['snippet']['resourceId']['videoId'] = 'video_id_3'
+            self.playlist_items.response['items'][1]['snippet']['resourceId']['videoId'] = 'video_id_4'
+            self.playlist_items.response['items'][2]['snippet']['resourceId']['videoId'] = 'video_id_5'
+            self.playlist_items.playlist_id = 'playlist_id_1_parsh_upd_no_tal'
+            rows_before = self.rows_in_tables_qty()
+
+            self.playlist_items._save()
+
+            rows_after = self.rows_in_tables_qty()
+
+            self.assertEqual(1, rows_after['pir'] - rows_before['pir'],
+                             msg='wrong qty of new rows in playlist_items_request table')
+            self.assertEqual(3, rows_after['piryv'] - rows_before['piryv'],
+                             msg='wrong qty of new rows in playlist_items_request_youtube_video table')
+            self.assertEqual(3, rows_after['yv'] - rows_before['yv'],
+                             msg='wrong qty of new rows in youtube_video table')
+
+    def test__save_rollback(self):
+        with self.connection.cursor() as cur:
+            self.playlist_items.response = self.fake_response
+            self.playlist_items.response['items'][0]['snippet']['resourceId']['videoId'] = 'video_id_3'
+            self.playlist_items.response['items'][1]['snippet']['resourceId']['videoId'] = 'video_id_4'
+            self.playlist_items.response['items'][2]['snippet']['resourceId']['videoId'] = 'video_id_5'
+            self.playlist_items.playlist_id = 'playlist_id_1_parsh_upd_no_tal'
+            rows_before = self.rows_in_tables_qty()
+
+            self.playlist_items._save_youtube_video = MagicMock(side_effect=DatabaseError(""))
+            with self.assertLogs(logger='vtc.db_yt_interface', level="ERROR") as cm:
+                self.playlist_items._save()
+
+            rows_after = self.rows_in_tables_qty()
+
+            self.assertEqual(0, rows_after['pir'] - rows_before['pir'],
+                             msg='wrong qty of new rows in playlist_items_request table')
+            self.assertEqual(0, rows_after['piryv'] - rows_before['piryv'],
+                             msg='wrong qty of new rows in playlist_items_request_youtube_video table')
+            self.assertEqual(0, rows_after['yv'] - rows_before['yv'],
+                             msg='wrong qty of new rows in youtube_video table')
+
+    def test__save_playlist_items_request(self):
+        self.playlist_items.response = self.fake_response
+        self.playlist_items.playlist_id = 'playlist_save_playlist_items_request'
+        self.playlist_items.datetime_now = datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        self.playlist_items.max_results = 50
+
+        query_channel_setup = """
+        INSERT INTO youtube_channel (
+        channel_info_last_updated,
+        title,
+        added_at,
+        youtube_channel_id,
+        playlist_id
+        )
+        VALUES (%s, %s, %s, %s, %s);
+        """
+        values_channel_setup = [
+            datetime.datetime(2024, 1, 1, 0, 0, 0),
+            'title_save_playlist_items_request',
+            datetime.datetime(2024, 1, 1, 0, 0, 0),
+            'channel_save_playlist_items_request',
+            self.playlist_items.playlist_id
+            ]
+
+        with self.connection.cursor() as cur:
+            cur.execute(query_channel_setup, values_channel_setup)
+        self.connection.commit()
+
+        self.playlist_items._save_playlist_items_request()
+
+        query_test = """
+        SELECT
+            playlist_id,
+            requested_at,
+            max_results,
+            total_results,
+            results_per_page,
+            prev_page_token,
+            next_page_token,
+            etag
+        FROM playlist_items_request
+        ORDER BY playlist_items_request_id DESC
+        LIMIT 1;
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query_test)
+            row = cur.fetchone()
+        self.assertEqual(self.playlist_items.playlist_id, row[0], msg='wrong playlist id')
+        self.assertEqual(self.playlist_items.datetime_now, row[1], msg='wrong request time')
+        self.assertEqual(self.playlist_items.max_results, row[2], msg='wrong max results')
+        self.assertEqual(self.playlist_items.response['pageInfo']['totalResults'], row[3], msg='wrong total results')
+        self.assertEqual(self.playlist_items.response['pageInfo']['resultsPerPage'], row[4], msg='wrong results qty')
+        self.assertEqual(None, row[5], msg='wrong prev page token')
+        self.assertEqual(self.playlist_items.response['nextPageToken'], row[6], msg='wrong next page token')
+        self.assertEqual(self.playlist_items.response['etag'], row[7], msg='wrong etag')
+
+    def test__save_playlist_items_request_youtube_video(self):
+        self.playlist_items.response = self.fake_response
+        self.playlist_items.playlist_items_request_id = 0
+        video_ids = ['video_id_0', 'video_id_1', 'video_id_2']
+        self.playlist_items._save_playlist_items_request_youtube_video()
+
+        query = """
+        SELECT playlist_items_request_id, youtube_video_id
+        FROM playlist_items_request_youtube_video
+        ORDER BY youtube_video_id ASC;
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+        self.assertEqual((self.playlist_items.playlist_items_request_id, video_ids[0]), rows[0], msg='wrong row 0')
+        self.assertEqual((self.playlist_items.playlist_items_request_id, video_ids[1]), rows[1], msg='wrong row 1')
+        self.assertEqual((self.playlist_items.playlist_items_request_id, video_ids[2]), rows[2], msg='wrong row 2')
+
+    def test__save_youtube_video(self):
+        channel_id = 'channel_id_0_full_upd_and_tal'
+        self.playlist_items.datetime_now = datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        self.playlist_items.response = {
+            "kind": "youtube#playlistItemListResponse",
+            "etag": "GNPrWxCKsLNrFefUvZJrwcqWsV8",
+            "nextPageToken": "EAAaHlBUOkNBVWlFRE0zTTBSRU1FUXdRekkwTnpjMk9URQ",
+            "items": [
+                {
+                    "kind": "youtube#playlistItem",
+                    "etag": "fhZ-UPviRH2-h4-QH_9OvpTrIlk",
+                    "id": "VVVURUtrRFg3bGFmUVZuSnJxdTU1anJBLlBKVHFCNFRQZG4w",
+                    "snippet": {
+                        "publishedAt": "2025-05-25T15:00:40Z",
+                        "channelId": "UCTEKkDX7lafQVnJrqu55jrA",
+                        "title": "Gura Was This Close to Working for Children's Television",
+                        "description": "Check out the Full Stream source:\n\u25c6\u3010POWERWASH SIMULATOR\u3011time for your bath, stinklord\nhttps://www.youtube.com/live/Jvvc3nc_TPw?si=ckJmAU1nxgGRvIwD\n\nTalent:\n\u25cf Gawr Gura\nhttps://www.youtube.com/@GawrGura\n\n-----------------------------------------------------------------\n\n\u2605Thumbnail Art: DDOLBANG (\ub618\ubc29) (@DDOLBANG11)\nhttps://x.com/DDOLBANG11\nhttps://www.pixiv.net/en/users/38810706\n\n-----------------------------------------------------------------\n\nSashimi Twitter\nhttps://x.com/Sashimi_Clips\n\n-----------------------------------------------------------------\n\u25c7DOVA-SYNDROME HP\uff1ahttps://dova-s.jp\n#gawrgura\n#hololive\u200b #hololiveEnglish\u200b #holoMyth #shorts",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/PJTqB4TPdn0/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Sashimi Clips",
+                        "playlistId": "UUTEKkDX7lafQVnJrqu55jrA",
+                        "position": 0,
+                        "resourceId": {
+                            "kind": "youtube#video",
+                            "videoId": "video_id_3"
+                        },
+                        "videoOwnerChannelTitle": "Sashimi Clips",
+                        "videoOwnerChannelId": "channel_id_0_full_upd_and_tal"
+                    },
+                    "contentDetails": {
+                        "videoId": "video_id_3",
+                        "videoPublishedAt": "2025-05-25T15:00:40Z"
+                    },
+                    "status": {
+                        "privacyStatus": "public"
+                    }
+                }
+            ],
+            "pageInfo": {
+                "totalResults": 4432,
+                "resultsPerPage": 1
+            }
+        }
+        self.playlist_items._save_youtube_video()
+
+        query = """
+        SELECT
+            youtube_video_id,
+            youtube_channel_id,
+            published_at,
+            title,
+            updated_at,
+            description_full,
+            kind,
+            thumbnail_default_url,
+            thumbnail_default_width,
+            thumbnail_default_height,
+            thumbnail_medium_url,
+            thumbnail_medium_width,
+            thumbnail_medium_height,
+            thumbnail_high_url,
+            thumbnail_high_width,
+            thumbnail_high_height,
+            added_at,
+            thumbnail_standard_url,
+            thumbnail_standard_width,
+            thumbnail_standard_height,
+            thumbnail_maxres_url,
+            thumbnail_maxres_width,
+            thumbnail_maxres_height,
+            playlist_item_id,
+            playlist_item_etag,
+            playlist_item_position,
+            playlist_item_published_at
+        FROM youtube_video;
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+        saved_row = next(row for row in rows if row[0] == 'video_id_3')
+        source_item = next(item for item in self.playlist_items.response['items'] if item['snippet']['resourceId']['videoId'] == 'video_id_3')
+        self.assertEqual(4, len(rows), msg='wrong row qty')
+        self.assertEqual(source_item['snippet']['resourceId']['videoId'], saved_row[0], msg='wrong youtube_video_id')
+        self.assertEqual(source_item['snippet']['videoOwnerChannelId'], saved_row[1], msg='wrong youtube_channel_id')
+        self.assertEqual(
+            datetime.datetime.fromisoformat(source_item['contentDetails']['videoPublishedAt'].replace('Z', '+00:00')),
+            saved_row[2],
+            msg='wrong published_at'
+        )
+        self.assertEqual(source_item['snippet']['title'], saved_row[3], msg='wrong title')
+        self.assertEqual(self.playlist_items.datetime_now, saved_row[4], msg='wrong updated_at')
+        self.assertEqual(source_item['snippet']['description'], saved_row[5], msg='wrong description_full')
+        self.assertEqual(source_item['snippet']['resourceId']['kind'], saved_row[6], msg='wrong kind')
+        self.assertEqual(source_item['snippet']['thumbnails']['default']['url'],
+                         saved_row[7],
+                         msg='wrong thumbnail_default_url')
+        self.assertEqual(source_item['snippet']['thumbnails']['default']['width'],
+                         saved_row[8],
+                         msg='wrong thumbnail_default_width')
+        self.assertEqual(source_item['snippet']['thumbnails']['default']['height'],
+                         saved_row[9],
+                         msg='wrong thumbnail_default_height')
+        self.assertEqual(source_item['snippet']['thumbnails']['medium']['url'],
+                         saved_row[10],
+                         msg='wrong thumbnail_medium_url')
+        self.assertEqual(source_item['snippet']['thumbnails']['medium']['width'],
+                         saved_row[11],
+                         msg='wrong thumbnail_medium_width')
+        self.assertEqual(source_item['snippet']['thumbnails']['medium']['height'],
+                         saved_row[12],
+                         msg='wrong thumbnail_medium_height')
+        self.assertEqual(source_item['snippet']['thumbnails']['high']['url'],
+                         saved_row[13],
+                         msg='wrong thumbnail_high_url')
+        self.assertEqual(source_item['snippet']['thumbnails']['high']['width'],
+                         saved_row[14],
+                         msg='wrong thumbnail_high_width')
+        self.assertEqual(source_item['snippet']['thumbnails']['high']['height'],
+                         saved_row[15],
+                         msg='wrong thumbnail_high_height')
+        self.assertEqual(self.playlist_items.datetime_now,
+                         saved_row[16],
+                         msg='wrong added_at')
+        self.assertEqual(source_item['snippet']['thumbnails']['standard']['url'],
+                         saved_row[17],
+                         msg='wrong thumbnail_standard_url')
+        self.assertEqual(source_item['snippet']['thumbnails']['standard']['width'],
+                         saved_row[18],
+                         msg='wrong thumbnail_standard_width')
+        self.assertEqual(source_item['snippet']['thumbnails']['standard']['height'],
+                         saved_row[19],
+                         msg='wrong thumbnail_standard_height')
+        self.assertEqual(source_item['snippet']['thumbnails']['maxres']['url'],
+                         saved_row[20],
+                         msg='wrong thumbnail_maxres_url')
+        self.assertEqual(source_item['snippet']['thumbnails']['maxres']['width'],
+                         saved_row[21],
+                         msg='wrong thumbnail_maxres_width')
+        self.assertEqual(source_item['snippet']['thumbnails']['maxres']['height'],
+                         saved_row[22],
+                         msg='wrong thumbnail_maxres_height')
+        self.assertEqual(source_item['id'], saved_row[23], msg='wrong playlist_item_id')
+        self.assertEqual(source_item['etag'], saved_row[24], msg='wrong playlist_item_etag')
+        self.assertEqual(source_item['snippet']['position'], saved_row[25], msg='wrong playlist_item_position')
+        self.assertEqual(datetime.datetime.fromisoformat(source_item['snippet']['publishedAt'].replace('Z', '+00:00')), saved_row[26], msg='wrong playlist_item_published_at')
+
+    # def _do_request(self):
+    # def _update_datetime_now(self):
 
 if __name__ == 'main':
     unittest.main()
