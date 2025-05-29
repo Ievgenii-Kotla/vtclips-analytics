@@ -1101,8 +1101,10 @@ class PlaylistItems:
                 logger.error(err)
         except DatabaseError as err:
             logger.error(f'Database error. \n {err}')
+            logger.error(traceback.format_exc())
         except Exception as err:
             logger.error(f'Unexpected error. \n {err}')
+            logger.error(traceback.format_exc())
             raise
         else:
             return True
