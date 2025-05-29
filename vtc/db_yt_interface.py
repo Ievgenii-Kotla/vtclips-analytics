@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import random
 
 from googleapiclient.discovery import build, HttpError
+from psycopg2 import DatabaseError
 from psycopg2.extras import execute_values
 
 from vtc import connect_to_db, vtc_logging
@@ -28,6 +29,7 @@ class PrepareAPI:
     # options for key's purpose
     UNIVERSAL = 'universal'
     SEARCH = 'search'
+    PLAYLIST_ITEMS = 'playlist_items'
 
     @staticmethod
     def current_time_utc():
@@ -1038,6 +1040,326 @@ ORDER BY s1.searched_at;
         logger.info(f'Channels found:\n'
                     f'Total: {self.session_channels_total}\n'
                     f'New  : {self.session_channels_new}\n')
+
+
+class PlaylistItems:
+    def __init__(self,
+                 connection,
+                 api_service: PrepareAPI | None = None,
+                 only_talents: bool = False,
+                 cooldown_period: datetime.timedelta = datetime.timedelta(days=30)):
+        # todo: don't forget to close the connection
+        # todo: wrap all connections into context managers
+        self.connection = connection
+        self.api_service= api_service or PrepareAPI()
+        self.prev_page_token: str | None = None
+        self.next_page_token: str | None = None
+        self.api_key: str | None = None
+        self.response: dict | None = None
+        self.datetime_now: datetime.datetime | None = None
+        self.max_results = 50
+        # data for choosing a playlist_id
+        self.playlist_id: str | None = None
+        self.cooldown_period = cooldown_period
+        self.only_talents = only_talents
+        # data for saving
+        self.playlist_items_request_id: int | None = None
+
+    def get_new_playlist_items(self, delay_sec: int = 0):
+        """Get all items from the 'upload' playlist and save them to the DB"""
+
+        while True:
+            if not self._do_request_and_save():
+                is_success = False
+                break
+            self._update_next_page_token()
+            if not self.next_page_token:
+                self.playlist_id = None
+                is_success = True
+                break
+            time.sleep(delay_sec)
+        return is_success
+
+    def _do_request_and_save(self):
+        try:
+            if not self.playlist_id:
+                self._set_playlist_id()
+            self._prepare_request()
+            self._do_request()
+            self._update_quota_after_request()
+            self._filter_response()
+            self._save()
+        except HttpError as err:
+            if err.resp.status == 403:
+                api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
+                quota_left = self.api_service.get_quota_left(api_key=self.api_key)
+                logger.warning(f'Quota exceeded (prematurely). '
+                               f'API key: {api_key_id}. '
+                               f'Quota left: {quota_left}')
+            else:
+                logger.error(err)
+        except DatabaseError as err:
+            logger.error(f'Database error. \n {err}')
+        except Exception as err:
+            logger.error(f'Unexpected error. \n {err}')
+            raise
+        else:
+            return True
+        return False
+
+    def _set_playlist_id(self):
+
+        if self.only_talents:
+            self.cooldown_period = datetime.timedelta(days=1)
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT youtube_channel_id FROM youtube_channel_talent;")
+                channels = [row[0] for row in cursor.fetchall()]
+        else:
+            channels = None
+
+        query = """
+        WITH last_requests AS (
+            SELECT DISTINCT ON (yc.playlist_id) yc.playlist_id, pir.requested_at, pir.next_page_tokenq
+            FROM youtube_channel AS yc
+            LEFT JOIN playlist_items_request AS pir
+                ON yc.playlist_id = pir.playlist_id
+            WHERE yc.playlist_id IS NOT NULL
+                AND (yc.is_other = FALSE OR yc.is_other IS NULL)
+                AND (%(channels)s IS NULL OR yc.youtube_channel_id = ANY(%(channels)s))
+                AND (pir.requested_at < CURRENT_TIMESTAMP - %(cooldown)s OR pir.requested_at IS NULL)
+            ORDER BY yc.playlist_id, pir.requested_at DESC, pir.playlist_items_request_id DESC
+         )
+         SELECT playlist_id
+         FROM last_requests
+         ORDER BY
+            next_page_token NULLS LAST, -- in the middle of paging through a playlist
+            requested_at ASC NULLS FIRST, -- never requested first, then oldest
+            playlist_id -- for ordering consistency
+        LIMIT 1
+        """
+        values = {'channels': channels, 'cooldown': self.cooldown_period}
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, values)
+            self.playlist_id = cursor.fetchone()[0]
+
+    def _prepare_request(self):
+        self.api_key = self.api_service.get_api_key(delay=False, purpose=PrepareAPI.PLAYLIST_ITEMS)
+        self._update_next_page_token()
+
+    def _do_request(self):
+        youtube = build('youtube', 'v3', developerKey=self.api_key)
+        self.response = youtube.playlistItems().list(
+            part='snippet,status,id,contentDetails',
+            maxResults=self.max_results,
+            playlistId=self.playlist_id,
+            pageToken=self.next_page_token
+        ).execute()
+
+    def _update_quota_after_request(self):
+        self.api_service.change_quota(self.api_key, -1)
+        quota_left = self.api_service.get_quota_left(self.api_key)
+        print("Quota left: ", quota_left)
+
+    def _update_datetime_now(self):
+        self.datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
+
+    def _filter_response(self):
+        all_qty = len(self.response["items"])
+        self.response["items"] = [
+            item for item in self.response["items"] if item["snippet"]["resourceId"]["kind"] == "youtube#video"
+        ]
+        only_video_qty = len(self.response["items"])
+        removed_qty = all_qty - only_video_qty
+        if removed_qty:
+            logger.warning(f"Discarded {removed_qty} non-video items from dataset (playlist)")
+
+    def _update_next_page_token(self):
+        query = """
+        SELECT next_page_token
+        FROM playlist_items_request
+        WHERE playlist_id = %(playlist_id)s
+        ORDER BY requested_at DESC
+        LIMIT 1;
+        """
+        value = {'playlist_id': self.playlist_id}
+        with self.connection.cursor() as cur:
+            cur.execute(query, value)
+            row = cur.fetchone()
+        self.next_page_token = row[0] if row else None
+
+    def _save(self):
+        self._update_datetime_now()
+        try:
+            self._save_playlist_items_request()
+            self._save_youtube_video()
+            self._save_playlist_items_request_youtube_video()
+        except DatabaseError as e:
+            self.connection.rollback()
+            logger.error(f"A DB error occurred while saving playlist items: {e} \nTransaction rolled back. ")
+            logger.error(traceback.format_exc())
+        except Exception as e:
+            self.connection.rollback()
+            logger.error(f"An error occurred while saving playlist items: {e} \nTransaction rolled back. ")
+            logger.error(traceback.format_exc())
+            raise
+        else:
+            self.connection.commit()
+            logger.info("Changes committed. (PlaylistItems request)")
+
+    def _save_playlist_items_request(self):
+        query = """
+        INSERT INTO playlist_items_request (
+            playlist_id,
+            requested_at,
+            max_results,
+            total_results,
+            results_per_page,
+            prev_page_token,
+            next_page_token,
+            etag
+        )
+        VALUES %s
+        RETURNING playlist_items_request_id;
+        """
+        values = [
+            [
+                self.playlist_id,
+                self.datetime_now,
+                self.max_results,
+                self.response['pageInfo']['totalResults'],
+                self.response['pageInfo']['resultsPerPage'],
+                self.response.get('prevPageToken', None),
+                self.response.get('nextPageToken', None),
+                self.response['etag']
+            ],
+        ]
+
+        with self.connection.cursor() as cur:
+            rows = execute_values(cur, query, values, template="(%s, %s, %s, %s, %s, %s, %s, %s)", fetch=True)
+            self.playlist_items_request_id = rows[0][0]  # cur.fetchone()[0]
+
+    def _save_playlist_items_request_youtube_video(self):
+        query = """
+        INSERT INTO playlist_items_request_youtube_video (
+            playlist_items_request_id,
+            youtube_video_id
+        )
+        VALUES %s
+        """
+        values = [
+            [
+                self.playlist_items_request_id,
+                item['snippet']['resourceId']['videoId']
+            ]
+            for item in self.response['items']
+        ]
+        with self.connection.cursor() as cur:
+            execute_values(cur, query, values, template="(%s, %s)", fetch=False)
+
+    def _save_youtube_video(self):
+        query = """
+        INSERT INTO youtube_video (
+            youtube_video_id,
+            youtube_channel_id,
+            published_at,
+            title,
+            updated_at,
+            description_full,
+            kind,
+            thumbnail_default_url,
+            thumbnail_default_width,
+            thumbnail_default_height,
+            thumbnail_medium_url,
+            thumbnail_medium_width,
+            thumbnail_medium_height,
+            thumbnail_high_url,
+            thumbnail_high_width,
+            thumbnail_high_height,
+            added_at,
+            thumbnail_standard_url,
+            thumbnail_standard_width,
+            thumbnail_standard_height,
+            thumbnail_maxres_url,
+            thumbnail_maxres_width,
+            thumbnail_maxres_height,
+            playlist_item_id,
+            playlist_item_etag,
+            playlist_item_position,
+            playlist_item_published_at
+        )
+        VALUES %s
+        ON CONFLICT (youtube_video_id) DO UPDATE
+        SET
+            youtube_video_id = EXCLUDED.youtube_video_id,
+            youtube_channel_id = EXCLUDED.youtube_channel_id,
+            published_at = EXCLUDED.published_at,
+            title = EXCLUDED.title,
+            updated_at = EXCLUDED.updated_at,
+            description_full = EXCLUDED.description_full,
+            kind = EXCLUDED.kind,
+            thumbnail_default_url = EXCLUDED.thumbnail_default_url,
+            thumbnail_default_width = EXCLUDED.thumbnail_default_width,
+            thumbnail_default_height = EXCLUDED.thumbnail_default_height,
+            thumbnail_medium_url = EXCLUDED.thumbnail_medium_url,
+            thumbnail_medium_width = EXCLUDED.thumbnail_medium_width,
+            thumbnail_medium_height = EXCLUDED.thumbnail_medium_height,
+            thumbnail_high_url = EXCLUDED.thumbnail_high_url,
+            thumbnail_high_width = EXCLUDED.thumbnail_high_width,
+            thumbnail_high_height = EXCLUDED.thumbnail_high_height,
+            added_at = COALESCE(youtube_video.added_at, EXCLUDED.added_at),
+            thumbnail_standard_url = EXCLUDED.thumbnail_standard_url,
+            thumbnail_standard_width = EXCLUDED.thumbnail_standard_width,
+            thumbnail_standard_height = EXCLUDED.thumbnail_standard_height,
+            thumbnail_maxres_url = EXCLUDED.thumbnail_maxres_url,
+            thumbnail_maxres_width = EXCLUDED.thumbnail_maxres_width,
+            thumbnail_maxres_height = EXCLUDED.thumbnail_maxres_height,
+            playlist_item_id = EXCLUDED.playlist_item_id,
+            playlist_item_etag = EXCLUDED.playlist_item_etag,
+            playlist_item_position = EXCLUDED.playlist_item_position,
+            playlist_item_published_at = EXCLUDED.playlist_item_published_at
+        RETURNING youtube_video_id;
+        """
+        values = [
+            [
+                item['snippet']['resourceId']['videoId'],  # youtube_video_id
+                item['snippet']['videoOwnerChannelId'],  # youtube_channel_id
+                item['contentDetails']['videoPublishedAt'],  # published_at
+                item['snippet']['title'],  # title
+                self.datetime_now,  # updated_at
+                item['snippet']['description'],  # description_full
+                item['snippet']['resourceId']['kind'],  # kind
+                item['snippet']['thumbnails']['default']['url'],  # thumbnail_default_url
+                item['snippet']['thumbnails']['default']['width'],  # thumbnail_default_width
+                item['snippet']['thumbnails']['default']['height'],  # thumbnail_default_height
+                item['snippet']['thumbnails']['medium']['url'],  # thumbnail_medium_url
+                item['snippet']['thumbnails']['medium']['width'],  # thumbnail_medium_width
+                item['snippet']['thumbnails']['medium']['height'],  # thumbnail_medium_height
+                item['snippet']['thumbnails']['high']['url'],  # thumbnail_high_url
+                item['snippet']['thumbnails']['high']['width'],  # thumbnail_high_width
+                item['snippet']['thumbnails']['high']['height'],  # thumbnail_high_height
+                self.datetime_now,  # added_at
+                item['snippet']['thumbnails']['standard']['url'],  # thumbnail_standard_url
+                item['snippet']['thumbnails']['standard']['width'],  # thumbnail_standard_width
+                item['snippet']['thumbnails']['standard']['height'],  # thumbnail_standard_height
+                item['snippet']['thumbnails']['maxres']['url'],  # thumbnail_maxres_url
+                item['snippet']['thumbnails']['maxres']['width'],  # thumbnail_maxres_width
+                item['snippet']['thumbnails']['maxres']['height'],  # thumbnail_maxres_height
+                item['id'],  # playlist_item_id
+                item['etag'],  # playlist_item_etag
+                item['snippet']['position'],  # playlist_item_position
+                item['snippet']['publishedAt'],  # playlist_item_published_at
+            ]
+            for item in self.response['items']
+        ]
+        with self.connection.cursor() as cur:
+            execute_values(
+                cur,
+                query,
+                values,
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
+                         "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                fetch=False)
+            result = cur.fetchall()
 
 
 class SearchYTByChannel:
