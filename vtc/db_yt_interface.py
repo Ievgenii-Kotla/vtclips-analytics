@@ -1344,12 +1344,12 @@ class PlaylistItems:
                 item['snippet']['thumbnails']['high']['width'],  # thumbnail_high_width
                 item['snippet']['thumbnails']['high']['height'],  # thumbnail_high_height
                 self.datetime_now,  # added_at
-                item['snippet']['thumbnails']['standard']['url'],  # thumbnail_standard_url
-                item['snippet']['thumbnails']['standard']['width'],  # thumbnail_standard_width
-                item['snippet']['thumbnails']['standard']['height'],  # thumbnail_standard_height
-                item['snippet']['thumbnails']['maxres']['url'],  # thumbnail_maxres_url
-                item['snippet']['thumbnails']['maxres']['width'],  # thumbnail_maxres_width
-                item['snippet']['thumbnails']['maxres']['height'],  # thumbnail_maxres_height
+                item['snippet']['thumbnails'].get('standard', {}).get('url', None),  # thumbnail_standard_url
+                item['snippet']['thumbnails'].get('standard', {}).get('width', None),  # thumbnail_standard_width
+                item['snippet']['thumbnails'].get('standard', {}).get('height', None),  # thumbnail_standard_height
+                item['snippet']['thumbnails'].get('maxres', {}).get('url', None),  # thumbnail_maxres_url
+                item['snippet']['thumbnails'].get('maxres', {}).get('width', None),  # thumbnail_maxres_width
+                item['snippet']['thumbnails'].get('maxres', {}).get('height', None),  # thumbnail_maxres_height
                 item['id'],  # playlist_item_id
                 item['etag'],  # playlist_item_etag
                 item['snippet']['position'],  # playlist_item_position
