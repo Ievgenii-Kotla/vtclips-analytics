@@ -7,12 +7,12 @@ from vtc import db_yt_interface, connect_to_db, vtc_logging
 
 
 def search_yt_by_keyword(args: dict):
+    """Continuously fetch and save data available through the 'search' endpoint of YT API"""
+
     connection = connect_to_db.connect_to_db()
     repetitions = args.pop('repetitions')
     do_subsearch = not args.pop('no_subsearch')
     search_instance = db_yt_interface.SearchYTByKeyword(connection, **args)
-
-    # todo: make it properly stop when quota ends
 
     while repetitions != 0:
         # do subsearch if necessary
