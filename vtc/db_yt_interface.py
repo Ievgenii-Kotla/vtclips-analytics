@@ -1070,6 +1070,7 @@ class PlaylistItems:
         """Get all items from the 'upload' playlist and save them to the DB"""
 
         while True:
+            time.sleep(delay_sec)
             if not self._do_request_and_save():
                 is_success = False
                 break
@@ -1078,7 +1079,6 @@ class PlaylistItems:
                 self.playlist_id = None
                 is_success = True
                 break
-            time.sleep(delay_sec)
         return is_success
 
     def _do_request_and_save(self):
