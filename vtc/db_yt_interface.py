@@ -1080,7 +1080,7 @@ class PlaylistItems:
                 self.playlist_id = None
                 is_success = True
                 break
-            logger.info(f'Page: {page}\n')
+            logger.info(f'Page (current run): {page}\n')
             page += 1
         return is_success
 
