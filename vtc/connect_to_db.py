@@ -24,7 +24,7 @@ def connect_to_db():
 
 def connect_to_test_db():
     """ Connect to the test PostgreSQL database. """
-    user, password, host, port, database = os.getenv("test_VC_v0.2_conn_info").split(',')
+    user, password, host, port, database = os.getenv("test_vtc_v0.3").split(',')
     try:
         # Connect to the PostgreSQL database
         connection = psycopg2.connect(
@@ -37,6 +37,25 @@ def connect_to_test_db():
         print("Connected to the TEST database successfully\n")
     except (Exception, Error) as error:
         print("Error while connecting to the TEST database:", error)
+        connection = None
+    return connection
+
+
+def connect_to_staging_test_db():
+    """ Connect to the staging PostgreSQL database with real data. """
+    user, password, host, port, database = os.getenv("staging_test").split(',')
+    try:
+        # Connect to the PostgreSQL database
+        connection = psycopg2.connect(
+            user=user,
+            password=password,
+            host=host,
+            port=port,
+            database=database
+        )
+        print("Connected to the STAGING TEST database successfully\n")
+    except (Exception, Error) as error:
+        print("Error while connecting to the STAGING TEST database:", error)
         connection = None
     return connection
 
