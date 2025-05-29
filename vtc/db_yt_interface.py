@@ -1134,16 +1134,14 @@ class PlaylistItems:
             WHERE yc.playlist_id IS NOT NULL
                 AND (yc.is_other = FALSE OR yc.is_other IS NULL)
                 AND (%(channels)s IS NULL OR yc.youtube_channel_id = ANY(%(channels)s))
-                AND (
-                    pir.requested_at IS NULL
-                    OR (pir.requested_at < CURRENT_TIMESTAMP - %(cooldown)s OR pir.next_page_token IS NOT NULL)
-                )
             ORDER BY yc.playlist_id, pir.requested_at DESC, pir.playlist_items_request_id DESC
          )
          SELECT playlist_id
          FROM last_requests
-         ORDER BY
-            next_page_token NULLS LAST, -- in the middle of paging through a playlist
+         WHERE requested_at IS NULL
+            OR next_page_token IS NOT NULL 
+            OR requested_at < CURRENT_TIMESTAMP - %(cooldown)s 
+         ORDER BY next_page_token NULLS LAST, -- in the middle of paging through a playlist
             requested_at ASC NULLS FIRST, -- never requested first, then oldest
             playlist_id -- for ordering consistency
         LIMIT 1
