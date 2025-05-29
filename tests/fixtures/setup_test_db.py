@@ -668,11 +668,13 @@ def _populate_all_for_save(cursor):
     populate_keyword()
 
 
-def _truncate_all(connection, cursor):
+def truncate_all(connection, cursor):
     truncate_table_queries = [
         'TRUNCATE TABLE keyword CASCADE;',
         'TRUNCATE TABLE keyword_search_yt CASCADE;',
         'TRUNCATE TABLE keyword_talent CASCADE;',
+        'TRUNCATE TABLE playlist_items_request CASCADE;',
+        'TRUNCATE TABLE playlist_items_request_youtube_video CASCADE;',
         'TRUNCATE TABLE search_yt CASCADE;',
         'TRUNCATE TABLE search_yt_youtube_video CASCADE;',
         'TRUNCATE TABLE talent CASCADE;',
@@ -686,6 +688,7 @@ def _truncate_all(connection, cursor):
     ]
     for query in truncate_table_queries:
         cursor.execute(query)
+    connection.commit()
 
 
 def _populate_all_for_search_interval(cursor):
@@ -1241,7 +1244,7 @@ def _populate_all_for_playlist_items(cursor):
 def reset_for_map():
     connection = connect_to_test_db()
     cursor = connection.cursor()
-    _truncate_all(connection, cursor)
+    truncate_all(connection, cursor)
     _populate_all_for_map(cursor)
     cursor.close()
     connection.commit()
@@ -1252,7 +1255,7 @@ def reset_for_map():
 def reset_for_save():
     connection = connect_to_test_db()
     cursor = connection.cursor()
-    _truncate_all(connection, cursor)
+    truncate_all(connection, cursor)
     _populate_all_for_save(cursor)
     cursor.close()
     connection.commit()
@@ -1264,7 +1267,7 @@ def reset_for_interval():
     """ Reset the DB for testing related to the length of the search. """
     connection = connect_to_test_db()
     cursor = connection.cursor()
-    _truncate_all(connection, cursor)
+    truncate_all(connection, cursor)
     _populate_all_for_search_interval(cursor)
     cursor.close()
     connection.commit()
