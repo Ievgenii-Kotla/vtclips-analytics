@@ -1122,7 +1122,7 @@ class PlaylistItems:
 
         query = """
         WITH last_requests AS (
-            SELECT DISTINCT ON (yc.playlist_id) yc.playlist_id, pir.requested_at, pir.next_page_tokenq
+            SELECT DISTINCT ON (yc.playlist_id) yc.playlist_id, pir.requested_at, pir.next_page_token
             FROM youtube_channel AS yc
             LEFT JOIN playlist_items_request AS pir
                 ON yc.playlist_id = pir.playlist_id
