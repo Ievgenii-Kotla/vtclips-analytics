@@ -1069,6 +1069,7 @@ class PlaylistItems:
     def get_new_playlist_items(self, delay_sec: int = 0):
         """Get all items from the 'upload' playlist and save them to the DB"""
 
+        page = 1
         while True:
             time.sleep(delay_sec)
             if not self._do_request_and_save():
@@ -1079,6 +1080,8 @@ class PlaylistItems:
                 self.playlist_id = None
                 is_success = True
                 break
+            logger.info(f'Page: {page}\n')
+            page += 1
         return is_success
 
     def _do_request_and_save(self):
@@ -1107,6 +1110,7 @@ class PlaylistItems:
             logger.error(traceback.format_exc())
             raise
         else:
+            logger.info(f'Newest playlistItems request id: {self.playlist_items_request_id}')
             return True
         return False
 
@@ -1147,6 +1151,18 @@ class PlaylistItems:
         with self.connection.cursor() as cursor:
             cursor.execute(query, values)
             self.playlist_id = cursor.fetchone()[0]
+
+        if self.playlist_id:
+            logger.info(f'Playlist selected. ID: {self.playlist_id} ')
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    "SELECT title FROM youtube_channel WHERE playlist_id = %s;",
+                    (self.playlist_id,))
+                logger.info(f'Title: {cur.fetchone()[0]}')
+            return True
+        else:
+            logger.warning("Playlist wasn't selected")
+            return False
 
     def _prepare_request(self):
         self.api_key = self.api_service.get_api_key(delay=False, purpose=PrepareAPI.PLAYLIST_ITEMS)
