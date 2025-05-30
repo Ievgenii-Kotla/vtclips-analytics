@@ -810,7 +810,8 @@ ORDER BY s1.searched_at;
             youtube_channel_id,
             channel_info_last_updated,
             title,
-            added_at
+            added_at,
+            playlist_id
         )
         VALUES %s
         ON CONFLICT (youtube_channel_id) DO NOTHING
@@ -821,7 +822,8 @@ ORDER BY s1.searched_at;
                 item["snippet"]["channelId"],
                 self.datetime_now,
                 item["snippet"]["channelTitle"],
-                self.datetime_now
+                self.datetime_now,
+                "UU" + item["snippet"]["channelId"][2:] if item["snippet"]["channelId"][:2] == "UC" else None
             ]
             for item in self.response["items"]
         ]
@@ -829,7 +831,7 @@ ORDER BY s1.searched_at;
             self.cursor,
             youtube_channel_query,
             self.youtube_channel_values,
-            template="(%s, %s, %s, %s)",
+            template="(%s, %s, %s, %s, %s)",
             fetch=True
         )
 
