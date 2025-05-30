@@ -1153,7 +1153,11 @@ class PlaylistItems:
         values = {'channels': channels, 'cooldown': self.cooldown_period}
         with self.connection.cursor() as cursor:
             cursor.execute(query, values)
-            self.playlist_id = cursor.fetchone()[0]
+            row = cursor.fetchone()
+            if row:
+                self.playlist_id = row[0]
+            else:
+                self.playlist_id = None
 
         if self.playlist_id:
             logger.info(f'Playlist selected. ID: {self.playlist_id} ')
