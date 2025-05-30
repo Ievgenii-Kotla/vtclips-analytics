@@ -364,9 +364,9 @@ SELECT * FROM youtube_channel;
                 None,  # YT channel thumbnail
                 None,  # country
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-                "UC58YRkZ2cMedl0AVv_rNoZw", # YT channel id
+                "UC58YRkZ2cMedl0AVv_rNoZw",  # YT channel id
                 None,
-                None,
+                "UU58YRkZ2cMedl0AVv_rNoZw",  # playlist_id
                 None
             ),
             (
@@ -384,7 +384,7 @@ SELECT * FROM youtube_channel;
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
                 "UCAnUBKzIF_oR4yNUfqIkCqw",  # YT channel id
                 None,
-                None,
+                "UUAnUBKzIF_oR4yNUfqIkCqw",  # playlist_id
                 None
             ),
         ]
@@ -1406,6 +1406,7 @@ class TestPlaylistItems(unittest.TestCase):
         self.assertEqual('playlist_id_1_parsh_upd_no_tal', self.playlist_items.playlist_id)
 
     def test__set_playlist_id_not_searched(self):
+        # Exclude a row from the db to prepare data
         query = """
         UPDATE youtube_channel
         SET is_other = TRUE
@@ -1414,6 +1415,7 @@ class TestPlaylistItems(unittest.TestCase):
         with self.connection.cursor() as cur:
             cur.execute(query)
             self.connection.commit()
+
         self.playlist_items._set_playlist_id()
         self.assertEqual('playlist_id_2_no_upd_no_tal', self.playlist_items.playlist_id)
 
