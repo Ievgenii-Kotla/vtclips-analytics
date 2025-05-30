@@ -1084,6 +1084,7 @@ class PlaylistItems:
                 break
             logger.info(f'Page (current run): {page}\n')
             page += 1
+        logger.info(f"Success: {is_success}\n")
         return is_success
 
     def _do_request_and_save(self):
@@ -1162,7 +1163,7 @@ class PlaylistItems:
                 logger.info(f'Title: {cur.fetchone()[0]}')
             return True
         else:
-            logger.warning("Playlist wasn't selected")
+            logger.warning("Couldn't select playlist.")
             return False
 
     def _prepare_request(self):
