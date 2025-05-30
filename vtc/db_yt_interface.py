@@ -1134,7 +1134,8 @@ class PlaylistItems:
             FROM youtube_channel AS yc
             LEFT JOIN playlist_items_request AS pir
                 ON yc.playlist_id = pir.playlist_id
-            WHERE yc.playlist_id IS NOT NULL
+            WHERE (yc.deleted IS NULL OR yc.deleted = FALSE)
+                AND yc.playlist_id IS NOT NULL
                 AND (yc.is_other = FALSE OR yc.is_other IS NULL)
                 AND (%(channels)s IS NULL OR yc.youtube_channel_id = ANY(%(channels)s))
             ORDER BY yc.playlist_id, pir.requested_at DESC, pir.playlist_items_request_id DESC
