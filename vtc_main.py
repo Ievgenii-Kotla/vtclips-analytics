@@ -35,8 +35,8 @@ def search_yt_by_keyword(args: dict):
 def request_playlist_items():
     """Continuously fetch and save data available through the 'playlist_items' endpoint of YT API"""
 
-    connection = connect_to_db.connect_to_staging_test_db()
-    playlist_items = db_yt_interface.PlaylistItems(connection)
+    connection = connect_to_db.connect_to_db()
+    playlist_items = db_yt_interface.PlaylistItems(connection, only_talents=args.pop('only_talents'))
     repetitions = args.pop('repetitions')
     # todo: make it properly stop when quota ends
     while repetitions != 0:
