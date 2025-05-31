@@ -367,7 +367,8 @@ SELECT * FROM youtube_channel;
                 "UC58YRkZ2cMedl0AVv_rNoZw",  # YT channel id
                 None,
                 "UU58YRkZ2cMedl0AVv_rNoZw",  # playlist_id
-                None
+                None,
+                True  # playlist_available
             ),
             (
                 None,  # talent id
@@ -385,7 +386,8 @@ SELECT * FROM youtube_channel;
                 "UCAnUBKzIF_oR4yNUfqIkCqw",  # YT channel id
                 None,
                 "UUAnUBKzIF_oR4yNUfqIkCqw",  # playlist_id
-                None
+                None,
+                True,  # playlist_available
             ),
         ]
         self.assertEqual(expected, actual)
