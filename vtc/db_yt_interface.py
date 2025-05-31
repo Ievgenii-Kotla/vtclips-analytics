@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 import random
 
 from googleapiclient.discovery import build, HttpError
-from psycopg2 import DatabaseError
+from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
 from vtc import connect_to_db, vtc_logging
@@ -1233,6 +1233,11 @@ class PlaylistItems:
             self._save_playlist_items_request()
             self._save_youtube_video()
             self._save_playlist_items_request_youtube_video()
+        except errors.ForeignKeyViolation as err:
+            self.connection.rollback()
+            if (err.diag.constraint_name == 'fk_youtube_video_youtube_channel'
+                    and err.diag.table_name == 'youtube_video'):
+                self._handle_fk_violation(err)
         except DatabaseError as e:
             self.connection.rollback()
             logger.error(f"A DB error occurred while saving playlist items: {e} \nTransaction rolled back. ")
@@ -1245,6 +1250,40 @@ class PlaylistItems:
         else:
             self.connection.commit()
             logger.info("Changes committed. (PlaylistItems request)")
+
+    def _handle_fk_violation(self, err):
+        s = err.diag.message_detail
+
+        pattern_before = "(youtube_channel_id)=("
+        pattern_after = ")"
+
+        s = s.partition(pattern_before)[2]
+        channel_id = s.partition(pattern_after)[0]
+
+        query = """
+        INSERT INTO youtube_channel (
+            youtube_channel_id,
+            channel_info_last_updated,
+            title,
+            added_at,
+            playlist_id
+        )
+        VALUES (%s, %s, %s, %s, %s);
+        """
+
+        # todo: recheck this
+        title = [item['snippet']['videoOwnerChannelTitle'] for item in self.response["items"]
+                 if item['snippet']['videoOwnerChannelId'] == channel_id][0]
+        values = [
+            channel_id,
+            self.datetime_now,
+            title,
+            self.datetime_now,
+            "UU" + channel_id[2:] if channel_id[:2] == "UC" else None
+        ]
+        with self.connection.cursor() as cur:
+            cur.execute(query, values)
+            self.connection.commit()
 
     def _save_playlist_items_request(self):
         query = """
