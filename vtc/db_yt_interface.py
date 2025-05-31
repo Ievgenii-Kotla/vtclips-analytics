@@ -1127,6 +1127,7 @@ class PlaylistItems:
         """
         with self.connection.cursor() as cur:
             cur.execute(query, (self.playlist_id,))
+        self.connection.commit()
 
     def _set_playlist_id(self):
 
