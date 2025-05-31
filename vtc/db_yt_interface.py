@@ -283,7 +283,6 @@ class SearchYTByKeyword:
 
         # Variables used to save to DB
         self.keyword_id: tuple[int] = (None,)
-        self.new_yt_channel_ids = None
         self.new_yt_video_ids = None
         self.search_yt_id = None
         self.youtube_video_values = None
@@ -296,7 +295,6 @@ class SearchYTByKeyword:
         self.session_videos_total: int = 0
         self.session_videos_new: int = 0
         self.session_channels_total: int = 0
-        self.session_channels_new: int = 0
         self.session_searches: int = 0
 
     def set_max_search_layer(self):
@@ -1021,15 +1019,13 @@ ORDER BY s1.searched_at;
                     f'Total: {len(self.youtube_video_values)}\n'
                     f'New  : {len(self.new_yt_video_ids)}')
         logger.info(f'Channels in response.\n'
-                    f'Total: {len(self.youtube_channel_values)}\n'
-                    f'New  : {len(self.new_yt_channel_ids)}')
+                    f'Total: {len(self.youtube_channel_values)}\n')
         logger.info(f'Newest search id: {self.search_yt_id}')
         logger.info(f'Quota left for current key: {self.quota_left}\n')
 
         self.session_videos_total += len(self.youtube_video_values)
         self.session_videos_new += len(self.new_yt_video_ids)
         self.session_channels_total += len(self.youtube_channel_values)
-        self.session_channels_new += len(self.new_yt_channel_ids)
         self.session_searches += 1
 
     def validate_results_per_page_qty(self):
@@ -1044,8 +1040,7 @@ ORDER BY s1.searched_at;
                     f'Total: {self.session_videos_total}\n'
                     f'New  : {self.session_videos_new}')
         logger.info(f'Channels found:\n'
-                    f'Total: {self.session_channels_total}\n'
-                    f'New  : {self.session_channels_new}\n')
+                    f'Total: {self.session_channels_total}\n')
 
 
 class PlaylistItems:
