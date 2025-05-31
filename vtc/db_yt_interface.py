@@ -814,9 +814,12 @@ ORDER BY s1.searched_at;
             playlist_id
         )
         VALUES %s
-        ON CONFLICT (youtube_channel_id) DO NOTHING
-        RETURNING youtube_channel_id;
+        ON CONFLICT (youtube_channel_id) DO UPDATE
+        SET channel_info_last_updated = EXCLUDED.channel_info_last_updated,
+            title = EXCLUDED.title,
+            playlist_available = TRUE;
         """
+
         self.youtube_channel_values = [
             [
                 item["snippet"]["channelId"],
@@ -827,12 +830,12 @@ ORDER BY s1.searched_at;
             ]
             for item in self.response["items"]
         ]
-        self.new_yt_channel_ids = execute_values(
+        execute_values(
             self.cursor,
             youtube_channel_query,
             self.youtube_channel_values,
             template="(%s, %s, %s, %s, %s)",
-            fetch=True
+            fetch=False
         )
 
     def save_youtube_video(self):
@@ -1070,7 +1073,7 @@ class PlaylistItems:
 
     def get_new_playlist_items(self, delay_sec: int = 0):
         """Get all items from the 'upload' playlist and save them to the DB"""
-
+        self.playlist_id = None
         page = 1
         while True:
             time.sleep(delay_sec)
@@ -1079,7 +1082,6 @@ class PlaylistItems:
                 break
             self._update_next_page_token()
             if not self.next_page_token:
-                self.playlist_id = None
                 is_success = True
                 break
             logger.info(f'Page (current run): {page}\n')
@@ -1104,6 +1106,10 @@ class PlaylistItems:
                 logger.warning(f'Quota exceeded (prematurely). '
                                f'API key: {api_key_id}. '
                                f'Quota left: {quota_left}')
+            elif err.resp.status == 404:
+                self._update_playlist_unavailable()
+                logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}')
+                logger.info(f'Playlist availability changed to FALSE')
             else:
                 logger.error(err)
         except DatabaseError as err:
@@ -1117,6 +1123,15 @@ class PlaylistItems:
             logger.info(f'Newest playlistItems request id: {self.playlist_items_request_id}')
             return True
         return False
+
+    def _update_playlist_unavailable(self):
+        query = """
+        UPDATE youtube_channel
+        SET playlist_available = FALSE
+        WHERE playlist_id = %s;
+        """
+        with self.connection.cursor() as cur:
+            cur.execute(query, (self.playlist_id,))
 
     def _set_playlist_id(self):
 
@@ -1134,7 +1149,7 @@ class PlaylistItems:
             FROM youtube_channel AS yc
             LEFT JOIN playlist_items_request AS pir
                 ON yc.playlist_id = pir.playlist_id
-            WHERE (yc.deleted IS NULL OR yc.deleted = FALSE)
+            WHERE yc.playlist_available = TRUE 
                 AND yc.playlist_id IS NOT NULL
                 AND (yc.is_other = FALSE OR yc.is_other IS NULL)
                 AND (%(channels)s IS NULL OR yc.youtube_channel_id = ANY(%(channels)s))
