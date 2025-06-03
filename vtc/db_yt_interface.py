@@ -940,6 +940,33 @@ ORDER BY s1.searched_at;
         )
         self.search_yt_id = search_yt_ids[0][0]
 
+    def save_keyword(self):
+        """Save new video ids to the 'keyword' table. """
+
+        query = """
+        INSERT INTO keyword (
+            keyword_word,
+            date_since_relevant,
+            priority
+        )
+        VALUES %s
+        ON CONFLICT (keyword_word) DO NOTHING;
+        """
+        values = [
+            [
+                item['id']['videoId'],
+                datetime.datetime.fromisoformat(item["snippet"]["publishedAt"].replace("Z", "+00:00")),
+                100
+            ]
+            for item in self.response['items']
+        ]
+        execute_values(
+            self.cursor,
+            query,
+            values,
+            fetch=False
+        )
+
     def save_keyword_search_yt(self):
         """ Save new info to the 'keyword_search_yt' junction table. """
         keyword_search_yt_query = """
@@ -996,6 +1023,7 @@ ORDER BY s1.searched_at;
             self.save_youtube_channel()
             self.save_youtube_video()
             self.save_search_yt()
+            self.save_keyword()
             self.save_keyword_search_yt()
             self.save_search_yt_youtube_video()
 
@@ -1250,6 +1278,7 @@ class PlaylistItems:
         try:
             self._save_playlist_items_request()
             self._save_youtube_video()
+            self._save_keyword()
             self._save_playlist_items_request_youtube_video()
         except errors.ForeignKeyViolation as err:
             self.connection.rollback()
@@ -1458,6 +1487,34 @@ class PlaylistItems:
                          "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 fetch=False)
             result = cur.fetchall()
+
+    def _save_keyword(self):
+        """Save new video ids to the 'keyword' table. """
+
+        query = """
+        INSERT INTO keyword (
+            keyword_word,
+            date_since_relevant,
+            priority
+        )
+        VALUES %s
+        ON CONFLICT (keyword_word) DO NOTHING;
+        """
+        values = [
+            [
+                item['snippet']['resourceId']['videoId'],
+                item['contentDetails']['videoPublishedAt'],
+                100
+            ]
+            for item in self.response['items']
+        ]
+        with self.connection.cursor() as cur:
+            ids = execute_values(
+                cur,
+                query,
+                values,
+                fetch=True
+            )
 
 
 class SearchYTByChannel:
