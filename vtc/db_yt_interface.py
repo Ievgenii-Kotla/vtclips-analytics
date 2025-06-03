@@ -1066,7 +1066,7 @@ class PlaylistItems:
         # data for saving
         self.playlist_items_request_id: int | None = None
 
-    def get_new_playlist_items(self, delay_sec: int = 0):
+    def get_new_playlist_items(self, delay_sec: float = 0):
         """Get all items from the 'upload' playlist and save them to the DB"""
         self.playlist_id = None
         page = 1
