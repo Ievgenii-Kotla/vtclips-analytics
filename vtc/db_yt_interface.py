@@ -1290,7 +1290,6 @@ class PlaylistItems:
         VALUES (%s, %s, %s, %s, %s);
         """
 
-        # todo: recheck this
         title = [item['snippet']['videoOwnerChannelTitle'] for item in self.response["items"]
                  if item['snippet']['videoOwnerChannelId'] == channel_id][0]
         values = [
@@ -1465,13 +1464,3 @@ class SearchYTByChannel:
     # TBD
     pass
 
-
-if __name__ == "__main__":
-    logger = vtc_logging.setup_logger(log_to_file=False)
-    connection = connect_to_db.connect_to_db()
-    search_instance = SearchYTByKeyword(connection=connection,
-                                        api_service=PrepareAPI(filepath='../data/test_api_quota_state.json'))
-    for i in range(2):
-        search_instance.search_next_and_save()
-    search_instance.session_stats()
-    connect_to_db.connection_close(search_instance.connection)
