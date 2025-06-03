@@ -812,10 +812,7 @@ ORDER BY s1.searched_at;
             playlist_id
         )
         VALUES %s
-        ON CONFLICT (youtube_channel_id) DO UPDATE
-        SET channel_info_last_updated = EXCLUDED.channel_info_last_updated,
-            title = EXCLUDED.title,
-            playlist_available = TRUE;
+        ON CONFLICT (youtube_channel_id) DO NOTHING;
         """
 
         self.youtube_channel_values = [
