@@ -1253,6 +1253,7 @@ class PlaylistItems:
             self._save_playlist_items_request_youtube_video()
         except errors.ForeignKeyViolation as err:
             self.connection.rollback()
+            logger.warning(f"Foreign key violation detected: {err}")
             if (err.diag.constraint_name == 'fk_youtube_video_youtube_channel'
                     and err.diag.table_name == 'youtube_video'):
                 self._handle_fk_violation(err)
@@ -1302,6 +1303,7 @@ class PlaylistItems:
         with self.connection.cursor() as cur:
             cur.execute(query, values)
             self.connection.commit()
+        logger.warning(f'New channel added to fix FK violation. \nId: {channel_id} Title: {title}')
 
     def _save_playlist_items_request(self):
         query = """
