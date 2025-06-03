@@ -40,7 +40,7 @@ def request_playlist_items():
     repetitions = args.pop('repetitions')
     # todo: make it properly stop when quota ends
     while repetitions != 0:
-        is_success = playlist_items.get_new_playlist_items(delay_sec=2)
+        is_success = playlist_items.get_new_playlist_items(delay_sec=1.2)
         if is_success:
             repetitions -= 1
         else:
