@@ -1207,6 +1207,19 @@ class PlaylistItems:
         self.datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
 
     def _filter_response(self):
+        def remove_nul_chars_in_nested_dict(dict_: dict) -> None:
+            for key, value in dict_.items():
+                if isinstance(value, dict):
+                    remove_nul_chars_in_nested_dict(value)
+                elif isinstance(value, list):
+                    for l in value:
+                        remove_nul_chars_in_nested_dict(l)
+                elif isinstance(value, str):
+                    if '\x00' in value:
+                        dict_[key] = value.replace("\x00", "")
+                        logger.warning('NUL (0x00) character detected in string')
+                        logger.info(f"Removed NUL char (0x00) in {key}: {value}")
+
         all_qty = len(self.response["items"])
         self.response["items"] = [
             item for item in self.response["items"] if item["snippet"]["resourceId"]["kind"] == "youtube#video"
@@ -1215,6 +1228,8 @@ class PlaylistItems:
         removed_qty = all_qty - only_video_qty
         if removed_qty:
             logger.warning(f"Discarded {removed_qty} non-video items from dataset (playlist)")
+
+        remove_nul_chars_in_nested_dict(self.response)
 
     def _update_next_page_token(self):
         query = """
