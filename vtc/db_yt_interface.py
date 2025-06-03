@@ -1101,10 +1101,16 @@ class PlaylistItems:
                 logger.warning(f'Quota exceeded (prematurely). '
                                f'API key: {api_key_id}. '
                                f'Quota left: {quota_left}')
+            elif err.resp.status == 500:
+                seconds = 60
+                logger.warning(f'YouTube server error (500). Retry in {seconds} seconds.')
+                time.sleep(seconds)
+                return True
             elif err.resp.status == 404:
                 self._update_playlist_unavailable()
                 logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}')
                 logger.info(f'Playlist availability changed to FALSE')
+                return True
             else:
                 logger.error(err)
         except DatabaseError as err:
