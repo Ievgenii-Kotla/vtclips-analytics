@@ -38,7 +38,6 @@ def request_playlist_items():
     connection = connect_to_db.connect_to_db()
     playlist_items = db_yt_interface.PlaylistItems(connection, only_talents=args.pop('only_talents'))
     repetitions = args.pop('repetitions')
-    # todo: make it properly stop when quota ends
     while repetitions != 0:
         is_success = playlist_items.get_new_playlist_items(delay_sec=1.2)
         if is_success:
@@ -149,7 +148,7 @@ def parse_arguments() -> dict:
 
     args = vars(global_parser.parse_args())
 
-    # Change data type, because future usage requires tuples instead of lists.
+    # Change data type, because further the pipeline usage requires tuples instead of lists.
     for key, value in args.items():
         if isinstance(value, list):
             args[key] = tuple(value)
