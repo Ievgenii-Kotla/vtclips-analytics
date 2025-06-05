@@ -927,13 +927,10 @@ def _populate_all_for_playlist_items(cursor):
     def populate_talent():
         query = """
         INSERT INTO talent (
-        talent_id,
         debut_datetime,
         first_name_eng
         )
-        OVERRIDING SYSTEM VALUE
         VALUES (
-        %(talent_id)s,
         %(debut_datetime)s,
         %(first_name_eng)s
         )
@@ -941,7 +938,6 @@ def _populate_all_for_playlist_items(cursor):
         """
         dataset = [
             {
-                'talent_id': 1,
                 'debut_datetime': '2024-01-01 00:00:00+00:00',
                 'first_name_eng': 'talent_name_one'
             },
@@ -1025,7 +1021,6 @@ def _populate_all_for_playlist_items(cursor):
     def populate_playlist_items_request(playlist_ids):
         query = """
         INSERT INTO playlist_items_request (
-        playlist_items_request_id,
         playlist_id,
         requested_at,
         max_results,
@@ -1033,9 +1028,7 @@ def _populate_all_for_playlist_items(cursor):
         results_per_page,
         next_page_token
         )
-        OVERRIDING SYSTEM VALUE
         VALUES (
-            %(playlist_items_request_id)s,
             %(playlist_id)s,
             %(requested_at)s,
             %(max_results)s,
