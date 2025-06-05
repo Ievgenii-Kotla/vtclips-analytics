@@ -1543,6 +1543,24 @@ class PlaylistItems:
                 fetch=True
             )
 
+    def _save_keyword_talent(self):
+        query = """
+        INSERT INTO keyword_talent (
+            keyword_id,
+            talent_id
+        )
+        SELECT k.keyword_id, yct.talent_id
+        FROM keyword k
+        JOIN youtube_video yv ON yv.youtube_video_id = k.keyword_word
+        JOIN youtube_channel_talent yct ON yct.youtube_channel_id = yv.youtube_channel_id
+        WHERE keyword_word = ANY(%s)
+        RETURNING keyword_id, talent_id;
+        """
+        values = [item['snippet']['resourceId']['videoId'] for item in self.response['items']]
+        with self.connection.cursor() as cur:
+            cur.execute(query, (values,))
+            rows = cur.fetchall()
+            logger.info(f'New keyword_talent pairs: {len(rows)}')
 
 class SearchYTByChannel:
     # TBD
