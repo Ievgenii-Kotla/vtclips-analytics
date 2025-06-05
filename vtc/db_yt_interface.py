@@ -268,7 +268,8 @@ class SearchYTByKeyword:
 
         self.search_map: List[Tuple[int, str, datetime.datetime, datetime.datetime], ] | None = None
         self.response = None
-        self.subsearch_map: List[Tuple[int, datetime.datetime, datetime.datetime, str, str, int], ] | None = None
+        self.subsearch_map: List[Tuple[int, datetime.datetime, datetime.datetime, str, str,
+        int, int, datetime.datetime | None, datetime.datetime | None, int], ] | None = None
 
         # Default values for constant YT search parameters
         self.part = "snippet"
