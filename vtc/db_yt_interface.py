@@ -762,7 +762,7 @@ ORDER BY s1.searched_at;
 
         data = self.subsearch_map.pop(0)
         (
-            parent_id,
+            parent_id,  # parent search id
             parent_published_after,
             parent_published_before,
             q,
@@ -773,23 +773,36 @@ ORDER BY s1.searched_at;
             child_published_before,
             keyword_ids
         ) = data
+        
+        query = """
+        SELECT yv.published_at
+        FROM search_yt_youtube_video syyv 
+        JOIN youtube_video yv ON syyv.youtube_video_id = yv.youtube_video_id 
+        WHERE syyv.search_yt_id = %s;
+        """
+
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, (parent_id,))
+            rows = cursor.fetchall()
+        if rows:
+            middle_point = rows[(len(rows)//2)][0]
+        else:
+            logger.warning(f'Nothing found for search_yt_id {parent_id} or its related videos.')
+            return False
 
         if subsearch_qty == 0:
-            parent_search_period: datetime.timedelta = parent_published_before - parent_published_after
-            child_search_period: datetime.timedelta = datetime.timedelta(
-                seconds=parent_search_period.total_seconds() // 2)
             self.published_after = parent_published_after
-            self.published_before = parent_published_after + child_search_period
+            self.published_before = middle_point - datetime.timedelta(seconds=1)
         elif subsearch_qty == 1:
-            self.published_after = child_published_before + datetime.timedelta(seconds=1)
+            self.published_after = middle_point
             self.published_before = parent_published_before
         else:
             raise ValueError(f'subsearch_qty value {subsearch_qty} is unsupported')
         self.search_layer = search_layer
         self.search_query = q
         self.parent_search_id = parent_id
-
         self.keyword_id = keyword_ids
+        return True
 
     def search_next_and_save(self):
         """ Coordinate the process of searching YT. """
