@@ -50,7 +50,7 @@ JOIN youtube_channel_talent yct ON yct.youtube_channel_id = yv.youtube_channel_i
 """
 
 
-with connect_to_db.connect_to_staging_test_db() as conn:
+with connect_to_db.connect_to_db() as conn:
     with conn.cursor() as cur:
         cur.execute(pre_check_keyword_query)
         new_keywords_qty = cur.fetchone()[0]
