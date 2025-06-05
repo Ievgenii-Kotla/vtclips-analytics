@@ -1525,7 +1525,8 @@ class PlaylistItems:
             priority
         )
         VALUES %s
-        ON CONFLICT (keyword_word) DO NOTHING;
+        ON CONFLICT (keyword_word) DO NOTHING
+        RETURNING keyword_id;
         """
         values = [
             [
@@ -1536,12 +1537,13 @@ class PlaylistItems:
             for item in self.response['items']
         ]
         with self.connection.cursor() as cur:
-            ids = execute_values(
+            rows = execute_values(
                 cur,
                 query,
                 values,
                 fetch=True
             )
+        logger.info(f'New keywords: {len(rows)}')
 
     def _save_keyword_talent(self):
         query = """
