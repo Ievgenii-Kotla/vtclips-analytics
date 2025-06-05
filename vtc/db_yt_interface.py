@@ -778,7 +778,8 @@ ORDER BY s1.searched_at;
         SELECT yv.published_at
         FROM search_yt_youtube_video syyv 
         JOIN youtube_video yv ON syyv.youtube_video_id = yv.youtube_video_id 
-        WHERE syyv.search_yt_id = %s;
+        WHERE syyv.search_yt_id = %s
+        ORDER BY yv.published_at;
         """
 
         with self.connection.cursor() as cursor:
