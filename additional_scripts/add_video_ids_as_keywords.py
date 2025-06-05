@@ -46,7 +46,8 @@ INSERT INTO keyword_talent (keyword_id, talent_id)
 SELECT k.keyword_id, yct.talent_id
 FROM keyword k
 JOIN youtube_video yv ON k.keyword_word = yv.youtube_video_id
-JOIN youtube_channel_talent yct ON yct.youtube_channel_id = yv.youtube_channel_id   
+JOIN youtube_channel_talent yct ON yct.youtube_channel_id = yv.youtube_channel_id 
+ON CONFLICT (keyword_id, talent_id) DO NOTHING;  
 """
 
 
