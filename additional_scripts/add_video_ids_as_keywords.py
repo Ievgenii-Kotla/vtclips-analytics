@@ -2,7 +2,29 @@
 
 from vtc import db_yt_interface, connect_to_db
 
-insert_query = """
+# todo: validate this
+# todo: also don't forget that you also have to
+#  add the connection between keyword and talent (here and on search and playlist_itmes request_
+
+pre_check_keyword_query = """
+SELECT COUNT(*)
+FROM youtube_video
+WHERE youtube_channel_id IN (
+    SELECT youtube_channel_id
+    FROM youtube_channel_talent
+)
+    AND youtube_video_id NOT IN (
+        SELECT keyword_word
+        FROM keyword
+    );
+"""
+pre_check_keyword_talent_query = """
+SELECT COUNT(*)
+FROM youtube_video yv
+JOIN youtube_channel_talent yct ON yct.youtube_channel_id = yv.youtube_channel_id;
+"""
+
+insert_to_keyword_query = """
 INSERT INTO keyword (
     keyword_word, 
     date_since_relevant, 
@@ -10,26 +32,40 @@ INSERT INTO keyword (
 ) 
 SELECT 
     youtube_video_id,
-    published_at - INTERVAL '1 month',
+    published_at,
     100
-FROM youtube_video yv
-LEFT JOIN keyword k ON yv.youtube_video_id = k.keyword_word
-WHERE k.keyword_word IS NULL;
+FROM youtube_video
+WHERE youtube_channel_id IN (
+    SELECT youtube_channel_id
+    FROM youtube_channel_talent
+)
+    AND youtube_video_id NOT IN (
+        SELECT keyword_word
+        FROM keyword
+    );
+"""
+insert_to_keyword_talent_query = """
+INSERT INTO keyword_talent (keyword_id, talent_id)
+SELECT k.keyword_id, yct.talent_id
+FROM keyword k
+JOIN youtube_video yv ON k.keyword_word = yv.youtube_video_id
+JOIN youtube_channel_talent yct ON yct.youtube_channel_id = yv.youtube_channel_id   
 """
 
-pre_check_query = """
-SELECT COUNT(*)
-FROM youtube_video yv
-LEFT JOIN keyword k ON yv.youtube_video_id = k.keyword_word
-WHERE k.keyword_word IS NULL;
-"""
 
 with connect_to_db.connect_to_staging_test_db() as conn:
     with conn.cursor() as cur:
-        cur.execute(pre_check_query)
-        user_input = input(f'{cur.fetchone()[0]} keywords will be added. Continue? y/n: ')
+        cur.execute(pre_check_keyword_query)
+        new_keywords_qty = cur.fetchone()[0]
+        cur.execute(pre_check_keyword_talent_query)
+        new_keywrod_talents_qty = cur.fetchone()[0]
+        print(f'{new_keywords_qty} keywords and {new_keywrod_talents_qty} keyword-talent connections '
+              f'will be added')
+        user_input = input('Continue? y/n: ')
         if user_input == 'y':
-            cur.execute(insert_query)
-            print(f'{cur.rowcount} rows created')
+            cur.execute(insert_to_keyword_query)
+            print(f'{cur.rowcount} rows created (keyword)')
+            cur.execute(insert_to_keyword_talent_query)
+            print(f'{cur.rowcount} rows created (keyword_talent)')
         else:
-            print('Operation aborted')
+            print('Operation canceled')
