@@ -1468,39 +1468,39 @@ class TestPlaylistItems(unittest.TestCase):
         self.assertEqual('playlist_id_1_next_page_token_0', self.playlist_items.next_page_token)
 
     def test__save_commit(self):
-        with self.connection.cursor() as cur:
-            self.playlist_items.response = self.fake_response
-            self.playlist_items.response['items'][0]['snippet']['resourceId']['videoId'] = 'video_id_3'
-            self.playlist_items.response['items'][1]['snippet']['resourceId']['videoId'] = 'video_id_4'
-            self.playlist_items.response['items'][2]['snippet']['resourceId']['videoId'] = 'video_id_5'
-            self.playlist_items.playlist_id = 'playlist_id_1_parsh_upd_no_tal'
-            rows_before = self.rows_in_tables_qty()
+        """Test if changes are properly saved and committed to the db"""
+        self.playlist_items.response = self.fake_response
+        self.playlist_items.response['items'][0]['snippet']['resourceId']['videoId'] = 'video_id_3'
+        self.playlist_items.response['items'][1]['snippet']['resourceId']['videoId'] = 'video_id_4'
+        self.playlist_items.response['items'][2]['snippet']['resourceId']['videoId'] = 'video_id_5'
+        self.playlist_items.playlist_id = 'playlist_id_1_parsh_upd_no_tal'
+        rows_before = self.rows_in_tables_qty()
 
-            self.playlist_items._save()
+        self.playlist_items._save()
 
-            rows_after = self.rows_in_tables_qty()
+        rows_after = self.rows_in_tables_qty()
 
-            self.assertEqual(1, rows_after['pir'] - rows_before['pir'],
-                             msg='wrong qty of new rows in playlist_items_request table')
-            self.assertEqual(3, rows_after['piryv'] - rows_before['piryv'],
-                             msg='wrong qty of new rows in playlist_items_request_youtube_video table')
-            self.assertEqual(3, rows_after['yv'] - rows_before['yv'],
-                             msg='wrong qty of new rows in youtube_video table')
+        self.assertEqual(1, rows_after['pir'] - rows_before['pir'],
+                         msg='wrong qty of new rows in playlist_items_request table')
+        self.assertEqual(3, rows_after['piryv'] - rows_before['piryv'],
+                         msg='wrong qty of new rows in playlist_items_request_youtube_video table')
+        self.assertEqual(3, rows_after['yv'] - rows_before['yv'],
+                         msg='wrong qty of new rows in youtube_video table')
 
     def test__save_rollback(self):
-        with self.connection.cursor() as cur:
-            self.playlist_items.response = self.fake_response
-            self.playlist_items.response['items'][0]['snippet']['resourceId']['videoId'] = 'video_id_3'
-            self.playlist_items.response['items'][1]['snippet']['resourceId']['videoId'] = 'video_id_4'
-            self.playlist_items.response['items'][2]['snippet']['resourceId']['videoId'] = 'video_id_5'
-            self.playlist_items.playlist_id = 'playlist_id_1_parsh_upd_no_tal'
-            rows_before = self.rows_in_tables_qty()
+        """Test if changes are properly rolled back"""
+        self.playlist_items.response = self.fake_response
+        self.playlist_items.response['items'][0]['snippet']['resourceId']['videoId'] = 'video_id_3'
+        self.playlist_items.response['items'][1]['snippet']['resourceId']['videoId'] = 'video_id_4'
+        self.playlist_items.response['items'][2]['snippet']['resourceId']['videoId'] = 'video_id_5'
+        self.playlist_items.playlist_id = 'playlist_id_1_parsh_upd_no_tal'
+        rows_before = self.rows_in_tables_qty()
 
-            self.playlist_items._save_youtube_video = MagicMock(side_effect=DatabaseError(""))
-            with self.assertLogs(logger='vtc.db_yt_interface', level="ERROR") as cm:
-                self.playlist_items._save()
+        self.playlist_items._save_youtube_video = MagicMock(side_effect=DatabaseError(""))
+        with self.assertLogs(logger='vtc.db_yt_interface', level="ERROR") as cm:
+            self.playlist_items._save()
 
-            rows_after = self.rows_in_tables_qty()
+        rows_after = self.rows_in_tables_qty()
 
             self.assertEqual(0, rows_after['pir'] - rows_before['pir'],
                              msg='wrong qty of new rows in playlist_items_request table')
@@ -1508,6 +1508,12 @@ class TestPlaylistItems(unittest.TestCase):
                              msg='wrong qty of new rows in playlist_items_request_youtube_video table')
             self.assertEqual(0, rows_after['yv'] - rows_before['yv'],
                              msg='wrong qty of new rows in youtube_video table')
+        self.assertEqual(0, rows_after['pir'] - rows_before['pir'],
+                         msg='wrong qty of new rows in playlist_items_request table')
+        self.assertEqual(0, rows_after['piryv'] - rows_before['piryv'],
+                         msg='wrong qty of new rows in playlist_items_request_youtube_video table')
+        self.assertEqual(0, rows_after['yv'] - rows_before['yv'],
+                         msg='wrong qty of new rows in youtube_video table')
 
     def test__save_playlist_items_request(self):
         self.playlist_items.response = self.fake_response
