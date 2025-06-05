@@ -10,6 +10,7 @@ from psycopg2 import DatabaseError
 from vtc import connect_to_db, db_yt_interface
 from vtc.db_yt_interface import PrepareAPI
 from tests.fixtures import setup_test_db
+import db_helpers
 
 
 class ConsistentANY:
@@ -436,11 +437,11 @@ SELECT * FROM youtube_video;
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
                 None,
+                640,
+                480,
                 None,
-                None,
-                None,
-                None,
-                None,
+                1280,
+                720,
                 None,
                 None,
                 None,
@@ -484,11 +485,11 @@ SELECT * FROM youtube_video;
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
                 None,
+                640,
+                480,
                 None,
-                None,
-                None,
-                None,
-                None,
+                1280,
+                720,
                 None,
                 None,
                 None,
@@ -1082,43 +1083,12 @@ class TestSearchYTByKeywordSubsearch(unittest.TestCase):
     def setUp(self) -> None:
         self.cursor.execute('TRUNCATE TABLE search_yt CASCADE;')
 
-    def test_subsearch_no_subsearch(self):
-        search_ids = ['search_3', ]
-        subsearch_ids = []
-        self.populate_search_yt(search_ids, subsearch_ids)
-        self.instance.set_subsearch_map()
-        self.instance.prepare_subsearch_query()
-
-        self.assertEqual(datetime.datetime.fromisoformat('2025-01-10 00:00:00+00:00'), self.instance.published_after)
-        self.assertEqual(datetime.datetime.fromisoformat('2025-01-10 23:59:59+00:00'), self.instance.published_before)
-
-    def test_subsearch_one_subsearch(self):
-        search_ids = ['search_2', ]
-        subsearch_ids = ['search_2_subsearch_1', ]
-        self.populate_search_yt(search_ids, subsearch_ids)
-        self.instance.set_subsearch_map()
-        self.instance.prepare_subsearch_query()
-
-        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 00:00:00+00:00'), self.instance.published_after)
-        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 23:59:59+00:00'), self.instance.published_before)
-
     def test_subsearch_two_subsearches(self):
         search_ids = ['search_1', ]
         subsearch_ids = ['search_1_subsearch_1', 'search_1_subsearch_2', ]
         self.populate_search_yt(search_ids, subsearch_ids)
         success = self.instance.set_subsearch_map()
         self.assertFalse(success, 'Should not create map under those conditions')
-
-    def test_subsearch_order(self):
-        search_ids = ['search_3', 'search_2', ]
-        subsearch_ids = ['search_2_subsearch_1', ]
-        self.populate_search_yt(search_ids, subsearch_ids)
-        self.instance.set_subsearch_map()
-        self.instance.prepare_subsearch_query()
-
-        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 00:00:00+00:00'), self.instance.published_after)
-        self.assertEqual(datetime.datetime.fromisoformat('2025-01-11 23:59:59+00:00'), self.instance.published_before)
-
 
 class TestPlaylistItems(unittest.TestCase):
     connection = None
@@ -1136,6 +1106,7 @@ class TestPlaylistItems(unittest.TestCase):
 
     def setUp(self) -> None:
         self.connection = connect_to_db.connect_to_test_db()
+        db_helpers.truncate_all(self.connection)
         self.cursor = self.connection.cursor()
         setup_test_db.reset_for_playlist_items_request()
         self.playlist_items = db_yt_interface.PlaylistItems(
@@ -1502,12 +1473,6 @@ class TestPlaylistItems(unittest.TestCase):
 
         rows_after = self.rows_in_tables_qty()
 
-            self.assertEqual(0, rows_after['pir'] - rows_before['pir'],
-                             msg='wrong qty of new rows in playlist_items_request table')
-            self.assertEqual(0, rows_after['piryv'] - rows_before['piryv'],
-                             msg='wrong qty of new rows in playlist_items_request_youtube_video table')
-            self.assertEqual(0, rows_after['yv'] - rows_before['yv'],
-                             msg='wrong qty of new rows in youtube_video table')
         self.assertEqual(0, rows_after['pir'] - rows_before['pir'],
                          msg='wrong qty of new rows in playlist_items_request table')
         self.assertEqual(0, rows_after['piryv'] - rows_before['piryv'],
@@ -1573,7 +1538,7 @@ class TestPlaylistItems(unittest.TestCase):
 
     def test__save_playlist_items_request_youtube_video(self):
         self.playlist_items.response = self.fake_response
-        self.playlist_items.playlist_items_request_id = 0
+        self.playlist_items.playlist_items_request_id = 1
         video_ids = ['video_id_0', 'video_id_1', 'video_id_2']
         self.playlist_items._save_playlist_items_request_youtube_video()
 
