@@ -2,9 +2,6 @@
 
 from vtc import db_yt_interface, connect_to_db
 
-# todo: validate this
-# todo: also don't forget that you also have to
-#  add the connection between keyword and talent (here and on search and playlist_itmes request_
 
 pre_check_keyword_query = """
 SELECT COUNT(*)
