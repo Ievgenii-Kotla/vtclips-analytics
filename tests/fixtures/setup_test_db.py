@@ -670,21 +670,21 @@ def _populate_all_for_save(cursor):
 
 def truncate_all(connection, cursor):
     truncate_table_queries = [
-        'TRUNCATE TABLE keyword CASCADE;',
-        'TRUNCATE TABLE keyword_search_yt CASCADE;',
-        'TRUNCATE TABLE keyword_talent CASCADE;',
-        'TRUNCATE TABLE playlist_items_request CASCADE;',
-        'TRUNCATE TABLE playlist_items_request_youtube_video CASCADE;',
-        'TRUNCATE TABLE search_yt CASCADE;',
-        'TRUNCATE TABLE search_yt_youtube_video CASCADE;',
-        'TRUNCATE TABLE talent CASCADE;',
-        'TRUNCATE TABLE youtube_channel CASCADE;',
-        'TRUNCATE TABLE youtube_channel_stats CASCADE;',
-        'TRUNCATE TABLE youtube_channel_talent CASCADE;',
-        'TRUNCATE TABLE youtube_video CASCADE;',
-        'TRUNCATE TABLE youtube_video_keyword CASCADE;',
-        'TRUNCATE TABLE youtube_video_stats CASCADE;',
-        'TRUNCATE TABLE youtube_video_youtube_video CASCADE;'
+        'TRUNCATE TABLE keyword RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE keyword_search_yt RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE keyword_talent RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE playlist_items_request RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE playlist_items_request_youtube_video RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE search_yt RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE search_yt_youtube_video RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE talent RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE youtube_channel RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE youtube_channel_stats RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE youtube_channel_talent RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE youtube_video RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE youtube_video_keyword RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE youtube_video_stats RESTART IDENTITY CASCADE;',
+        'TRUNCATE TABLE youtube_video_youtube_video RESTART IDENTITY CASCADE;'
     ]
     for query in truncate_table_queries:
         cursor.execute(query)
