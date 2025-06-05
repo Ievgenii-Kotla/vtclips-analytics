@@ -544,8 +544,9 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         if published_after is None:
             published_after = self.published_before
         default_search_interval = days(2)
+        # collect information about the previous search with the keyword
         query = """
-SELECT s.published_after, s.published_before, s.results_per_page
+SELECT s.published_after, s.published_before, s.results_per_page, k.priority
 FROM search_yt AS s
 JOIN keyword_search_yt AS ks
     ON s.search_yt_id = ks.search_yt_id
@@ -567,15 +568,25 @@ LIMIT 1;
         data = cursor.fetchone()
         cursor.close()
 
+        if data:
+            # Unpack information about the previous search
+            start, end, matches, priority = data
+            prev_search_period: datetime.timedelta = end - start
+        else:
+            # get priority value for the current keyword
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT priority FROM keyword WHERE keyword_word = %s;", (keyword_word,))
+                priority = cursor.fetchone()[0]
+
+        # special case for when the keyword is a video id (priority 100)
+        if priority == 100:
+            return self.datetime_now - published_after - days(1)
+
         # No previous search
         if data is None:
             return default_search_interval
 
-        # Unpack information about the previous search
-        start, end, matches = data
-        prev_search_period: datetime.timedelta = end - start
-
-        # Previous search is not recent
+# Previous search is not recent
         if published_after - end < datetime.timedelta(seconds=1):
             return default_search_interval
 
@@ -591,7 +602,7 @@ LIMIT 1;
         if 41 <= matches <= 50:
             return min(prev_search_period, default_search_interval)
 
-        # Behaviour for other situations
+        # Behavior for other situations
         logger.warning('Unexpected calculation of the search interval')
         return default_search_interval
 
