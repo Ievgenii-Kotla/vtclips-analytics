@@ -692,7 +692,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             self.set_subsearch_map()
             if not self.subsearch_map:
                 return False
-            self.prepare_subsearch_query()
+            if not self.prepare_subsearch_query():
+                return False
             self.search()
             self.filter_response()
             self.save()
