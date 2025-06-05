@@ -1305,6 +1305,7 @@ class PlaylistItems:
             self._save_playlist_items_request()
             self._save_youtube_video()
             self._save_keyword()
+            self._save_keyword_talent()
             self._save_playlist_items_request_youtube_video()
         except errors.ForeignKeyViolation as err:
             self.connection.rollback()
