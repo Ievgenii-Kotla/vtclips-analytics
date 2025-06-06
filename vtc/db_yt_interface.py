@@ -9,6 +9,8 @@ from random import randint, choices
 import time
 from zoneinfo import ZoneInfo
 import random
+import unicodedata
+import html
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
@@ -24,6 +26,12 @@ from vtc import connect_to_db, vtc_logging
 # create the logger
 logger = logging.getLogger(__name__)
 
+class Helper:
+    @staticmethod
+    def normalize(text):
+        text = unicodedata.normalize('NFKC', text)
+        text = html.unescape(text)
+        return text
 
 class PrepareAPI:
     # options for key's purpose
@@ -881,7 +889,8 @@ ORDER BY s1.searched_at;
         thumbnail_high_url,
         thumbnail_high_width,
         thumbnail_high_height,
-        added_at
+        added_at,
+        title_normalized
     )
     VALUES %s
     ON CONFLICT (youtube_video_id) DO NOTHING
@@ -906,7 +915,8 @@ ORDER BY s1.searched_at;
                 item["snippet"]["thumbnails"]["high"]["url"],
                 item["snippet"]["thumbnails"]["high"]["width"],
                 item["snippet"]["thumbnails"]["high"]["height"],
-                self.datetime_now
+                self.datetime_now,
+                Helper.normalize(item['snippet']['title'])
             ]
             for item in self.response["items"]
         ]
@@ -915,7 +925,7 @@ ORDER BY s1.searched_at;
             youtube_video_query,
             self.youtube_video_values,
             template=(
-                "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             ),
             fetch=True
         )
@@ -1413,7 +1423,9 @@ class PlaylistItems:
             playlist_item_id,
             playlist_item_etag,
             playlist_item_position,
-            playlist_item_published_at
+            playlist_item_published_at,
+            title_normalized,
+            description_normalized
         )
         VALUES %s
         ON CONFLICT (youtube_video_id) DO UPDATE
@@ -1444,7 +1456,9 @@ class PlaylistItems:
             playlist_item_id = EXCLUDED.playlist_item_id,
             playlist_item_etag = EXCLUDED.playlist_item_etag,
             playlist_item_position = EXCLUDED.playlist_item_position,
-            playlist_item_published_at = EXCLUDED.playlist_item_published_at
+            playlist_item_published_at = EXCLUDED.playlist_item_published_at,
+            title_normalized = EXCLUDED.title_normalized,
+            description_normalized = EXCLUDED.description_normalized
         RETURNING youtube_video_id;
         """
         values = [
@@ -1476,6 +1490,8 @@ class PlaylistItems:
                 item['etag'],  # playlist_item_etag
                 item['snippet']['position'],  # playlist_item_position
                 item['snippet']['publishedAt'],  # playlist_item_published_at
+                Helper.normalize(item['snippet']['title']),  # title_normalized
+                Helper.normalize(item['snippet']['description']) if item['snippet']['description'] else None,  # description_normalized
             ]
             for item in self.response['items']
         ]
@@ -1484,8 +1500,8 @@ class PlaylistItems:
                 cur,
                 query,
                 values,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, "
-                         "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  "
+                         "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 fetch=False)
             result = cur.fetchall()
 
