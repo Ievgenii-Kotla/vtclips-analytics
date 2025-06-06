@@ -1,6 +1,7 @@
 """Normalizes database text fields with NFKC if not yet processed"""
 
 import unicodedata
+import html
 from psycopg2 import sql
 
 from vtc.connect_to_db import connect_to_db
@@ -33,6 +34,7 @@ def normalize_fields(conn, source_field:str, target_field:str):
 
             video_id, text = row
             text = unicodedata.normalize('NFKC', text)
+            text = html.unescape(text)
             cur.execute(write_query, {'id': video_id, 'text': text})
             qty += 1
         conn.commit()
@@ -43,7 +45,7 @@ def normalize_fields(conn, source_field:str, target_field:str):
 
 
 if __name__ == '__main__':
-    with connect_to_staging_test_db() as conn:
+    with connect_to_db() as conn:
         field_pairs = [['title', 'title_normalized'], ['description', 'description_normalized']]
         for fields in field_pairs:
 
