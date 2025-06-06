@@ -447,6 +447,8 @@ SELECT * FROM youtube_video;
                 None,
                 None,
                 None,
+                "Kronii Laughing so Hard at Her Own Flower Building in Minecraft [Kaela/Kronii]",
+                None
             ),
             (
                 "IwhkBhUH0lc",  # youtube_video_id
@@ -495,6 +497,8 @@ SELECT * FROM youtube_video;
                 None,
                 None,
                 None,
+                "Ame and Ina Can't Stop Teasing Kronii~ (Hololive)",
+                None
             )
         ]
         self.assertEqual(expected, actual)
