@@ -29,7 +29,7 @@ def normalize_fields(conn, source_field:str, target_field:str):
 
             row = cur.fetchone()
             if row is None:
-                print("No more descriptions to normalize")
+                print(f"No more {source_field} to normalize")
                 break
 
             video_id, text = row
@@ -46,7 +46,7 @@ def normalize_fields(conn, source_field:str, target_field:str):
 
 if __name__ == '__main__':
     with connect_to_db() as conn:
-        field_pairs = [['title', 'title_normalized'], ['description', 'description_normalized']]
+        field_pairs = [['title', 'title_normalized'], ['description_full', 'description_normalized']]
         for fields in field_pairs:
 
             total_qty: int = 0
