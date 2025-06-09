@@ -58,7 +58,8 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
                 1,
                 datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
                 datetime.datetime(2025, 1, 25, 23, 59, 59, tzinfo=datetime.timezone.utc),
-                1
+                1,
+                True
             ),
         ]
         expected_start = datetime.datetime(2025, 1, 26, 0, 0, 0, tzinfo=datetime.timezone.utc)
@@ -92,7 +93,8 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
                 0,
                 None,
                 None,
-                1
+                1,
+                True
             ),
         ]
         expected_start = datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)

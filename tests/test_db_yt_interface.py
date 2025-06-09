@@ -526,6 +526,7 @@ SELECT * FROM search_yt;
                 "youtube#searchListResponse",  # kind
                 1,  # layer
                 None,  # parent id
+                False  # is_q_quoted
             )
         ]
         self.assertEqual(expected, actual)
