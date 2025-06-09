@@ -277,7 +277,7 @@ class SearchYTByKeyword:
         self.search_map: List[Tuple[int, str, datetime.datetime, datetime.datetime], ] | None = None
         self.response = None
         self.subsearch_map: List[Tuple[int, datetime.datetime, datetime.datetime, str, str,
-        int, int, datetime.datetime | None, datetime.datetime | None, int], ] | None = None
+        int, int, datetime.datetime | None, datetime.datetime | None, int, bool]] | None = None
 
         # Default values for constant YT search parameters
         self.part = "snippet"
@@ -524,7 +524,7 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             end
         )
         self.keyword_id = (keyword_id,)
-        self.search_query = keyword_word
+        self.search_query = f'"{keyword_word}"'
         self.published_after = start
         self.published_before = end
 
@@ -548,7 +548,7 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         if keyword_word is None:
             # todo: fix: self. search_query is None on the fisrt run.
             #  Meaning it stores value of the previous run on non-first runs
-            keyword_word = self.search_query
+            keyword_word = self.search_query.strip('"')
         if published_after is None:
             published_after = self.published_before
         default_search_interval = days(2)
@@ -743,7 +743,8 @@ SELECT
         SELECT array_agg(ks.keyword_id)
         FROM keyword_search_yt as ks
         WHERE ks.search_yt_id = s1.search_yt_id
-    )
+    ),
+    s1.is_q_quoted
 FROM search_yt AS s1 
 LEFT JOIN subsearch AS sb
     ON s1.search_yt_id = sb.parent_id
@@ -779,7 +780,8 @@ ORDER BY s1.searched_at;
             subsearch_qty,
             child_published_after,
             child_published_before,
-            keyword_ids
+            keyword_ids,
+            is_q_quoted
         ) = data
         
         query = """
@@ -808,7 +810,7 @@ ORDER BY s1.searched_at;
         else:
             raise ValueError(f'subsearch_qty value {subsearch_qty} is unsupported')
         self.search_layer = search_layer
-        self.search_query = q
+        self.search_query = f'"{q}"' if is_q_quoted else q
         self.parent_search_id = parent_id
         self.keyword_id = keyword_ids
         return True
@@ -946,7 +948,8 @@ ORDER BY s1.searched_at;
         region_code,
         q,
         search_layer,
-        parent_id
+        parent_id,
+        is_q_quoted
     )
     VALUES %s
     RETURNING search_yt_id;
@@ -963,16 +966,17 @@ ORDER BY s1.searched_at;
                 self.response.get("nextPageToken"),
                 self.response["pageInfo"]["totalResults"],
                 self.response["regionCode"],
-                self.search_query,
+                self.search_query.strip('"'),
                 self.search_layer,
-                self.parent_search_id
+                self.parent_search_id,
+                self.search_query.startswith('"') and self.search_query.endswith('"')
             ]
         ]
         search_yt_ids = execute_values(
             self.cursor,
             search_yt_query,
             search_yt_values,
-            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             fetch=True
         )
         self.search_yt_id = search_yt_ids[0][0]
