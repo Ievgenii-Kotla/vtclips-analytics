@@ -293,6 +293,7 @@ class SearchYTByKeyword:
         # Variables used to save to DB
         self.keyword_id: tuple[int] = (None,)
         self.new_yt_video_ids = None
+        self.new_yt_channel_ids = None
         self.search_yt_id = None
         self.youtube_video_values = None
         self.youtube_channel_values = None
@@ -304,6 +305,7 @@ class SearchYTByKeyword:
         self.session_videos_total: int = 0
         self.session_videos_new: int = 0
         self.session_channels_total: int = 0
+        self.session_channels_new: int = 0
         self.session_searches: int = 0
 
     def set_max_search_layer(self):
@@ -849,7 +851,8 @@ ORDER BY s1.searched_at;
             playlist_id
         )
         VALUES %s
-        ON CONFLICT (youtube_channel_id) DO NOTHING;
+        ON CONFLICT (youtube_channel_id) DO NOTHING
+        RETURNING youtube_channel_id;
         """
 
         self.youtube_channel_values = [
@@ -862,12 +865,12 @@ ORDER BY s1.searched_at;
             ]
             for item in self.response["items"]
         ]
-        execute_values(
+        self.new_yt_channel_ids = execute_values(
             self.cursor,
             youtube_channel_query,
             self.youtube_channel_values,
             template="(%s, %s, %s, %s, %s)",
-            fetch=False
+            fetch=True
         )
 
     def save_youtube_video(self):
@@ -1057,7 +1060,8 @@ ORDER BY s1.searched_at;
                     f'Total: {len(self.youtube_video_values)}\n'
                     f'New  : {len(self.new_yt_video_ids)}')
         logger.info(f'Channels in response.\n'
-                    f'Total: {len(self.youtube_channel_values)}\n')
+                    f'Total: {len(self.youtube_channel_values)}\n'
+                    f'New  : {len(self.new_yt_channel_ids)}')
         logger.info(f'Newest search id: {self.search_yt_id}')
         logger.info(f'Quota left for current key: {self.quota_left}\n')
 
@@ -1078,7 +1082,8 @@ ORDER BY s1.searched_at;
                     f'Total: {self.session_videos_total}\n'
                     f'New  : {self.session_videos_new}')
         logger.info(f'Channels found:\n'
-                    f'Total: {self.session_channels_total}\n')
+                    f'Total: {self.session_channels_total}\n'
+                    f'New  : {self.session_channels_new}\n')
 
 
 class PlaylistItems:
@@ -1242,7 +1247,7 @@ class PlaylistItems:
     def _update_quota_after_request(self):
         self.api_service.change_quota(self.api_key, -1)
         quota_left = self.api_service.get_quota_left(self.api_key)
-        print("Quota left: ", quota_left)
+        logger.info(f"Quota left: {quota_left}")
 
     def _update_datetime_now(self):
         self.datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
