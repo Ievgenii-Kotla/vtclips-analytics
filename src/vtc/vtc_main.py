@@ -3,7 +3,7 @@ import argparse
 import datetime
 import logging
 
-from vtc import db_yt_interface, connect_to_db, vtc_logging
+from src.vtc import db_yt_interface, connect_to_db, vtc_logging
 
 
 def search_yt_by_keyword(args: dict):
