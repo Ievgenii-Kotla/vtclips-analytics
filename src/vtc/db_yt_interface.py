@@ -10,12 +10,14 @@ import time
 from zoneinfo import ZoneInfo
 import unicodedata
 import html
+import sys
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
-from src.vtc import connect_to_db
+sys.path.insert(0, os.path.dirname(__file__))
+import connect_to_db
 
 # TODO: big things to add:
 #  logging
