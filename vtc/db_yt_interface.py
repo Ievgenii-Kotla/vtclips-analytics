@@ -1154,6 +1154,11 @@ class PlaylistItems:
                 logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}')
                 logger.info(f'Playlist availability changed to FALSE')
                 return True
+            elif err.resp.status == 503:
+                seconds = 600
+                logger.warning(f'YouTube server error (503). Retry in {seconds} seconds.')
+                time.sleep(seconds)
+                return True
             else:
                 logger.error(err)
         except DatabaseError as err:
