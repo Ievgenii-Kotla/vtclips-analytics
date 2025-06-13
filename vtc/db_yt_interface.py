@@ -1507,7 +1507,7 @@ class PlaylistItems:
                 item['snippet']['position'],  # playlist_item_position
                 item['snippet']['publishedAt'],  # playlist_item_published_at
                 Helper.normalize(item['snippet']['title']),  # title_normalized
-                Helper.normalize(item['snippet']['description']) if item['snippet']['description'] else None,  # description_normalized
+                Helper.normalize(item['snippet']['description']),  # description_normalized
             ]
             for item in self.response['items']
         ]
