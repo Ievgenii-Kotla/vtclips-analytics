@@ -3,7 +3,7 @@
 
 from psycopg2 import Error
 import datetime as dt
-from vtc import connect_to_db
+from src.vtc import connect_to_db
 
 
 def pick_talent() -> str:

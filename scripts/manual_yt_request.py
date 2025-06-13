@@ -1,11 +1,11 @@
 """Do manual request to yt with specified parameters."""
-from vtc import db_yt_interface
+from src.vtc import db_yt_interface
 from googleapiclient.discovery import build
 import json
 
 
 def search():
-    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_service = db_yt_interface.PrepareAPI(filepath='../state/api_quota_state.json')
     api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.search().list(
@@ -25,7 +25,7 @@ def search():
 
 
 def channels_list():
-    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_service = db_yt_interface.PrepareAPI(filepath='../state/api_quota_state.json')
     api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.channels().list(
@@ -40,7 +40,7 @@ def channels_list():
 
 
 def videos_list():
-    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_service = db_yt_interface.PrepareAPI(filepath='../state/api_quota_state.json')
     api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.videos().list(
@@ -57,7 +57,7 @@ def videos_list():
 
 
 def search_channel_videos():
-    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_service = db_yt_interface.PrepareAPI(filepath='../state/api_quota_state.json')
     api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.search().list(
@@ -82,7 +82,7 @@ def playlist_items():
     # Nerrev example playlist ID: UUUY4NGgaom5tDxhe4b1YX0g
     # bugged azki one: UU0TXe_LYZ4scaW2XMyi5_kw
     #  next page token for it: EAAaHlBUOkNHUWlFRGhCTWpCQ1FUSkdPVU0xTmpNMU9UVQ
-    api_service = db_yt_interface.PrepareAPI(filepath='../data/api_quota_state.json')
+    api_service = db_yt_interface.PrepareAPI(filepath='../state/api_quota_state.json')
     api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.SEARCH)
     youtube = build('youtube', 'v3', developerKey=api_key)
     response = youtube.playlistItems().list(

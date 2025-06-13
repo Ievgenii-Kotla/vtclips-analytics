@@ -5,7 +5,7 @@ A tool to add keywords to the DB.
 """
 
 import datetime
-from vtc import connect_to_db
+from src.vtc import connect_to_db
 
 
 # value = [keyword, talent_first_name, usage_enabled, priority, date_since_relevant, purity]

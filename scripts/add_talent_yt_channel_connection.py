@@ -2,7 +2,7 @@
 A tool to link talents with their channels
 """
 
-from vtc import connect_to_db
+from src.vtc import connect_to_db
 from psycopg2 import errors
 
 CHANNEL_TALENT_PAIRS = [
