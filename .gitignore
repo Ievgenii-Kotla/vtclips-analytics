@@ -173,8 +173,8 @@ cython_debug/
 .pypirc
 
 # project files
-data/api_quota_state.json
-data/test_api_quota_state.json
+state/api_quota_state.json
+state/test_api_quota_state.json
 todo
 logs
 known_issues.txt
