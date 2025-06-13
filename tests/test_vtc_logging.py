@@ -2,7 +2,7 @@ import unittest
 import os
 import glob
 
-from vtc import vtc_logging
+from src.vtc import vtc_logging
 from unittest.mock import patch
 
 

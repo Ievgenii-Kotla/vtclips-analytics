@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch, Mock
 
-import vtc_main
-from vtc import db_yt_interface
+from src.vtc import db_yt_interface, vtc_main
+
 
 class testParseArguments(unittest.TestCase):
     @patch('sys.argv', [
@@ -75,14 +75,21 @@ class testParseArguments(unittest.TestCase):
         '-sl',
         '1'
     ])
-    @patch('vtc_main.db_yt_interface.SearchYTByKeyword.set_talents_ids')
-    def test_integration_parse_arguments_SearchYTKeyword___init__(self, mock_set_talents_ids):
+    def test_integration_parse_arguments_SearchYTKeyword___init__(self):
         kwargs = vtc_main.parse_arguments()
         command = kwargs.pop('command')
         repetitions = kwargs.pop('repetitions')
         do_subsearch = not kwargs.pop('no_subsearch')
+        
+        mock_cursor = Mock()
+        mock_cursor.fetchone.return_value = [1]  # Simulate returning talent_id
+        mock_cursor.fetchall.return_value = []   # Simulate no additional results
+        
         mock_conn = Mock()
+        mock_conn.cursor.return_value = mock_cursor
+        
         instance = db_yt_interface.SearchYTByKeyword(connection=mock_conn, api_service=Mock(), **kwargs)
+        
         self.assertEqual(mock_conn, instance.connection)
         self.assertEqual(('name1', 'name2'), instance.talents_names)
         self.assertEqual('2024-01-01 01:01:01+00:00', instance.start_search_datetime)
