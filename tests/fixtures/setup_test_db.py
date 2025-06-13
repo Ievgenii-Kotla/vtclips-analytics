@@ -1,7 +1,7 @@
 """ Set and reset data from the test DB """
 
-from vtc.connect_to_db import connect_to_test_db, connection_close
-from datetime import date, datetime, timezone, timedelta
+from src.vtc.connect_to_db import connect_to_test_db, connection_close
+from datetime import datetime, timezone
 import psycopg2
 
 
