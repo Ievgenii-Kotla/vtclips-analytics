@@ -39,7 +39,7 @@ def request_playlist_items():
     playlist_items = db_yt_interface.PlaylistItems(connection, only_talents=args.pop('only_talents'))
     repetitions = args.pop('repetitions')
     while repetitions != 0:
-        is_success = playlist_items.get_new_playlist_items(delay_sec=1.2)
+        is_success = playlist_items.get_new_playlist_items(delay_sec=0.5)
         if is_success:
             repetitions -= 1
         else:
