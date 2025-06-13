@@ -1307,10 +1307,12 @@ class PlaylistItems:
                 self._save_keyword_talent()
         except errors.ForeignKeyViolation as err:
             self.connection.rollback()
-            logger.warning(f"Foreign key violation detected: {err}")
-            if (err.diag.constraint_name == 'fk_youtube_video_youtube_channel'
+            logger.warning(f"Foreign key violation detected: {err} \nTransaction rolled back. ")
+            if (err.diag.constraint_name == 'fk_youtube_video_youtube_channel_id'
                     and err.diag.table_name == 'youtube_video'):
                 self._handle_fk_violation(err)
+            else:
+                logger.error("Unexpected foreign key violation")
         except DatabaseError as e:
             self.connection.rollback()
             logger.error(f"A DB error occurred while saving playlist items: {e} \nTransaction rolled back. ")
