@@ -36,6 +36,7 @@ class Helper:
 
 class PrepareAPI:
     # options for key's purpose
+    UNDEFINED = "undefined"
     UNIVERSAL = 'universal'
     SEARCH = 'search'
     PLAYLIST_ITEMS = 'playlist_items'
@@ -221,7 +222,7 @@ class PrepareAPI:
                 'available': int(available_points := randint(lower_boundary, upper_boundary) * 100
                                  * self.api_quotas.get(f'API_key{i}', {}).get('coefficient', 1)),
                 'reserve': int(self.quota_points_max - available_points),
-                'purpose': self.api_quotas.get(f'API_key{i}', {}).get('purpose', 'universal'),
+                'purpose': self.api_quotas.get(f'API_key{i}', {}).get('purpose', PrepareAPI.UNDEFINED),
                 'coefficient': self.api_quotas.get(f'API_key{i}', {}).get('coefficient', 1),
             } for i, _ in enumerate(self.api_keys)}
         self.save_api_quotas_info(
