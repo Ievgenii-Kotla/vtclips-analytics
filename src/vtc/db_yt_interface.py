@@ -1155,6 +1155,11 @@ class PlaylistItems:
                 logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}')
                 logger.info(f'Playlist availability changed to FALSE')
                 return True
+            elif err.resp.status == 503:
+                seconds = 600
+                logger.warning(f'YouTube server error (503). Retry in {seconds} seconds.')
+                time.sleep(seconds)
+                return True
             else:
                 logger.error(err)
         except DatabaseError as err:
@@ -1303,10 +1308,12 @@ class PlaylistItems:
                 self._save_keyword_talent()
         except errors.ForeignKeyViolation as err:
             self.connection.rollback()
-            logger.warning(f"Foreign key violation detected: {err}")
-            if (err.diag.constraint_name == 'fk_youtube_video_youtube_channel'
+            logger.warning(f"Foreign key violation detected: {err} \nTransaction rolled back. ")
+            if (err.diag.constraint_name == 'fk_youtube_video_youtube_channel_id'
                     and err.diag.table_name == 'youtube_video'):
                 self._handle_fk_violation(err)
+            else:
+                logger.error("Unexpected foreign key violation")
         except DatabaseError as e:
             self.connection.rollback()
             logger.error(f"A DB error occurred while saving playlist items: {e} \nTransaction rolled back. ")
@@ -1501,7 +1508,7 @@ class PlaylistItems:
                 item['snippet']['position'],  # playlist_item_position
                 item['snippet']['publishedAt'],  # playlist_item_published_at
                 Helper.normalize(item['snippet']['title']),  # title_normalized
-                Helper.normalize(item['snippet']['description']) if item['snippet']['description'] else None,  # description_normalized
+                Helper.normalize(item['snippet']['description']),  # description_normalized
             ]
             for item in self.response['items']
         ]
