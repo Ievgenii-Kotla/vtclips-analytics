@@ -7,8 +7,8 @@ from contextlib import ExitStack
 
 from psycopg2 import DatabaseError
 
-from vtc import connect_to_db, db_yt_interface
-from vtc.db_yt_interface import PrepareAPI
+from src.vtc import connect_to_db, db_yt_interface
+from src.vtc.db_yt_interface import PrepareAPI
 from tests.fixtures import setup_test_db
 import db_helpers
 
@@ -27,7 +27,7 @@ class ConsistentANY:
 
 class TestSearchYTByKeywordSetMap(unittest.TestCase):
     @classmethod
-    @patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime)
+    @patch('src.vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime)
     def setUpClass(cls, mock_datetime_datetime) -> None:
         mock_datetime_datetime.now.return_value = datetime.datetime(
             2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc)
@@ -36,7 +36,7 @@ class TestSearchYTByKeywordSetMap(unittest.TestCase):
         connection = connect_to_db.connect_to_test_db()
         instance = db_yt_interface.SearchYTByKeyword(
             connection=connection,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
+            api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
         )
         instance.set_search_map()
         connect_to_db.connection_close(connection)
@@ -233,7 +233,7 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         return actual
 
     @classmethod
-    @patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime)
+    @patch('src.vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime)
     def setUpClass(cls, mock_datetime_datetime):
         mock_datetime_datetime.now.return_value = datetime.datetime(
             2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc)
@@ -323,7 +323,7 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         connection = connect_to_db.connect_to_test_db()
         search_instance = db_yt_interface.SearchYTByKeyword(
             connection=connection,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
+            api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
         )
         search_instance.response = json.loads(json_response)
 
@@ -578,7 +578,7 @@ SELECT * FROM search_yt_youtube_video;
 class TestPrepareAPI(unittest.TestCase):
     def setUp(self) -> None:
         """ Create proper .json file with necessary info inside """
-        filepath = "../data/test_api_quota_state.json"
+        filepath = "../state/test_api_quota_state.json"
         self.quotas_test_values = {
             "API_key0": {
                 "max": 10000,
@@ -693,7 +693,7 @@ class TestPrepareAPI(unittest.TestCase):
             }
         }
         expected = "key1"
-        with patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime) as mock_object:
+        with patch('src.vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime) as mock_object:
             mock_object.now.return_value=datetime.datetime.fromisoformat("2023-01-01T09:33:00+00:00")
             actual = self.instance.get_api_key(random_key=False)
         self.assertEqual(expected, actual)
@@ -724,7 +724,7 @@ class TestPrepareAPI(unittest.TestCase):
             }
         }
         expected = "key0"
-        with patch('vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime) as mock_object:
+        with patch('src.vtc.db_yt_interface.datetime.datetime', wraps=datetime.datetime) as mock_object:
             mock_object.now.return_value=datetime.datetime.fromisoformat("2023-01-01T09:33:00+00:00")
             actual = self.instance.get_api_key(random_key=False)
         self.assertEqual(expected, actual)
@@ -888,7 +888,7 @@ class TestSearchYTByKeywordCalculateSearchInterval(unittest.TestCase):
         cls.connection = connect_to_db.connect_to_test_db()
         cls.instance = db_yt_interface.SearchYTByKeyword(
             cls.connection,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
+            api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
         )
 
     @classmethod
@@ -1072,7 +1072,7 @@ class TestSearchYTByKeywordSubsearch(unittest.TestCase):
         cls.cursor = cls.connection.cursor()
         cls.instance = db_yt_interface.SearchYTByKeyword(
             cls.connection,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
+            api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
         )
         while True:
             success = cls.instance.subsearch_next_and_save()
@@ -1117,7 +1117,7 @@ class TestPlaylistItems(unittest.TestCase):
         self.playlist_items = db_yt_interface.PlaylistItems(
             connection=self.connection,
             only_talents=False,
-            api_service=db_yt_interface.PrepareAPI(filepath='../data/test_api_quota_state.json'),
+            api_service=db_yt_interface.PrepareAPI(filepath='../state/test_api_quota_state.json'),
             cooldown_period=datetime.timedelta(days=0)
         )
         self.fake_response = {
@@ -1375,7 +1375,7 @@ class TestPlaylistItems(unittest.TestCase):
     def test__do_request_and_save_failure(self):
         self.playlist_items.playlist_id = None
         self.playlist_items._set_playlist_id = MagicMock(side_effect=DatabaseError('test case'))
-        with self.assertLogs(logger='vtc.db_yt_interface', level="ERROR") as cm:
+        with self.assertLogs(logger='src.vtc.db_yt_interface', level="ERROR") as cm:
             is_success = self.playlist_items._do_request_and_save()
         self.assertFalse(is_success, msg="didn't fail properly")
 
@@ -1473,7 +1473,7 @@ class TestPlaylistItems(unittest.TestCase):
         rows_before = self.rows_in_tables_qty()
 
         self.playlist_items._save_youtube_video = MagicMock(side_effect=DatabaseError(""))
-        with self.assertLogs(logger='vtc.db_yt_interface', level="ERROR") as cm:
+        with self.assertLogs(logger='src.vtc.db_yt_interface', level="ERROR") as cm:
             self.playlist_items._save()
 
         rows_after = self.rows_in_tables_qty()

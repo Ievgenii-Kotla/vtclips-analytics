@@ -4,7 +4,7 @@ Generate playlist ids for existing channels that don't yet have it
 Alters the production DB. Be careful.
 """
 
-from vtc import connect_to_db
+from src.vtc import connect_to_db
 from psycopg2.extras import execute_values
 
 

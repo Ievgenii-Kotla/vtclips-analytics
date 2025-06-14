@@ -1,6 +1,6 @@
 """Add ids of the videos into the 'keyword' table as keywords"""
 
-from vtc import db_yt_interface, connect_to_db
+from src.vtc import connect_to_db
 
 
 pre_check_keyword_query = """

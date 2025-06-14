@@ -8,15 +8,16 @@ import logging
 from random import randint, choices
 import time
 from zoneinfo import ZoneInfo
-import random
 import unicodedata
 import html
+import sys
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
-from vtc import connect_to_db, vtc_logging
+sys.path.insert(0, os.path.dirname(__file__))
+import connect_to_db
 
 # TODO: big things to add:
 #  logging
@@ -43,7 +44,7 @@ class PrepareAPI:
     def current_time_utc():
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
-    def __init__(self, quota_points=10000, filepath="data/api_quota_state.json", delay=False):
+    def __init__(self, quota_points=10000, filepath="../../state/api_quota_state.json", delay=False):
 
         self.quota_points_max = quota_points
         self.filepath = filepath

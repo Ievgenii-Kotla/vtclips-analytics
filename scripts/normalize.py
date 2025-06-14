@@ -4,7 +4,7 @@ import unicodedata
 import html
 from psycopg2 import sql
 
-from vtc.connect_to_db import connect_to_db
+from src.vtc.connect_to_db import connect_to_db
 
 
 def normalize_fields(conn, source_field:str, target_field:str):

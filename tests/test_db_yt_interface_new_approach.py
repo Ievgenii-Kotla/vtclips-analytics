@@ -6,16 +6,9 @@ Uses a better approach to writing tests. Cleaner and easier to read.
 
 import unittest
 import datetime
-from unittest.mock import patch, ANY, MagicMock
-import json
-import os
-from contextlib import ExitStack
 
-from psycopg2 import DatabaseError
-
-from vtc import connect_to_db, db_yt_interface
-from vtc.db_yt_interface import PrepareAPI
-from tests.fixtures import setup_test_db
+from src.vtc import connect_to_db, db_yt_interface
+from src.vtc.db_yt_interface import PrepareAPI
 import db_helpers
 
 
@@ -32,7 +25,7 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
         db_helpers.truncate_all(self.conn)
         self.search = db_yt_interface.SearchYTByKeyword(
             connection=self.conn,
-            api_service=PrepareAPI(filepath='../data/test_api_quota_state.json', delay=False)
+            api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
         )
 
     def test_prepare_subsearch_query_one_subsearch(self):
@@ -122,7 +115,7 @@ class TestPlaylistItems(unittest.TestCase):
         self.playlist_items = db_yt_interface.PlaylistItems(
             connection=self.conn,
             only_talents=False,
-            api_service=db_yt_interface.PrepareAPI(filepath='../data/test_api_quota_state.json'),
+            api_service=db_yt_interface.PrepareAPI(filepath='../state/test_api_quota_state.json'),
             cooldown_period=datetime.timedelta(days=0))
         self.playlist_items.response = {
             "kind": "youtube#playlistItemListResponse",
