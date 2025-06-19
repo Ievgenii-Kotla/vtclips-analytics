@@ -1,0 +1,43 @@
+services:
+  python-app:
+    container_name: python-app
+    build:
+      context: .
+      dockerfile: Dockerfile.vtc
+    image: python-app:latest
+    restart: unless-stopped
+    init: true
+    # env_file: .env  # Uncomment if .env file exists
+    depends_on:
+      - postgres-db
+    networks:
+      - backend
+    # Default command runs src.vtc.vtc_main (see Dockerfile)
+    volumes:
+      - ./logs:/app/logs
+      - ./state:/app/state
+I
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    restart: unless-stopped
+    env_file: .env.db
+    volumes:
+      - pgdata:/var/lib/postgresql/datavolumes:
+      - ./data/seed_data:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+    # Exposes default PostgreSQL port, but not published to host for security
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  pgdata:
+    # Persistent storage for PostgreSQL
