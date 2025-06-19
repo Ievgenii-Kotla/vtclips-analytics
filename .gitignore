@@ -182,4 +182,8 @@ known_issues.txt
 
 
 # other
+data/backups/*
+!data/backups/.gitkeep
+data/initial_data/*
+!data/initial_data/.gitkeep
 todo
