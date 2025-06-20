@@ -6,20 +6,23 @@ Uses a better approach to writing tests. Cleaner and easier to read.
 
 import unittest
 import datetime
+from dotenv import load_dotenv
 
-from src.vtc import connect_to_db, db_yt_interface
+from src.vtc import db_yt_interface
 from src.vtc.db_yt_interface import PrepareAPI
 import db_helpers
+
+load_dotenv("../.env.test")
 
 
 class TestSearchYTByKeywordMisc(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.conn = connect_to_db.connect_to_test_db()
+        cls.conn = db_helpers.connect_to_test_db()
 
     @classmethod
     def tearDownClass(cls):
-        connect_to_db.connection_close(cls.conn)
+        cls.conn.close()
 
     def setUp(self):
         db_helpers.truncate_all(self.conn)
@@ -102,13 +105,13 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
 class TestPlaylistItems(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.conn = connect_to_db.connect_to_test_db()
+        cls.conn = db_helpers.connect_to_test_db()
         with cls.conn.cursor() as cur:
             cur.execute("SET TIME ZONE UTC")
 
     @classmethod
     def tearDownClass(cls):
-        connect_to_db.connection_close(cls.conn)
+        cls.conn.close()
 
     def setUp(self):
         db_helpers.truncate_all(self.conn)

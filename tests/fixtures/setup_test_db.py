@@ -1,8 +1,11 @@
 """ Set and reset data from the test DB """
 
-from src.vtc.connect_to_db import connect_to_test_db, connection_close
 from datetime import datetime, timezone
 import psycopg2
+from dotenv import load_dotenv
+from tests.db_helpers import connect_to_test_db
+
+load_dotenv(".env.test")
 
 
 def _populate_all_for_map(cursor):
@@ -1235,51 +1238,43 @@ def _populate_all_for_playlist_items(cursor):
 
 
 def reset_for_map():
-    connection = connect_to_test_db()
-    cursor = connection.cursor()
-    truncate_all(connection, cursor)
-    _populate_all_for_map(cursor)
-    cursor.close()
-    connection.commit()
-    connection_close(connection)
+    with connect_to_test_db() as connection:
+        with connection.cursor() as cursor:
+            truncate_all(connection, cursor)
+            _populate_all_for_map(cursor)
+            connection.commit()
     print('Test DB was reset for map testing.')
 
 
 def reset_for_save():
-    connection = connect_to_test_db()
-    cursor = connection.cursor()
-    truncate_all(connection, cursor)
-    _populate_all_for_save(cursor)
-    cursor.close()
-    connection.commit()
-    connection_close(connection)
+    with connect_to_test_db() as connection:
+        with connection.cursor() as cursor:
+            truncate_all(connection, cursor)
+            _populate_all_for_save(cursor)
+            connection.commit()
     print('Test DB was reset for save() testing.')
 
 
 def reset_for_interval():
     """ Reset the DB for testing related to the length of the search. """
-    connection = connect_to_test_db()
-    cursor = connection.cursor()
-    truncate_all(connection, cursor)
-    _populate_all_for_search_interval(cursor)
-    cursor.close()
-    connection.commit()
-    connection_close(connection)
+    with connect_to_test_db() as connection:
+        with connection.cursor() as cursor:
+            truncate_all(connection, cursor)
+            _populate_all_for_search_interval(cursor)
+            connection.commit()
     print('Test DB was reset for search interval testing')
 
 
 def reset_for_playlist_items_request():
     """ Reset the DB for testing related to the PlaylistItems class"""
-    connection = connect_to_test_db()
-    cursor = connection.cursor()
-    try:
-        truncate_all(connection, cursor)
-        _populate_all_for_playlist_items(cursor)
-    except psycopg2.DatabaseError as err:
-        print(err)
-    cursor.close()
-    connection.commit()
-    connection_close(connection)
+    with connect_to_test_db() as connection:
+        with connection.cursor() as cursor:
+            try:
+                truncate_all(connection, cursor)
+                _populate_all_for_playlist_items(cursor)
+            except psycopg2.DatabaseError as err:
+                print(err)
+            connection.commit()
     print('Test DB was reset for PlaylistItems testing')
 
 

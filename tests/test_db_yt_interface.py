@@ -6,12 +6,14 @@ import os
 from contextlib import ExitStack
 
 from psycopg2 import DatabaseError
+from dotenv import load_dotenv
 
-from src.vtc import connect_to_db, db_yt_interface
+from src.vtc import db_yt_interface
 from src.vtc.db_yt_interface import PrepareAPI
 from tests.fixtures import setup_test_db
 import db_helpers
 
+load_dotenv("../.env.test")
 
 class ConsistentANY:
     def __init__(self):
@@ -33,13 +35,13 @@ class TestSearchYTByKeywordSetMap(unittest.TestCase):
             2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc)
         setup_test_db.reset_for_map()
 
-        connection = connect_to_db.connect_to_test_db()
-        instance = db_yt_interface.SearchYTByKeyword(
-            connection=connection,
-            api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
-        )
-        instance.set_search_map()
-        connect_to_db.connection_close(connection)
+        with db_helpers.connect_to_test_db() as connection:
+            instance = db_yt_interface.SearchYTByKeyword(
+                connection=connection,
+                api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
+            )
+            instance.set_search_map()
+
 
         cls.actual_dataset = [(
             item[1],
@@ -226,10 +228,10 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
 
     @staticmethod
     def get_actual_data(query):
-        with connect_to_db.connect_to_test_db() as connection:
-            cursor = connection.cursor()
-            cursor.execute(query)
-            actual = cursor.fetchall()
+        with db_helpers.connect_to_test_db() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                actual = cursor.fetchall()
         return actual
 
     @classmethod
@@ -320,15 +322,15 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         """
 
         setup_test_db.reset_for_save()
-        connection = connect_to_db.connect_to_test_db()
-        search_instance = db_yt_interface.SearchYTByKeyword(
-            connection=connection,
-            api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
-        )
-        search_instance.response = json.loads(json_response)
+        with db_helpers.connect_to_test_db() as connection:
+            search_instance = db_yt_interface.SearchYTByKeyword(
+                connection=connection,
+                api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
+            )
+            search_instance.response = json.loads(json_response)
 
-        search_instance.cursor.execute("SELECT * FROM keyword")
-        cls.keyword_info = search_instance.cursor.fetchall()
+            search_instance.cursor.execute("SELECT * FROM keyword")
+            cls.keyword_info = search_instance.cursor.fetchall()
 
         search_instance.search_map = [(
             cls.keyword_info[0][0],
@@ -343,7 +345,6 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
         search_instance.search_query = search_instance.search_map[0][1]
 
         search_instance.save()
-        connect_to_db.connection_close(connection)
 
     def test_save_youtube_channel(self):
         query = """
@@ -885,7 +886,7 @@ class TestSearchYTByKeywordCalculateSearchInterval(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         setup_test_db.reset_for_interval()
-        cls.connection = connect_to_db.connect_to_test_db()
+        cls.connection = db_helpers.connect_to_test_db()
         cls.instance = db_yt_interface.SearchYTByKeyword(
             cls.connection,
             api_service=PrepareAPI(filepath='../state/test_api_quota_state.json', delay=False)
@@ -893,7 +894,7 @@ class TestSearchYTByKeywordCalculateSearchInterval(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        connect_to_db.connection_close(cls.connection)
+        cls.connection.close()
 
     def test_calculate_search_interval_first_search(self):
         date = datetime.datetime.fromisoformat('2025-01-01 00:00:00+00:00')
@@ -1068,7 +1069,7 @@ class TestSearchYTByKeywordSubsearch(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.connection = connect_to_db.connect_to_test_db()
+        cls.connection = db_helpers.connect_to_test_db()
         cls.cursor = cls.connection.cursor()
         cls.instance = db_yt_interface.SearchYTByKeyword(
             cls.connection,
@@ -1083,7 +1084,7 @@ class TestSearchYTByKeywordSubsearch(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls.cursor.execute('TRUNCATE TABLE search_yt CASCADE;')
         cls.cursor.close()
-        connect_to_db.connection_close(cls.connection)
+        cls.connection.close()
 
     def setUp(self) -> None:
         self.cursor.execute('TRUNCATE TABLE search_yt CASCADE;')
@@ -1110,7 +1111,7 @@ class TestPlaylistItems(unittest.TestCase):
         return {'pir': pir_rows_qty, 'piryv': piryv_rows_qty, 'yv':yv_rows_qty}
 
     def setUp(self) -> None:
-        self.connection = connect_to_db.connect_to_test_db()
+        self.connection = db_helpers.connect_to_test_db()
         db_helpers.truncate_all(self.connection)
         self.cursor = self.connection.cursor()
         setup_test_db.reset_for_playlist_items_request()
@@ -1297,7 +1298,7 @@ class TestPlaylistItems(unittest.TestCase):
     def tearDown(self) -> None:
         self.cursor.close()
         self.connection.rollback()
-        connect_to_db.connection_close(self.connection)
+        self.connection.close()
 
     def test_get_new_playlist_items_stop_on_inner_method_fail(self):
         self.playlist_items.next_page_token = 'placeholder_next_page_token'
