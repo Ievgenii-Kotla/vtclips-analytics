@@ -3,10 +3,22 @@ Helper functions to insert, update, and delete test data in the database.
 Each function takes a psycopg2 connection and performs one specific operation.
 """
 
+import psycopg2
 from psycopg2 import sql
 import datetime
+import os
 
 DEFAULT_TIME = datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+
+def connect_to_test_db():
+    database_name = os.environ.get("DATABASE_URL").split("/")[-1]
+    if database_name == "test_vtc_v0.3":
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    else:
+        conn = None
+        print(f"Error: Database name is {database_name} not 'test_vtc_v0.3'")
+    return conn
+
 
 def create_row(conn, table_name, data):
     validate_columns(conn, table_name, data)
