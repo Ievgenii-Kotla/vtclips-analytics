@@ -10,14 +10,10 @@ import time
 from zoneinfo import ZoneInfo
 import unicodedata
 import html
-import sys
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
-
-sys.path.insert(0, os.path.dirname(__file__))
-import connect_to_db
 
 # TODO: big things to add:
 #  logging
@@ -325,13 +321,6 @@ FROM search_yt
 
     def update_datetime_now(self):
         self.datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
-
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-            logger.info("Cursor closed.")
-        if self.connection:
-            connect_to_db.connection_close(self.connection)
 
     def set_search_map(self):
         """
