@@ -6,7 +6,7 @@ import os
 
 import psycopg2
 
-from src.vtc import db_yt_interface, vtc_logging
+import db_yt_interface, vtc_logging
 
 
 def search_yt_by_keyword(connection, args: dict):
