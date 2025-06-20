@@ -2,14 +2,16 @@ from __future__ import annotations
 import argparse
 import datetime
 import logging
+import os
 
-import db_yt_interface, connect_to_db, vtc_logging
+import psycopg2
+
+from src.vtc import db_yt_interface, vtc_logging
 
 
-def search_yt_by_keyword(args: dict):
+def search_yt_by_keyword(connection, args: dict):
     """Continuously fetch and save data available through the 'search' endpoint of YT API"""
 
-    connection = connect_to_db.connect_to_db()
     repetitions = args.pop('repetitions')
     do_subsearch = not args.pop('no_subsearch')
     search_instance = db_yt_interface.SearchYTByKeyword(connection, **args)
@@ -29,13 +31,11 @@ def search_yt_by_keyword(args: dict):
             break
 
     search_instance.session_stats()
-    connect_to_db.connection_close(search_instance.connection)
 
 
-def request_playlist_items():
+def request_playlist_items(connection):
     """Continuously fetch and save data available through the 'playlist_items' endpoint of YT API"""
 
-    connection = connect_to_db.connect_to_db()
     playlist_items = db_yt_interface.PlaylistItems(connection, only_talents=args.pop('only_talents'))
     repetitions = args.pop('repetitions')
     while repetitions != 0:
@@ -162,7 +162,8 @@ if __name__ == '__main__':
     args = parse_arguments()
     print('Received arguments: ', args)
     command = args.pop('command')
-    if command == 'keyword':
-        search_yt_by_keyword(args)
-    elif command == 'playlist':
-        request_playlist_items()
+    with psycopg2.connect(os.environ['DATABASE_URL']) as connection:
+        if command == 'keyword':
+            search_yt_by_keyword(connection, args)
+        elif command == 'playlist':
+            request_playlist_items(connection)

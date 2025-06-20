@@ -1,11 +1,13 @@
+import os
 from fastapi import FastAPI
-from src.vtc import connect_to_db
+import psycopg2
+
 app = FastAPI()
 
 
 @app.get("/")
 async def root():
-    with connect_to_db.connect_to_db() as conn:
+    with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM youtube_channel;")
             rows = cur.fetchall()
@@ -16,7 +18,7 @@ async def root():
 
 @app.get("/summary")
 async def summary():
-    with connect_to_db.connect_to_db() as conn:
+    with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
         with conn.cursor() as cur:
             cur.execute("""
             SELECT 'playlists_parsed', COUNT(*)
