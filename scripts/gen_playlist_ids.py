@@ -4,7 +4,8 @@ Generate playlist ids for existing channels that don't yet have it
 Alters the production DB. Be careful.
 """
 
-from src.vtc import connect_to_db
+import os
+import psycopg2
 from psycopg2.extras import execute_values
 
 
@@ -13,7 +14,7 @@ SELECT youtube_channel_id
 FROM youtube_channel
 WHERE playlist_id IS NULL;
 """
-with connect_to_db.connect_to_db() as conn:
+with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
     with conn.cursor() as cur:
         cur.execute(query_read)
         channel_ids = [row[0] for row in cur.fetchall()]

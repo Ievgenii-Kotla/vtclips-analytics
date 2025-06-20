@@ -1,9 +1,11 @@
 # first try to work with DB through python scripts
 # Standalone script, that populates a 'talent' table in DB with talents info
 
-from psycopg2 import Error
+import os
 import datetime as dt
-from src.vtc import connect_to_db
+import psycopg2
+from psycopg2 import Error
+
 
 
 def pick_talent() -> str:
@@ -81,11 +83,7 @@ def main():
         {'name': 'Cecilia', 'sur': 'Immergreen', 'gen': 'justice', 'debut': '2024-06-22 00:00:00+00'},
         {'name': 'Raora', 'sur': 'Panthera', 'gen': 'justice', 'debut': '2024-06-22 00:00:00+00'},
     ]
-    # Connect to the database
-    connection = connect_to_db.connect_to_db()
-
-    if connection:
-        # Insert data into the table
+    with psycopg2.connect(os.environ['DATABASE_URL']) as connection:
         insert_data(connection, data_to_insert)
 
 

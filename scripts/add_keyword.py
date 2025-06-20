@@ -5,7 +5,8 @@ A tool to add keywords to the DB.
 """
 
 import datetime
-from src.vtc import connect_to_db
+import os
+import psycopg2
 
 
 # value = [keyword, talent_first_name, usage_enabled, priority, date_since_relevant, purity]
@@ -293,36 +294,35 @@ def write_to_keyword_talent(values: list, connection):
 
 
 def main():
-    connection = connect_to_db.connect_to_db()
-    if connection:
-        choice = input("0 - add default keywords\n1 - add keywords manually\n: ")
-        if choice == "0":
-            default_keywords_lower_case = [[item.lower() if isinstance(item, str) else item for item in sublist]
-                                           for sublist in default_keywords]
-            keyword_counter = 0
-            keyword_talent_counter = 0
-            for keyword in default_keywords_lower_case:
-                values_clean = prepare_values(keyword, connection)
-                keyword_counter += write_to_keyword(values_clean, connection)
-                keyword_talent_counter += write_to_keyword_talent(values_clean, connection)
-                connection.commit()
-            print(f"Added {keyword_counter} keywords, and {keyword_talent_counter} keyword-talent links")
-        elif choice == "1":
-            while True:
-                show_info()
-                values_raw = input_values()
-                values_clean = prepare_values(values_raw, connection)
-                show_values(values_clean)
-                if not input('Enter an empty line to write to db, enter anything to discard. '):
-                    write_to_keyword(values_clean, connection)
-                    write_to_keyword_talent(values_clean, connection)
+    with psycopg2.connect(os.environ['DATABASE_URL']) as connection:
+        if connection:
+            choice = input("0 - add default keywords\n1 - add keywords manually\n: ")
+            if choice == "0":
+                default_keywords_lower_case = [[item.lower() if isinstance(item, str) else item for item in sublist]
+                                               for sublist in default_keywords]
+                keyword_counter = 0
+                keyword_talent_counter = 0
+                for keyword in default_keywords_lower_case:
+                    values_clean = prepare_values(keyword, connection)
+                    keyword_counter += write_to_keyword(values_clean, connection)
+                    keyword_talent_counter += write_to_keyword_talent(values_clean, connection)
                     connection.commit()
-                if input('Enter an empty line to continue, enter anything to quit. '):
-                    break
-    else:
-        print('Could not connect to the database')
-    connection.close()
-    print('Connection closed')
+                print(f"Added {keyword_counter} keywords, and {keyword_talent_counter} keyword-talent links")
+            elif choice == "1":
+                while True:
+                    show_info()
+                    values_raw = input_values()
+                    values_clean = prepare_values(values_raw, connection)
+                    show_values(values_clean)
+                    if not input('Enter an empty line to write to db, enter anything to discard. '):
+                        write_to_keyword(values_clean, connection)
+                        write_to_keyword_talent(values_clean, connection)
+                        connection.commit()
+                    if input('Enter an empty line to continue, enter anything to quit. '):
+                        break
+        else:
+            print('Could not connect to the database')
+        print('Connection closed')
 
 
 main()

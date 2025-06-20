@@ -2,7 +2,8 @@
 A tool to link talents with their channels
 """
 
-from src.vtc import connect_to_db
+import os
+import psycopg2
 from psycopg2 import errors
 
 CHANNEL_TALENT_PAIRS = [
@@ -49,11 +50,10 @@ def write_to_talent_youtube_channel(conn, channel, talent):
 
 
 def main():
-    conn = connect_to_db.connect_to_db()
-    for channel, talent in CHANNEL_TALENT_PAIRS:
-        write_to_talent_youtube_channel(conn, channel, talent)
-    conn.commit()
-    connect_to_db.connection_close(conn)
+    with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
+        for channel, talent in CHANNEL_TALENT_PAIRS:
+            write_to_talent_youtube_channel(conn, channel, talent)
+        conn.commit()
 
 
 if __name__ == '__main__':

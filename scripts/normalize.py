@@ -2,9 +2,11 @@
 
 import unicodedata
 import html
+import os
+import psycopg2
 from psycopg2 import sql
 
-from src.vtc.connect_to_db import connect_to_db
+
 
 
 def normalize_fields(conn, source_field:str, target_field:str):
@@ -45,7 +47,7 @@ def normalize_fields(conn, source_field:str, target_field:str):
 
 
 if __name__ == '__main__':
-    with connect_to_db() as conn:
+    with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
         field_pairs = [['title', 'title_normalized'], ['description_full', 'description_normalized']]
         for fields in field_pairs:
 
