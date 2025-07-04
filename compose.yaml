@@ -1,38 +1,65 @@
 services:
-  python-app:
-    container_name: python-app
+  python-api:
     build:
       context: .
-      dockerfile: Dockerfile.vtc
-    image: python-app:latest
+      dockerfile: Dockerfile-api  # Use Dockerfile-api if it exists and is configured
+    image: python-api-image
+    container_name: python-api
     restart: unless-stopped
     init: true
-    # env_file: .env  # Uncomment if .env file exists
+    env_file: ./.env.api
     depends_on:
       - postgres-db
+      - migrate_db
     networks:
       - backend
-    # Default command runs src.vtc.vtc_main (see Dockerfile)
-    volumes:
-      - ./logs:/app/logs
-      - ./state:/app/state
-I
+    ports:
+      - "8000:8000"  # Expose FastAPI default port
+    # If you want to mount source code for live reload in dev, add a volume here
+
+  python-vtc:
+    build:
+      context: .
+      dockerfile: Dockerfile-vtc
+    container_name: python-vtc
+    restart: unless-stopped
+    init: true
+    env_file: ./.env.vtc
+    depends_on:
+      - postgres-db
+      - migrate_db
+    networks:
+      - backend
+    # No ports exposed; add if this service provides an API or UI
+
   postgres-db:
     image: postgres:latest
     container_name: postgres-db
     restart: unless-stopped
-    env_file: .env.db
+    env_file:
+      - ./.env.db
     volumes:
-      - pgdata:/var/lib/postgresql/datavolumes:
-      - ./data/seed_data:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+      # - ./data/initial_data/initial_data.sql:/docker-entrypoint-initdb.d/initial_data.sql:ro  # Uncomment to seed DB
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - backend
-    # Exposes default PostgreSQL port, but not published to host for security
+    ports:
+      - "5432:5432"  # Expose PostgreSQL default port for development
+
+  migrate_db:
+    image: python-api-image
+    entrypoint: [ "alembic", "upgrade", "head" ]
+    env_file: ./.env.db
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - backend
 
 networks:
   backend:
@@ -40,4 +67,4 @@ networks:
 
 volumes:
   pgdata:
-    # Persistent storage for PostgreSQL
+    driver: local
