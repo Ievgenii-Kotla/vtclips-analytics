@@ -10,27 +10,25 @@ __pycache__/
 .pytest_cache/
 .coverage
 
-# 3. Virtual environments
-.venv/
-venv/
-ENV/
-
-# 4. IDE/editor files
+# 3. IDE and editor files
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# 5. Build outputs and distribution
+# 4. Build outputs and distribution
 build/
 dist/
 out/
 
-# 6. Test and debug artifacts
-tests/
+# 5. Test files and directories
 test/
-*.log
+tests/
+*.test
+
+# 6. Logs and debug files
 logs/
+*.log
 
 # 7. Environment and secrets
 .env*
@@ -40,35 +38,55 @@ logs/
 *.crt
 
 # 8. Project-specific patterns
-alembic/versions/__pycache__/
-src/__pycache__/
-src/vtc/__pycache__/
-scripts/logs/
-tests/__pycache__/
-tests/fixtures/__pycache__/
-
-# 9. Documentation and markdown
-*.md
+Dockerfile*
+docker-compose*
 README*
+*.md
+docs/
 
-# 10. Temporary and local files
+# 9. Temporary and local development files
 tmp/
 temp/
 *.tmp
 .local/
 local/
 
-# 11. Miscellaneous
-*.bak
-*.old
-*.orig
+# 10. Node.js (precautionary, not detected but for completeness)
+node_modules/
+npm-debug.log
+yarn-debug.log
 
-# 12. Ignore Docker-related files (if not needed in build context)
-Dockerfile*
-docker-compose*
+# 11. Go (precautionary)
+/vendor/
+.go-cache/
 
-# 13. Ignore other VCS (precautionary)
-.svn/
-.hg/
+# 12. Java (precautionary)
+target/
+*.class
+.gradle/
+
+# 13. Miscellaneous
+*.bat
+
+# 14. Exclude virtual environments
+.venv/
+
+# 15. Alembic cache
+alembic/versions/__pycache__/
+
+# 16. State and data backups (if not needed in build)
+data/backups/
+data/initial_data/
+data/seed_data/
+state/
+
+# 17. Script logs
+scripts/logs/
+
+# 18. Frontend placeholder (if not needed)
+src/frontend/
+
+# 19. Exclude empty directories (Docker ignores them by default, but for clarity)
+**/.gitkeep
 
 # End of .dockerignore
