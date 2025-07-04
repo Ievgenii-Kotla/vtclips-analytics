@@ -1,8 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.11-slim AS base
+FROM python:3.10.6 AS base
 
-# Set up working directory
 WORKDIR /app
 
 # Builder stage: install dependencies into a venv
@@ -13,6 +12,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc \
         libpq-dev \
+        libpq5 \
         libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -21,7 +21,6 @@ COPY --link requirements.txt ./
 
 # Create venv and install dependencies using pip cache
 RUN python -m venv .venv \
-    && .venv/bin/pip install --upgrade pip \
     && .venv/bin/pip install -r requirements.txt
 
 # Copy the rest of the application code (excluding .git, .venv, etc. via .dockerignore)
@@ -34,7 +33,7 @@ COPY --link scripts scripts
 FROM base AS final
 
 # Create a non-root user
-RUN useradd -m vtcuser
+RUN useradd -m apiuser
 
 WORKDIR /app
 
@@ -52,7 +51,10 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
 # Switch to non-root user
-USER vtcuser
+USER apiuser
 
-# Default command (can be overridden)
-CMD ["python", "-m", "src.vtc.vtc_main"]
+# Expose the port FastAPI will run on (default 8000)
+EXPOSE 8000
+
+# Default command to run the FastAPI app
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
