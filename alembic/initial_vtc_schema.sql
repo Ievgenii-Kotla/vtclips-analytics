@@ -11,7 +11,7 @@ SET idle_in_transaction_session_timeout = 0;
 SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
+--SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
@@ -964,7 +964,7 @@ ALTER TABLE ONLY public.playlist_items_request_youtube_video
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: -
 --
 
-REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+--REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 
 
 --

@@ -1,6 +1,6 @@
-"""baseline schema
+"""initial schema
 
-Revision ID: base
+Revision ID: initial
 Revises: 
 Create Date: 2025-06-12 18:42:31.977762
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'base'
+revision: str = 'initial'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +26,6 @@ def upgrade() -> None:
     path = os.path.join(script_location, 'initial_vtc_schema.sql')
     with open(path) as f:
         op.execute(f.read())
-
 
 def downgrade() -> None:
     """Downgrade schema."""
