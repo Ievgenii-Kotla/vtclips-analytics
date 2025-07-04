@@ -1093,6 +1093,7 @@ class PlaylistItems:
         self.response: dict | None = None
         self.datetime_now: datetime.datetime | None = None
         self.max_results = 50
+        self.caught_up: bool | None = None
         # data for choosing a playlist_id
         self.playlist_id: str | None = None
         self.cooldown_period = cooldown_period
@@ -1103,6 +1104,7 @@ class PlaylistItems:
     def get_new_playlist_items(self, delay_sec: float = 0):
         """Get all items from the 'upload' playlist and save them to the DB"""
         self.playlist_id = None
+        self.caught_up = False
         page = 1
         while True:
             time.sleep(delay_sec)
@@ -1111,6 +1113,9 @@ class PlaylistItems:
                 break
             self._update_next_page_token()
             if not self.next_page_token:
+                is_success = True
+                break
+            if self.caught_up:
                 is_success = True
                 break
             logger.info(f'Page (current run): {page}\n')
@@ -1128,6 +1133,7 @@ class PlaylistItems:
             self._update_quota_after_request()
             self._filter_response()
             self._save()
+            self._do_stop_check()
         except HttpError as err:
             if err.resp.status == 403:
                 api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
@@ -1561,6 +1567,49 @@ class PlaylistItems:
             cur.execute(query, (values,))
             rows = cur.fetchall()
             logger.info(f'New keyword_talent pairs: {len(rows)}')
+
+    def _do_stop_check(self):
+        """Check if the playlist items request should be stopped.
+        Condition: current playlist_items_request has videos from another playlist_items_request."""
+
+        query_reached_end = """
+        SELECT BOOL_OR(next_page_token IS NULL)
+        FROM playlist_items_request
+        WHERE playlist_id = %(playlist_id)s
+        """
+        query_duplicates = """
+        WITH all_requests_for_playlist AS (
+            SELECT playlist_items_request_id
+            FROM playlist_items_request
+            WHERE playlist_id = %(playlist_id)s
+        ),
+        all_videos_for_playlist AS (
+            SELECT 
+                playlist_items_request_id, youtube_video_id
+            FROM playlist_items_request_youtube_video
+            WHERE playlist_items_request_id IN (SELECT playlist_items_request_id FROM all_requests_for_playlist)
+        )
+        SELECT COUNT(*)
+        FROM all_videos_for_playlist avfp1
+        WHERE avfp1.playlist_items_request_id != %(request_id)s
+            AND EXISTS (
+                SELECT youtube_video_id 
+                FROM all_videos_for_playlist avfp2
+                WHERE playlist_items_request_id = %(request_id)s
+                    AND avfp1.youtube_video_id = avfp2.youtube_video_id
+            );
+        """
+        values = {'playlist_id': self.playlist_id, 'request_id': self.playlist_items_request_id}
+        with self.connection.cursor() as cur:
+            cur.execute(query_duplicates, values)
+            duplicates = cur.fetchone()[0] > 0
+            cur.execute(query_reached_end, values)
+            reached_end = cur.fetchone()[0]
+        if duplicates and reached_end:
+            logger.info(f"Request {self.playlist_items_request_id} caught up to fully parsed playlist.")
+            self.caught_up = True
+        else:
+            self.caught_up = False
 
 class SearchYTByChannel:
     # TBD
