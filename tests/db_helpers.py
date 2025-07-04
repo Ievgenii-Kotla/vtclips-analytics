@@ -11,9 +11,9 @@ import os
 DEFAULT_TIME = datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
 def connect_to_test_db():
-    database_name = os.environ.get("DATABASE_URL").split("/")[-1]
+    database_name = os.environ.get("TEST_DATABASE_URL").split("/")[-1]
     if database_name == "test_vtc_v0.3":
-        conn = psycopg2.connect(os.environ["DATABASE_URL"])
+        conn = psycopg2.connect(os.environ["TEST_DATABASE_URL"])
     else:
         conn = None
         print(f"Error: Database name is {database_name} not 'test_vtc_v0.3'")
