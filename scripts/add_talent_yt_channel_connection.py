@@ -27,6 +27,7 @@ CHANNEL_TALENT_PAIRS = [
     ['UCl69AEx4MdqMZH7Jtsm7Tig', 'Raora'],
     ['UCt9H_RpQzhxzlyBxFqrdHqA', 'Fuwawa'],
     ['UCt9H_RpQzhxzlyBxFqrdHqA', 'Mococo'],
+    ['UCotXwY6s8pWmuWd_snKYjhg', 'HololiveEnglish'],
 ]
 
 

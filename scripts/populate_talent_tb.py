@@ -82,6 +82,7 @@ def main():
         {'name': 'Gigi', 'sur': 'Murin', 'gen': 'justice', 'debut': '2024-06-21 00:00:00+00'},
         {'name': 'Cecilia', 'sur': 'Immergreen', 'gen': 'justice', 'debut': '2024-06-22 00:00:00+00'},
         {'name': 'Raora', 'sur': 'Panthera', 'gen': 'justice', 'debut': '2024-06-22 00:00:00+00'},
+        {'name': 'HololiveEnglish', 'sur': None, 'gen': None, 'debut': '2020-09-07 00:00:00+00'},
     ]
     with psycopg2.connect(os.environ['DATABASE_URL']) as connection:
         insert_data(connection, data_to_insert)

@@ -58,8 +58,8 @@ with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
         new_keywords_qty = cur.fetchone()[0]
         cur.execute(pre_check_keyword_talent_query)
         new_keywrod_talents_qty = cur.fetchone()[0]
-        print(f'{new_keywords_qty} keywords and {new_keywrod_talents_qty} keyword-talent connections '
-              f'will be added')
+        print(f'{new_keywords_qty} keywords and {new_keywrod_talents_qty} keyword-talent connections'
+              f'will be added. (wrong calc)')
         user_input = input('Continue? y/n: ')
         if user_input == 'y':
             cur.execute(insert_to_keyword_query)

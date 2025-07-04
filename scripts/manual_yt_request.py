@@ -11,9 +11,9 @@ def search():
     response = youtube.search().list(
         part='snippet',
         maxResults=50,
-        publishedAfter='2023-03-31T00:00:00Z',
-        publishedBefore='2023-04-01T23:59:59Z',
-        q='@gawrgura',
+        publishedAfter='2024-10-17T21:42:59Z',
+        publishedBefore='2024-12-05T09:22:15Z',
+        q='"amelia watson"',
         regionCode='US',
         safeSearch='none',
         type='video',
@@ -46,7 +46,7 @@ def videos_list():
     response = youtube.videos().list(
         part='contentDetails,id,liveStreamingDetails,localizations,paidProductPlacementDetails,player,'
              'recordingDetails,snippet,statistics,status,topicDetails',
-        id='8cPU2uJWI98'
+        id='bxRO2BIlmEg'
 
 
     ).execute()
@@ -98,7 +98,7 @@ def playlist_items():
 
 
 def main():
-    if 0:
+    if 1:
         search()
     if 0:
         channels_list()
@@ -106,7 +106,7 @@ def main():
         videos_list()
     if 0:
         search_channel_videos()
-    if 1:
+    if 0:
         playlist_items()
 
 
