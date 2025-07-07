@@ -24,7 +24,8 @@ def delete_unrelated(conn):
     CREATE TEMP TABLE tmp_video_all AS
     SELECT yv.youtube_channel_id, yv.youtube_video_id, (CASE WHEN trv.related IS NULL THEN FALSE ELSE TRUE END) AS related
     FROM tmp_related_video trv
-    RIGHT JOIN youtube_video yv ON trv.youtube_video_id = yv.youtube_video_id ;
+    RIGHT JOIN youtube_video yv ON trv.youtube_video_id = yv.youtube_video_id
+    WHERE yv.description_normalized IS NOT NULL;
     """
 
     query_stats = """
