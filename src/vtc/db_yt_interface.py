@@ -36,6 +36,7 @@ class PrepareAPI:
     UNIVERSAL = 'universal'
     SEARCH = 'search'
     PLAYLIST_ITEMS = 'playlist_items'
+    VIDEO_LIST = 'video_list'
 
     @staticmethod
     def current_time_utc():
@@ -640,15 +641,36 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
     def filter_response(self):
         """ Filter out planned and active livestreams. """
 
+        # Filter out planned and active livestreams
         original_qty = len(self.response["items"])
-
         self.response["items"] = [d for d in self.response["items"] if "videoId" in d["id"]]
-        video_qty = len(self.response["items"])
-
-        removed_non_video_qty = original_qty - video_qty
-
+        filter1_qty = len(self.response["items"])
+        removed_non_video_qty = original_qty - filter1_qty
         if removed_non_video_qty:
             logger.warning(f"Discarded {removed_non_video_qty} non-video items from dataset (search)")
+
+        # Validate videos relatebility
+        video_ids = ','.join(item["id"]["videoId"] for item in self.response["items"])
+        api_key = self.api_service.get_api_key(delay=False, purpose=PrepareAPI.VIDEO_LIST)
+        youtube = build('youtube', 'v3', developerKey=api_key)
+        new_response_data = youtube.videos().list(
+            part='snippet',
+            id=video_ids
+        ).execute()
+        unrelated_videos_ids = []
+        for video in new_response_data["items"]:
+            all_text = (Helper.normalize(video["snippet"]["title"]) + '\n' +
+                        Helper.normalize(video["snippet"]["description"]) + '\n' +
+                        ' '.join(video["snippet"]["tags"]))
+            if self.search_query not in all_text:
+                unrelated_videos_ids.append(video["id"])
+        self.response["items"] = [d for d in self.response["items"] if d["id"]["videoId"] not in unrelated_videos_ids]
+        filter2_qty = len(self.response["items"])
+        removed_unrelated_qty =  filter1_qty - filter2_qty
+        if removed_unrelated_qty:
+            logger.warning(f"Discarded {removed_unrelated_qty} unrelated videos from dataset (search)")
+
+
 
     def search(self):
         """ Conduct prepared search. """
