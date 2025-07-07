@@ -5,6 +5,7 @@ Uses a better approach to writing tests. Cleaner and easier to read.
 """
 
 import unittest
+from unittest.mock import patch, MagicMock
 import datetime
 from dotenv import load_dotenv
 
@@ -100,6 +101,467 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
 
         self.assertEqual(expected_start, self.search.published_after.astimezone(datetime.timezone.utc))
         self.assertEqual(expected_end, self.search.published_before.astimezone(datetime.timezone.utc))
+
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
+    @patch('src.vtc.db_yt_interface.build')
+    def test_filter_response_1_relevant_title(self, mock_build, mock_get_api_key):
+        fake_response_data = {
+            "kind": "youtube#videoListResponse",
+            "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
+            "items": [
+                {
+                    "kind": "youtube#video",
+                    "etag": "u0Ewqzjm6xmbl5iUrazekqaMU9w",
+                    "id": "-XRR-a6u7Ec",
+                    "snippet": {
+                        "publishedAt": "2020-11-19T05:05:01Z",
+                        "channelId": "UC3gXLkh5SFIqGeKdaXtdrGg",
+                        "title": "title test_keyword",
+                        "description": "description",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Hunterreach",
+                        "tags": [
+                            "tag1",
+                            "tag2"
+                        ],
+                        "categoryId": "1",
+                        "liveBroadcastContent": "none",
+                        "localized": {
+                            "title": "loc title",
+                            "description": "loc description"
+                        },
+                        "defaultAudioLanguage": "en"
+                    }
+                }
+            ],
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            }
+        }
+        self.search.response = {
+            "kind": "youtube#searchListResponse",
+            "etag": "E8I1zVexC-aShpujQa2N-HM_Tw8",
+            "regionCode": "US",
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            },
+            "items": [
+                {
+                    "kind": "youtube#searchResult",
+                    "etag": "xNFddJH8Yfz_1AfZZePk77LedRI",
+                    "id": {
+                        "kind": "youtube#video",
+                        "videoId": "-XRR-a6u7Ec"
+                    },
+                    "snippet": {
+                        "publishedAt": "2024-07-06T10:00:00Z",
+                        "channelId": "UCgnfPPb9JI3e9A4cXHnWbyg",
+                        "title": "talk",
+                        "description": "desc",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            }
+                        },
+                        "channelTitle": "hololive-EN",
+                        "liveBroadcastContent": "none",
+                        "publishTime": "2024-07-06T10:00:00Z"
+                    }
+                }
+            ]
+        }
+        self.search.search_query = "test_keyword"
+        youtube_mock = mock_build.return_value
+        youtube_mock.videos().list().execute.return_value = fake_response_data
+        mock_get_api_key.return_value = "test_api_key"
+
+        self.search.filter_response()
+        self.assertEqual(1, len(self.search.response["items"]), "Should be 1 relevant video")
+
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
+    @patch('src.vtc.db_yt_interface.build')
+    def test_filter_response_1_relevant_description(self, mock_build, mock_get_api_key):
+        fake_response_data = {
+            "kind": "youtube#videoListResponse",
+            "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
+            "items": [
+                {
+                    "kind": "youtube#video",
+                    "etag": "u0Ewqzjm6xmbl5iUrazekqaMU9w",
+                    "id": "-XRR-a6u7Ec",
+                    "snippet": {
+                        "publishedAt": "2020-11-19T05:05:01Z",
+                        "channelId": "UC3gXLkh5SFIqGeKdaXtdrGg",
+                        "title": "title",
+                        "description": "description test_keyword",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Hunterreach",
+                        "tags": [
+                            "tag1",
+                            "tag2"
+                        ],
+                        "categoryId": "1",
+                        "liveBroadcastContent": "none",
+                        "localized": {
+                            "title": "loc title",
+                            "description": "loc description"
+                        },
+                        "defaultAudioLanguage": "en"
+                    }
+                }
+            ],
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            }
+        }
+        self.search.response = {
+            "kind": "youtube#searchListResponse",
+            "etag": "E8I1zVexC-aShpujQa2N-HM_Tw8",
+            "regionCode": "US",
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            },
+            "items": [
+                {
+                    "kind": "youtube#searchResult",
+                    "etag": "xNFddJH8Yfz_1AfZZePk77LedRI",
+                    "id": {
+                        "kind": "youtube#video",
+                        "videoId": "-XRR-a6u7Ec"
+                    },
+                    "snippet": {
+                        "publishedAt": "2024-07-06T10:00:00Z",
+                        "channelId": "UCgnfPPb9JI3e9A4cXHnWbyg",
+                        "title": "talk",
+                        "description": "desc",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            }
+                        },
+                        "channelTitle": "hololive-EN",
+                        "liveBroadcastContent": "none",
+                        "publishTime": "2024-07-06T10:00:00Z"
+                    }
+                }
+            ]
+        }
+        self.search.search_query = "test_keyword"
+        youtube_mock = mock_build.return_value
+        youtube_mock.videos().list().execute.return_value = fake_response_data
+
+        self.search.filter_response()
+        self.assertEqual(1, len(self.search.response["items"]), "Should be 1 relevant video")
+
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
+    @patch('src.vtc.db_yt_interface.build')
+    def test_filter_response_1_relevant_tag(self, mock_build, mock_get_api_key):
+        fake_response_data = {
+            "kind": "youtube#videoListResponse",
+            "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
+            "items": [
+                {
+                    "kind": "youtube#video",
+                    "etag": "u0Ewqzjm6xmbl5iUrazekqaMU9w",
+                    "id": "-XRR-a6u7Ec",
+                    "snippet": {
+                        "publishedAt": "2020-11-19T05:05:01Z",
+                        "channelId": "UC3gXLkh5SFIqGeKdaXtdrGg",
+                        "title": "title",
+                        "description": "description",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Hunterreach",
+                        "tags": [
+                            "tag1 test_keyword",
+                            "tag2"
+                        ],
+                        "categoryId": "1",
+                        "liveBroadcastContent": "none",
+                        "localized": {
+                            "title": "loc title",
+                            "description": "loc description"
+                        },
+                        "defaultAudioLanguage": "en"
+                    }
+                }
+            ],
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            }
+        }
+        self.search.response = {
+            "kind": "youtube#searchListResponse",
+            "etag": "E8I1zVexC-aShpujQa2N-HM_Tw8",
+            "regionCode": "US",
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            },
+            "items": [
+                {
+                    "kind": "youtube#searchResult",
+                    "etag": "xNFddJH8Yfz_1AfZZePk77LedRI",
+                    "id": {
+                        "kind": "youtube#video",
+                        "videoId": "-XRR-a6u7Ec"
+                    },
+                    "snippet": {
+                        "publishedAt": "2024-07-06T10:00:00Z",
+                        "channelId": "UCgnfPPb9JI3e9A4cXHnWbyg",
+                        "title": "talk",
+                        "description": "desc",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            }
+                        },
+                        "channelTitle": "hololive-EN",
+                        "liveBroadcastContent": "none",
+                        "publishTime": "2024-07-06T10:00:00Z"
+                    }
+                }
+            ]
+        }
+        self.search.search_query = "test_keyword"
+        youtube_mock = mock_build.return_value
+        youtube_mock.videos().list().execute.return_value = fake_response_data
+
+        self.search.filter_response()
+        self.assertEqual(1, len(self.search.response["items"]), "Should be 1 relevant video")
+
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
+    @patch('src.vtc.db_yt_interface.build')
+    def test_filter_response_1_relevant_tag(self, mock_build, mock_get_api_key):
+        fake_response_data = {
+            "kind": "youtube#videoListResponse",
+            "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
+            "items": [
+                {
+                    "kind": "youtube#video",
+                    "etag": "u0Ewqzjm6xmbl5iUrazekqaMU9w",
+                    "id": "-XRR-a6u7Ec",
+                    "snippet": {
+                        "publishedAt": "2020-11-19T05:05:01Z",
+                        "channelId": "UC3gXLkh5SFIqGeKdaXtdrGg",
+                        "title": "title",
+                        "description": "description",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            },
+                            "standard": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/sddefault.jpg",
+                                "width": 640,
+                                "height": 480
+                            },
+                            "maxres": {
+                                "url": "https://i.ytimg.com/vi/AUzLpfUy_bI/maxresdefault.jpg",
+                                "width": 1280,
+                                "height": 720
+                            }
+                        },
+                        "channelTitle": "Hunterreach",
+                        "tags": [
+                            "tag1",
+                            "tag2"
+                        ],
+                        "categoryId": "1",
+                        "liveBroadcastContent": "none",
+                        "localized": {
+                            "title": "loc title",
+                            "description": "loc description"
+                        },
+                        "defaultAudioLanguage": "en"
+                    }
+                }
+            ],
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            }
+        }
+        self.search.response = {
+            "kind": "youtube#searchListResponse",
+            "etag": "E8I1zVexC-aShpujQa2N-HM_Tw8",
+            "regionCode": "US",
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 1
+            },
+            "items": [
+                {
+                    "kind": "youtube#searchResult",
+                    "etag": "xNFddJH8Yfz_1AfZZePk77LedRI",
+                    "id": {
+                        "kind": "youtube#video",
+                        "videoId": "-XRR-a6u7Ec"
+                    },
+                    "snippet": {
+                        "publishedAt": "2024-07-06T10:00:00Z",
+                        "channelId": "UCgnfPPb9JI3e9A4cXHnWbyg",
+                        "title": "talk",
+                        "description": "desc",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/default.jpg",
+                                "width": 120,
+                                "height": 90
+                            },
+                            "medium": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/mqdefault.jpg",
+                                "width": 320,
+                                "height": 180
+                            },
+                            "high": {
+                                "url": "https://i.ytimg.com/vi/-XRR-a6u7Ec/hqdefault.jpg",
+                                "width": 480,
+                                "height": 360
+                            }
+                        },
+                        "channelTitle": "hololive-EN",
+                        "liveBroadcastContent": "none",
+                        "publishTime": "2024-07-06T10:00:00Z"
+                    }
+                }
+            ]
+        }
+        self.search.search_query = "test_keyword"
+        youtube_mock = mock_build.return_value
+        youtube_mock.videos().list().execute.return_value = fake_response_data
+
+        self.search.filter_response()
+        self.assertEqual(0, len(self.search.response["items"]), "Should be 0 relevant videos")
 
 
 class TestPlaylistItems(unittest.TestCase):
