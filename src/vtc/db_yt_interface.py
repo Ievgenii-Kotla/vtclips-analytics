@@ -662,7 +662,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             all_text = (Helper.normalize(video["snippet"]["title"]) + '\n' +
                         Helper.normalize(video["snippet"]["description"]) + '\n' +
                         ' '.join(video["snippet"].get("tags", '')))
-            if self.search_query not in all_text:
+            if self.search_query.strip('"') not in all_text:
                 unrelated_videos_ids.append(video["id"])
         self.response["items"] = [d for d in self.response["items"] if d["id"]["videoId"] not in unrelated_videos_ids]
         filter2_qty = len(self.response["items"])
