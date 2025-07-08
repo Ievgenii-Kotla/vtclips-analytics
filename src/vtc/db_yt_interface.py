@@ -661,7 +661,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         for video in new_response_data["items"]:
             all_text = (Helper.normalize(video["snippet"]["title"]) + '\n' +
                         Helper.normalize(video["snippet"]["description"]) + '\n' +
-                        ' '.join(video["snippet"]["tags"]))
+                        ' '.join(video["snippet"].get("tags", '')))
             if self.search_query not in all_text:
                 unrelated_videos_ids.append(video["id"])
         self.response["items"] = [d for d in self.response["items"] if d["id"]["videoId"] not in unrelated_videos_ids]
@@ -669,6 +669,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         removed_unrelated_qty =  filter1_qty - filter2_qty
         if removed_unrelated_qty:
             logger.warning(f"Discarded {removed_unrelated_qty} unrelated videos from dataset (search)")
+            logger.info(f"Unrelated videos: {unrelated_videos_ids}")
 
         self.api_service.change_quota(api_key, -1)
         quota_left = self.api_service.get_quota_left(api_key)
