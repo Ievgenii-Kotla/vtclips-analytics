@@ -1260,7 +1260,7 @@ class PlaylistItems:
             return False
 
     def _prepare_request(self):
-        self.api_key = self.api_service.get_api_key(delay=False, purpose=PrepareAPI.PLAYLIST_ITEMS)
+        self.api_key = self.api_service.get_api_key(threshold=1, delay=False, purpose=PrepareAPI.PLAYLIST_ITEMS)
         self._update_next_page_token()
 
     def _do_request(self):
