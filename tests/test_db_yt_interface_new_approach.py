@@ -102,9 +102,13 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
         self.assertEqual(expected_start, self.search.published_after.astimezone(datetime.timezone.utc))
         self.assertEqual(expected_end, self.search.published_before.astimezone(datetime.timezone.utc))
 
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_quota_left')
+    @patch('src.vtc.db_yt_interface.PrepareAPI.change_quota')
     @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
     @patch('src.vtc.db_yt_interface.build')
-    def test_filter_response_1_relevant_title(self, mock_build, mock_get_api_key):
+    def test_filter_response_1_relevant_title(
+            self, mock_build, mock_get_api_key, mock_change_quota, mock_get_quota_left):
+
         fake_response_data = {
             "kind": "youtube#videoListResponse",
             "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
@@ -213,14 +217,17 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
         self.search.search_query = "test_keyword"
         youtube_mock = mock_build.return_value
         youtube_mock.videos().list().execute.return_value = fake_response_data
-        mock_get_api_key.return_value = "test_api_key"
 
         self.search.filter_response()
         self.assertEqual(1, len(self.search.response["items"]), "Should be 1 relevant video")
 
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_quota_left')
+    @patch('src.vtc.db_yt_interface.PrepareAPI.change_quota')
     @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
     @patch('src.vtc.db_yt_interface.build')
-    def test_filter_response_1_relevant_description(self, mock_build, mock_get_api_key):
+    def test_filter_response_1_relevant_description(
+            self, mock_build, mock_get_api_key, mock_change_quota, mock_get_quota_left):
+
         fake_response_data = {
             "kind": "youtube#videoListResponse",
             "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
@@ -333,9 +340,13 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
         self.search.filter_response()
         self.assertEqual(1, len(self.search.response["items"]), "Should be 1 relevant video")
 
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_quota_left')
+    @patch('src.vtc.db_yt_interface.PrepareAPI.change_quota')
     @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
     @patch('src.vtc.db_yt_interface.build')
-    def test_filter_response_1_relevant_tag(self, mock_build, mock_get_api_key):
+    def test_filter_response_1_relevant_tag(
+            self, mock_build, mock_get_api_key, mock_change_quota, mock_get_quota_left):
+
         fake_response_data = {
             "kind": "youtube#videoListResponse",
             "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
@@ -448,9 +459,13 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
         self.search.filter_response()
         self.assertEqual(1, len(self.search.response["items"]), "Should be 1 relevant video")
 
+    @patch('src.vtc.db_yt_interface.PrepareAPI.get_quota_left')
+    @patch('src.vtc.db_yt_interface.PrepareAPI.change_quota')
     @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
     @patch('src.vtc.db_yt_interface.build')
-    def test_filter_response_1_relevant_tag(self, mock_build, mock_get_api_key):
+    def test_filter_response_1_relevant_tag(
+            self, mock_build, mock_get_api_key, mock_change_quota, mock_get_quota_left):
+
         fake_response_data = {
             "kind": "youtube#videoListResponse",
             "etag": "YKyBruZycggREVDQ9AIKVbNzly0",
