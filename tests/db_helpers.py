@@ -164,6 +164,32 @@ def insert_search_yt_youtube_video(conn,
     data.update(kwargs)
     create_row(conn, table_name, data)
 
+def insert_keyword(conn,
+                   keyword_word='keyword',
+                   priority=1000,
+                   usage_enabled=True,
+                   **kwargs
+                   ):
+    table_name = 'keyword'
+    data = {
+        "keyword_word": keyword_word,
+        "priority": priority,
+        "usage_enabled": usage_enabled
+    }
+    data.update(kwargs)
+    create_row(conn, table_name, data)
+
+def insert_talent(conn,
+                  first_name_eng='first_name',
+                  **kwargs
+                  ):
+    table_name = 'talent'
+    data = {
+        "first_name_eng": first_name_eng,
+    }
+    data.update(kwargs)
+    create_row(conn, table_name, data)
+
 def truncate_all(conn):
     tables = get_tables(conn)
     tables = sql.SQL(", ").join(map(sql.Identifier, tables))
