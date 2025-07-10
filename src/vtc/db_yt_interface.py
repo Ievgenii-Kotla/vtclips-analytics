@@ -468,6 +468,7 @@ SELECT
 FROM
     non_searched_periods_unnested AS nspu
 WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
+    AND lower(nspu.non_searched) < %(datetimenow)s - %(cooldown_period)s
 ;
 """
 
