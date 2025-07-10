@@ -578,6 +578,25 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
         self.search.filter_response()
         self.assertEqual(0, len(self.search.response["items"]), "Should be 0 relevant videos")
 
+    def test_set_search_map_with_cooldown(self):
+        db_helpers.insert_keyword(self.conn)
+        db_helpers.insert_talent(self.conn)
+        db_helpers.insert(self.conn, 'keyword_talent', keyword_id=1, talent_id=1)
+        self.search.start_search_datetime = datetime.datetime.now() - datetime.timedelta(hours=12)
+        self.search.end_search_datetime = datetime.datetime.now()
+        self.search.priority = (1000,)
+        self.search.set_search_map()
+        self.assertEqual([], self.search.search_map, "Should be empty")
+
+    def test_set_search_map_no_cooldown(self):
+        db_helpers.insert_keyword(self.conn)
+        db_helpers.insert_talent(self.conn)
+        db_helpers.insert(self.conn, 'keyword_talent', keyword_id=1, talent_id=1)
+        self.search.end_search_datetime = datetime.datetime.now()
+        self.search.priority = (1000,)
+        self.search.set_search_map()
+        self.assertEqual(1, len(self.search.search_map), "Should have 1 search_period")
+
 
 class TestPlaylistItems(unittest.TestCase):
     @classmethod
