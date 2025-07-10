@@ -246,7 +246,8 @@ class SearchYTByKeyword:
                  usage_enabled: bool = True,
                  purity: tuple[str] = ('pure',),
                  api_service: PrepareAPI = None,
-                 search_layer: int = None
+                 search_layer: int = None,
+                 cooldown_period: datetime.timedelta = datetime.timedelta(days=1),
                  ):
         # Command line arguments that where provided
         self.connection = connection
@@ -277,6 +278,7 @@ class SearchYTByKeyword:
         self.response = None
         self.subsearch_map: List[Tuple[int, datetime.datetime, datetime.datetime, str, str,
         int, int, datetime.datetime | None, datetime.datetime | None, int, bool]] | None = None
+        self.cooldown_period = cooldown_period
 
         # Default values for constant YT search parameters
         self.part = "snippet"
@@ -478,7 +480,8 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
             'start_dt': self.start_search_datetime,
             'end_dt': self.end_search_datetime,
             'datetimenow': self.datetime_now,
-            'search_layer': self.search_layer
+            'search_layer': self.search_layer,
+            'cooldown_period': self.cooldown_period
         }
         cursor = self.connection.cursor()
         logger.info("Creating the search map...")
