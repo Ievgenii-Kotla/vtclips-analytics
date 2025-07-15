@@ -9,7 +9,7 @@ from unittest.mock import patch
 class TestSetupLogger(unittest.TestCase):
     def setUp(self):
         # Clean up log files inside the 'logs' folder
-        files = glob.glob("logs/*.log")
+        files = glob.glob("logs/*")
         print("Deleted files: ", files)
         for file in files:
             if os.path.isfile(file):
@@ -18,7 +18,7 @@ class TestSetupLogger(unittest.TestCase):
     @patch("logging.StreamHandler.emit")
     def test_stream_handler_output(self, mock_emit):
         """ Basic test for streamHandler. """
-        logger = vtc_logging.setup_logger("logs/test_log.log")
+        logger = vtc_logging.setup_logger()
 
         logger.debug("debug")
         mock_emit.assert_not_called()
@@ -45,14 +45,14 @@ class TestSetupLogger(unittest.TestCase):
 
     def test_file_handler_output(self):
         """ Basic test for fileHandler. """
-        logger = vtc_logging.setup_logger("logs/test_log.log")
+        logger = vtc_logging.setup_logger()
         logger.debug("debug")
         logger.info("info")
         logger.warning("warning")
         logger.error("error")
         logger.critical("critical")
 
-        with open("logs/test_log.log", "r") as file:
+        with open("logs/info", "r") as file:
             lines = file.readlines()
 
         self.assertIn("info", lines[0])
