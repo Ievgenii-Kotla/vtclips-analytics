@@ -1223,7 +1223,7 @@ class PlaylistItems:
 
         query = """
         WITH last_requests AS (
-            SELECT DISTINCT ON (yc.playlist_id) yc.playlist_id, pir.requested_at, pir.next_page_token
+            SELECT DISTINCT ON (yc.playlist_id) yc.playlist_id, pir.requested_at, pir.next_page_token, pir.caught_up
             FROM youtube_channel AS yc
             LEFT JOIN playlist_items_request AS pir
                 ON yc.playlist_id = pir.playlist_id
@@ -1236,7 +1236,7 @@ class PlaylistItems:
          SELECT playlist_id
          FROM last_requests
          WHERE requested_at IS NULL
-            OR next_page_token IS NOT NULL 
+            OR next_page_token IS NOT NULL AND caught_up IS NOT TRUE
             OR requested_at < CURRENT_TIMESTAMP - %(cooldown)s 
          ORDER BY next_page_token NULLS LAST, -- in the middle of paging through a playlist
             requested_at ASC NULLS FIRST, -- never requested first, then oldest
@@ -1638,6 +1638,9 @@ class PlaylistItems:
             reached_end = cur.fetchone()[0]
         if duplicates and reached_end:
             logger.info(f"Request {self.playlist_items_request_id} caught up to fully parsed playlist.")
+            cur.execute("UPDATE playlist_items_request SET caught_up = TRUE WHERE playlist_items_request_id = %s;",
+                        (self.playlist_items_request_id,))
+            self.connection.commit()
             self.caught_up = True
         else:
             self.caught_up = False
