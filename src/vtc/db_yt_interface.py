@@ -1636,14 +1636,14 @@ class PlaylistItems:
             duplicates = cur.fetchone()[0] > 0
             cur.execute(query_reached_end, values)
             reached_end = cur.fetchone()[0]
-        if duplicates and reached_end:
-            logger.info(f"Request {self.playlist_items_request_id} caught up to fully parsed playlist.")
-            cur.execute("UPDATE playlist_items_request SET caught_up = TRUE WHERE playlist_items_request_id = %s;",
-                        (self.playlist_items_request_id,))
-            self.connection.commit()
-            self.caught_up = True
-        else:
-            self.caught_up = False
+            if duplicates and reached_end:
+                logger.info(f"Request {self.playlist_items_request_id} caught up to fully parsed playlist.")
+                cur.execute("UPDATE playlist_items_request SET caught_up = TRUE WHERE playlist_items_request_id = %s;",
+                            (self.playlist_items_request_id,))
+                self.connection.commit()
+                self.caught_up = True
+            else:
+                self.caught_up = False
 
 class SearchYTByChannel:
     # TBD
