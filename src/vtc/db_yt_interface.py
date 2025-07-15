@@ -15,6 +15,7 @@ from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
+from exceptions import NoQuotaError
 # TODO: big things to add:
 #  logging
 #      move or duplicate every 'print()' to logging
@@ -158,9 +159,8 @@ class PrepareAPI:
             if total_actions_available > 0:
                 break
             else:
-                seconds = 600
-                logger.info(f"No available quota. Retry in {seconds} seconds.")
-                time.sleep(seconds)
+                logger.info(f"No available quota for {purpose} key.")
+                raise NoQuotaError(f"No available quota for {purpose} key.")
 
         if random_key:
             key_id = choices(list(valid_quotas.keys()),
