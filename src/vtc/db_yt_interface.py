@@ -244,7 +244,7 @@ class SearchYTByKeyword:
                  end_search_datetime: str = '9000-01-01 00:00:00+00:00',
                  priority: tuple[int] = (0, 1),
                  usage_enabled: bool = True,
-                 purity: tuple[str] = ('pure',),
+                 purity: tuple[str] = ('pure', 'mixed', 'dirty'),
                  api_service: PrepareAPI = None,
                  search_layer: int = None,
                  cooldown_period: datetime.timedelta = datetime.timedelta(days=1),
