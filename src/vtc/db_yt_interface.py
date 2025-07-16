@@ -679,7 +679,11 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         quota_left = self.api_service.get_quota_left(api_key)
         logger.info(f"Quota left: {quota_left}")
 
-
+        # Check if there are 50 videos and if they all are published at the same time.
+        #  (to avoid infinite sub-searches bug)
+        if (len(self.response["items"]) == 50
+            and len({item["snippet"]["publishedAt"] for item in self.response["items"]}) == 1):
+            self.response["items"].pop()
 
     def search(self):
         """ Conduct prepared search. """
