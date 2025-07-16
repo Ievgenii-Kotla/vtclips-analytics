@@ -1218,7 +1218,6 @@ class PlaylistItems:
     def _set_playlist_id(self):
 
         if self.only_talents:
-            self.cooldown_period = datetime.timedelta(days=1)
             with self.connection.cursor() as cursor:
                 cursor.execute("SELECT youtube_channel_id FROM youtube_channel_talent;")
                 channels = [row[0] for row in cursor.fetchall()]
