@@ -1187,7 +1187,7 @@ class PlaylistItems:
                 logger.info(f'Playlist availability changed to FALSE')
                 return True
             elif err.resp.status == 503:
-                seconds = 600
+                seconds = 60
                 logger.warning(f'YouTube server error (503). Retry in {seconds} seconds.')
                 time.sleep(seconds)
                 return True
