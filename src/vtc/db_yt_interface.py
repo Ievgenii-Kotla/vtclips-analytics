@@ -15,7 +15,7 @@ from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
-from exceptions import NoQuotaError
+from vtc_exceptions import NoQuotaError
 # TODO: big things to add:
 #  logging
 #      move or duplicate every 'print()' to logging
