@@ -1173,7 +1173,7 @@ class PlaylistItems:
             if err.resp.status == 403:
                 api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
                 quota_left = self.api_service.get_quota_left(api_key=self.api_key)
-                logger.warning(f'Quota exceeded (prematurely). '
+                logger.error(f'Quota exceeded (prematurely). '
                                f'API key: {api_key_id}. '
                                f'Quota left: {quota_left}')
             elif err.resp.status == 500:
