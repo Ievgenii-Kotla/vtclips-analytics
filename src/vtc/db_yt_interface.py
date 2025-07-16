@@ -655,7 +655,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
 
         # Validate videos relatebility
         video_ids = ','.join(item["id"]["videoId"] for item in self.response["items"])
-        api_key = self.api_service.get_api_key(delay=False, purpose=PrepareAPI.VIDEO_LIST)
+        api_key = self.api_service.get_api_key(threshold=1, delay=False, purpose=PrepareAPI.VIDEO_LIST)
         youtube = build('youtube', 'v3', developerKey=api_key)
         new_response_data = youtube.videos().list(
             part='snippet',
