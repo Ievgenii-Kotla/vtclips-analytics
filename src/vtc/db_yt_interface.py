@@ -161,7 +161,7 @@ class PrepareAPI:
             if total_actions_available > 0:
                 break
             else:
-                logger.info(f"No available quota for {purpose} key.")
+                logger.info(f"No available quota for {purpose} key.\n")
                 raise NoQuotaError(f"No available quota for {purpose} key.")
 
         if random_key:
@@ -721,6 +721,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.parent_search_id = None
         # Create the map of what keywords where searched already and at what time periods.
         self.set_search_map()
+        logger.info(f"At least {len(self.subsearch_map)} searches needed")
         # Current algorithm for providing the search details
         self.prepare_query_and_period_alg1()
 
@@ -1250,6 +1251,7 @@ class PlaylistItems:
             return False
 
     def _prepare_request(self):
+        logger.info(f"At least {self.playlist_qty} playlist_items_requests needed")
         self.api_key = self.api_service.get_api_key(threshold=1, delay=False, purpose=PrepareAPI.PLAYLIST_ITEMS)
         self._update_next_page_token()
 
