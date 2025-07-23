@@ -10,6 +10,7 @@ import time
 from zoneinfo import ZoneInfo
 import unicodedata
 import html
+from pathlib import Path
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
@@ -32,6 +33,7 @@ class Helper:
         return text
 
 class PrepareAPI:
+    QUOTA_FILEPATH = Path(__file__).resolve().parents[2] / "state/api_quota_state.json"
     # options for key's purpose
     UNDEFINED = "undefined"
     UNIVERSAL = 'universal'
@@ -43,7 +45,7 @@ class PrepareAPI:
     def current_time_utc():
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
-    def __init__(self, quota_points=10000, filepath="../state/api_quota_state.json", delay=False):
+    def __init__(self, quota_points=10000, filepath=QUOTA_FILEPATH, delay=False):
 
         self.quota_points_max = quota_points
         self.filepath = filepath
