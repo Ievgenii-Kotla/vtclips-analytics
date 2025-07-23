@@ -89,12 +89,8 @@ def insert_youtube_video(
         youtube_video_id='video_id',
         youtube_channel_id='channel_id',
         published_at=DEFAULT_TIME,
-        title='video_title',
         updated_at=DEFAULT_TIME,
         kind='youtube#video',
-        thumbnail_default_url='default_url',
-        thumbnail_medium_url='medium_url',
-        thumbnail_high_url='high_url',
         added_at=DEFAULT_TIME,
         **kwargs
 ):
@@ -103,12 +99,8 @@ def insert_youtube_video(
         "youtube_video_id": youtube_video_id,
         "youtube_channel_id": youtube_channel_id,
         "published_at": published_at,
-        "title": title,
         "updated_at": updated_at,
         "kind": kind,
-        "thumbnail_default_url": thumbnail_default_url,
-        "thumbnail_medium_url": thumbnail_medium_url,
-        "thumbnail_high_url": thumbnail_high_url,
         "added_at": added_at,
     }
     data.update(kwargs)

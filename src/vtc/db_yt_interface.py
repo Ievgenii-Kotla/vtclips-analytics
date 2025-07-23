@@ -906,20 +906,10 @@ ORDER BY s1.searched_at;
         youtube_video_id,
         youtube_channel_id,
         published_at,
-        title,
         description_trimmed,
         live_broadcast_content,
         updated_at,
         kind,
-        thumbnail_default_url,
-        thumbnail_default_width,
-        thumbnail_default_height,
-        thumbnail_medium_url,
-        thumbnail_medium_width,
-        thumbnail_medium_height,
-        thumbnail_high_url,
-        thumbnail_high_width,
-        thumbnail_high_height,
         added_at,
         title_normalized
     )
@@ -932,20 +922,10 @@ ORDER BY s1.searched_at;
                 item["id"]["videoId"],
                 item["snippet"]["channelId"],
                 datetime.datetime.fromisoformat(item["snippet"]["publishedAt"].replace("Z", "+00:00")),
-                item["snippet"]["title"],
                 item["snippet"]["description"],
                 item["snippet"]["liveBroadcastContent"],
                 self.datetime_now,
                 item["id"]["kind"],
-                item["snippet"]["thumbnails"]["default"]["url"],
-                item["snippet"]["thumbnails"]["default"]["width"],
-                item["snippet"]["thumbnails"]["default"]["height"],
-                item["snippet"]["thumbnails"]["medium"]["url"],
-                item["snippet"]["thumbnails"]["medium"]["width"],
-                item["snippet"]["thumbnails"]["medium"]["height"],
-                item["snippet"]["thumbnails"]["high"]["url"],
-                item["snippet"]["thumbnails"]["high"]["width"],
-                item["snippet"]["thumbnails"]["high"]["height"],
                 self.datetime_now,
                 Helper.normalize(item['snippet']['title'])
             ]
@@ -956,7 +936,7 @@ ORDER BY s1.searched_at;
             youtube_video_query,
             self.youtube_video_values,
             template=(
-                "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                "(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
             ),
             fetch=True
         )
@@ -1447,26 +1427,9 @@ class PlaylistItems:
             youtube_video_id,
             youtube_channel_id,
             published_at,
-            title,
             updated_at,
-            description_full,
             kind,
-            thumbnail_default_url,
-            thumbnail_default_width,
-            thumbnail_default_height,
-            thumbnail_medium_url,
-            thumbnail_medium_width,
-            thumbnail_medium_height,
-            thumbnail_high_url,
-            thumbnail_high_width,
-            thumbnail_high_height,
             added_at,
-            thumbnail_standard_url,
-            thumbnail_standard_width,
-            thumbnail_standard_height,
-            thumbnail_maxres_url,
-            thumbnail_maxres_width,
-            thumbnail_maxres_height,
             playlist_item_id,
             playlist_item_etag,
             playlist_item_position,
@@ -1480,26 +1443,9 @@ class PlaylistItems:
             youtube_video_id = EXCLUDED.youtube_video_id,
             youtube_channel_id = EXCLUDED.youtube_channel_id,
             published_at = EXCLUDED.published_at,
-            title = EXCLUDED.title,
             updated_at = EXCLUDED.updated_at,
-            description_full = EXCLUDED.description_full,
             kind = EXCLUDED.kind,
-            thumbnail_default_url = EXCLUDED.thumbnail_default_url,
-            thumbnail_default_width = EXCLUDED.thumbnail_default_width,
-            thumbnail_default_height = EXCLUDED.thumbnail_default_height,
-            thumbnail_medium_url = EXCLUDED.thumbnail_medium_url,
-            thumbnail_medium_width = EXCLUDED.thumbnail_medium_width,
-            thumbnail_medium_height = EXCLUDED.thumbnail_medium_height,
-            thumbnail_high_url = EXCLUDED.thumbnail_high_url,
-            thumbnail_high_width = EXCLUDED.thumbnail_high_width,
-            thumbnail_high_height = EXCLUDED.thumbnail_high_height,
             added_at = COALESCE(youtube_video.added_at, EXCLUDED.added_at),
-            thumbnail_standard_url = EXCLUDED.thumbnail_standard_url,
-            thumbnail_standard_width = EXCLUDED.thumbnail_standard_width,
-            thumbnail_standard_height = EXCLUDED.thumbnail_standard_height,
-            thumbnail_maxres_url = EXCLUDED.thumbnail_maxres_url,
-            thumbnail_maxres_width = EXCLUDED.thumbnail_maxres_width,
-            thumbnail_maxres_height = EXCLUDED.thumbnail_maxres_height,
             playlist_item_id = EXCLUDED.playlist_item_id,
             playlist_item_etag = EXCLUDED.playlist_item_etag,
             playlist_item_position = EXCLUDED.playlist_item_position,
@@ -1513,26 +1459,9 @@ class PlaylistItems:
                 item['snippet']['resourceId']['videoId'],  # youtube_video_id
                 item['snippet']['videoOwnerChannelId'],  # youtube_channel_id
                 item['contentDetails']['videoPublishedAt'],  # published_at
-                item['snippet']['title'],  # title
                 self.datetime_now,  # updated_at
-                item['snippet']['description'],  # description_full
                 item['snippet']['resourceId']['kind'],  # kind
-                item['snippet']['thumbnails']['default']['url'],  # thumbnail_default_url
-                item['snippet']['thumbnails']['default']['width'],  # thumbnail_default_width
-                item['snippet']['thumbnails']['default']['height'],  # thumbnail_default_height
-                item['snippet']['thumbnails']['medium']['url'],  # thumbnail_medium_url
-                item['snippet']['thumbnails']['medium']['width'],  # thumbnail_medium_width
-                item['snippet']['thumbnails']['medium']['height'],  # thumbnail_medium_height
-                item['snippet']['thumbnails']['high']['url'],  # thumbnail_high_url
-                item['snippet']['thumbnails']['high']['width'],  # thumbnail_high_width
-                item['snippet']['thumbnails']['high']['height'],  # thumbnail_high_height
                 self.datetime_now,  # added_at
-                item['snippet']['thumbnails'].get('standard', {}).get('url', None),  # thumbnail_standard_url
-                item['snippet']['thumbnails'].get('standard', {}).get('width', None),  # thumbnail_standard_width
-                item['snippet']['thumbnails'].get('standard', {}).get('height', None),  # thumbnail_standard_height
-                item['snippet']['thumbnails'].get('maxres', {}).get('url', None),  # thumbnail_maxres_url
-                item['snippet']['thumbnails'].get('maxres', {}).get('width', None),  # thumbnail_maxres_width
-                item['snippet']['thumbnails'].get('maxres', {}).get('height', None),  # thumbnail_maxres_height
                 item['id'],  # playlist_item_id
                 item['etag'],  # playlist_item_etag
                 item['snippet']['position'],  # playlist_item_position
@@ -1547,8 +1476,7 @@ class PlaylistItems:
                 cur,
                 query,
                 values,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  "
-                         "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 fetch=False)
             result = cur.fetchall()
 
