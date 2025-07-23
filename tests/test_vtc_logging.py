@@ -1,6 +1,7 @@
 import unittest
 import os
 import glob
+from pathlib import Path
 
 from src.vtc import vtc_logging
 from unittest.mock import patch
@@ -52,7 +53,8 @@ class TestSetupLogger(unittest.TestCase):
         logger.error("error")
         logger.critical("critical")
 
-        with open("logs/info", "r") as file:
+        path = Path(logger.handlers[0].baseFilename).parent
+        with open(path / "info.log", "r") as file:
             lines = file.readlines()
 
         self.assertIn("info", lines[0])
