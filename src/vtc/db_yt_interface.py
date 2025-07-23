@@ -1118,6 +1118,7 @@ class PlaylistItems:
         self.only_talents = only_talents
         # data for saving
         self.playlist_items_request_id: int | None = None
+        self.playlist_qty: int | None = None
 
     def get_new_playlist_items(self, delay_sec: float = 0):
         """Get all items from the 'upload' playlist and save them to the DB"""
@@ -1227,11 +1228,11 @@ class PlaylistItems:
          ORDER BY next_page_token NULLS LAST, -- in the middle of paging through a playlist
             requested_at ASC NULLS FIRST, -- never requested first, then oldest
             playlist_id -- for ordering consistency
-        LIMIT 1
         """
         values = {'channels': channels, 'cooldown': self.cooldown_period}
         with self.connection.cursor() as cursor:
             cursor.execute(query, values)
+            self.playlist_qty = cursor.rowcount
             row = cursor.fetchone()
             if row:
                 self.playlist_id = row[0]
