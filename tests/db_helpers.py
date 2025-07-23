@@ -51,7 +51,8 @@ def validate_columns(conn, table_name:str, data:dict):
     valid_cols = get_table_columns(conn, table_name)
     nonvalid_cols = set(data) - valid_cols
     if nonvalid_cols:
-        raise ValueError(f"Column(s) {nonvalid_cols} for table '{table_name}' do not exist.")
+        err = f"Column(s) {nonvalid_cols} for table '{table_name}' do not exist."
+        raise ValueError(err)
 
 def get_query(table_name:str, data:dict):
     cols = list(data.keys())
@@ -70,7 +71,8 @@ def insert(conn, table_name, **kwargs):
     valid_cols = get_table_columns(conn, table_name)
     nonvalid_cols = set(kwargs) - valid_cols
     if nonvalid_cols:
-        raise ValueError(f"Column(s) {nonvalid_cols} for table {table_name!r} do not exist.")
+        err = f"Column(s) {nonvalid_cols} for table {table_name!r} do not exist."
+        raise ValueError(err)
 
     cols = list(kwargs.keys())
     query = sql.SQL("INSERT INTO {table} ({fields}) VALUES ({places})").format(
