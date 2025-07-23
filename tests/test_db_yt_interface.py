@@ -409,7 +409,6 @@ SELECT * FROM youtube_video;
                 None,  # actual_end_time
                 None,  # scheduled_start_time
                 datetime.datetime.fromisoformat("2024-08-08T22:46:14+00:00"),  # published_at
-                "Kronii Laughing so Hard at Her Own Flower Building in Minecraft [Kaela/Kronii]",  # title
                 "In this video, kronii laughing hard at her own building flower = 【Minecraft】"
                 "holoID Cup: Timesmith PRACTICE time!",  # description_trimmed
                 None,  # category_id
@@ -424,25 +423,9 @@ SELECT * FROM youtube_video;
                 None,  # public_stats_viewable
                 None,  # made_for_kids
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # updated_at
-                None,  # description_full
                 "youtube#video",  # kind
-                "https://i.ytimg.com/vi/XD0p0Dj0LXc/default.jpg",  # thumbnail_default_url
-                120,  # thumbnail_default_width
-                90,  # thumbnail_default_height
-                "https://i.ytimg.com/vi/XD0p0Dj0LXc/mqdefault.jpg",  # thumbnail_medium_url
-                320,  # thumbnail_medium_width
-                180,  # thumbnail_medium_height
-                "https://i.ytimg.com/vi/XD0p0Dj0LXc/hqdefault.jpg",  # thumbnail_high_url
-                480,  # thumbnail_high_width
-                360,  # thumbnail_high_height
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-                None,
-                640,
-                480,
-                None,
-                1280,
-                720,
                 None,
                 None,
                 None,
@@ -459,7 +442,6 @@ SELECT * FROM youtube_video;
                 None,  # actual_end_time
                 None,  # scheduled_start_time
                 datetime.datetime.fromisoformat("2024-08-08T17:06:06+00:00"),  # published_at
-                "Ame and Ina Can&#39;t Stop Teasing Kronii~ (Hololive)",  # title
                 "Enjoy! Thanks For Watching~ I'm not a native English speaker but I'm trying my best~ "
                 "Please support the main channel of Hololive ...",  # description_trimmed
                 None,  # category_id
@@ -474,25 +456,9 @@ SELECT * FROM youtube_video;
                 None,  # public_stats_viewable
                 None,  # made_for_kids
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # updated_at
-                None,  # description_full
                 "youtube#video",  # kind
-                "https://i.ytimg.com/vi/IwhkBhUH0lc/default.jpg",  # thumbnail_default_url
-                120,  # thumbnail_default_width
-                90,  # thumbnail_default_height
-                "https://i.ytimg.com/vi/IwhkBhUH0lc/mqdefault.jpg",  # thumbnail_medium_url
-                320,  # thumbnail_medium_width
-                180,  # thumbnail_medium_height
-                "https://i.ytimg.com/vi/IwhkBhUH0lc/hqdefault.jpg",  # thumbnail_high_url
-                480,  # thumbnail_high_width
-                360,  # thumbnail_high_height
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-                None,
-                640,
-                480,
-                None,
-                1280,
-                720,
                 None,
                 None,
                 None,
@@ -1635,26 +1601,9 @@ class TestPlaylistItems(unittest.TestCase):
             youtube_video_id,
             youtube_channel_id,
             published_at,
-            title,
             updated_at,
-            description_full,
             kind,
-            thumbnail_default_url,
-            thumbnail_default_width,
-            thumbnail_default_height,
-            thumbnail_medium_url,
-            thumbnail_medium_width,
-            thumbnail_medium_height,
-            thumbnail_high_url,
-            thumbnail_high_width,
-            thumbnail_high_height,
             added_at,
-            thumbnail_standard_url,
-            thumbnail_standard_width,
-            thumbnail_standard_height,
-            thumbnail_maxres_url,
-            thumbnail_maxres_width,
-            thumbnail_maxres_height,
             playlist_item_id,
             playlist_item_etag,
             playlist_item_position,
@@ -1674,62 +1623,15 @@ class TestPlaylistItems(unittest.TestCase):
             saved_row[2],
             msg='wrong published_at'
         )
-        self.assertEqual(source_item['snippet']['title'], saved_row[3], msg='wrong title')
-        self.assertEqual(self.playlist_items.datetime_now, saved_row[4], msg='wrong updated_at')
-        self.assertEqual(source_item['snippet']['description'], saved_row[5], msg='wrong description_full')
-        self.assertEqual(source_item['snippet']['resourceId']['kind'], saved_row[6], msg='wrong kind')
-        self.assertEqual(source_item['snippet']['thumbnails']['default']['url'],
-                         saved_row[7],
-                         msg='wrong thumbnail_default_url')
-        self.assertEqual(source_item['snippet']['thumbnails']['default']['width'],
-                         saved_row[8],
-                         msg='wrong thumbnail_default_width')
-        self.assertEqual(source_item['snippet']['thumbnails']['default']['height'],
+        self.assertEqual(self.playlist_items.datetime_now, saved_row[3], msg='wrong updated_at')
+        self.assertEqual(source_item['snippet']['resourceId']['kind'], saved_row[4], msg='wrong kind')
+        self.assertEqual(self.playlist_items.datetime_now, saved_row[5], msg='wrong added_at')
+        self.assertEqual(source_item['id'], saved_row[6], msg='wrong playlist_item_id')
+        self.assertEqual(source_item['etag'], saved_row[7], msg='wrong playlist_item_etag')
+        self.assertEqual(source_item['snippet']['position'], saved_row[8], msg='wrong playlist_item_position')
+        self.assertEqual(datetime.datetime.fromisoformat(source_item['snippet']['publishedAt'].replace('Z', '+00:00')),
                          saved_row[9],
-                         msg='wrong thumbnail_default_height')
-        self.assertEqual(source_item['snippet']['thumbnails']['medium']['url'],
-                         saved_row[10],
-                         msg='wrong thumbnail_medium_url')
-        self.assertEqual(source_item['snippet']['thumbnails']['medium']['width'],
-                         saved_row[11],
-                         msg='wrong thumbnail_medium_width')
-        self.assertEqual(source_item['snippet']['thumbnails']['medium']['height'],
-                         saved_row[12],
-                         msg='wrong thumbnail_medium_height')
-        self.assertEqual(source_item['snippet']['thumbnails']['high']['url'],
-                         saved_row[13],
-                         msg='wrong thumbnail_high_url')
-        self.assertEqual(source_item['snippet']['thumbnails']['high']['width'],
-                         saved_row[14],
-                         msg='wrong thumbnail_high_width')
-        self.assertEqual(source_item['snippet']['thumbnails']['high']['height'],
-                         saved_row[15],
-                         msg='wrong thumbnail_high_height')
-        self.assertEqual(self.playlist_items.datetime_now,
-                         saved_row[16],
-                         msg='wrong added_at')
-        self.assertEqual(source_item['snippet']['thumbnails']['standard']['url'],
-                         saved_row[17],
-                         msg='wrong thumbnail_standard_url')
-        self.assertEqual(source_item['snippet']['thumbnails']['standard']['width'],
-                         saved_row[18],
-                         msg='wrong thumbnail_standard_width')
-        self.assertEqual(source_item['snippet']['thumbnails']['standard']['height'],
-                         saved_row[19],
-                         msg='wrong thumbnail_standard_height')
-        self.assertEqual(source_item['snippet']['thumbnails']['maxres']['url'],
-                         saved_row[20],
-                         msg='wrong thumbnail_maxres_url')
-        self.assertEqual(source_item['snippet']['thumbnails']['maxres']['width'],
-                         saved_row[21],
-                         msg='wrong thumbnail_maxres_width')
-        self.assertEqual(source_item['snippet']['thumbnails']['maxres']['height'],
-                         saved_row[22],
-                         msg='wrong thumbnail_maxres_height')
-        self.assertEqual(source_item['id'], saved_row[23], msg='wrong playlist_item_id')
-        self.assertEqual(source_item['etag'], saved_row[24], msg='wrong playlist_item_etag')
-        self.assertEqual(source_item['snippet']['position'], saved_row[25], msg='wrong playlist_item_position')
-        self.assertEqual(datetime.datetime.fromisoformat(source_item['snippet']['publishedAt'].replace('Z', '+00:00')), saved_row[26], msg='wrong playlist_item_published_at')
+                         msg='wrong playlist_item_published_at')
 
     # def _do_request(self):
     # def _update_datetime_now(self):
