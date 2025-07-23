@@ -1180,10 +1180,6 @@ class PlaylistItems:
         except DatabaseError as err:
             logger.error(f'Database error. \n {err}')
             logger.error(traceback.format_exc())
-        except Exception as err:
-            logger.error(f'Unexpected error. \n {err}')
-            logger.error(traceback.format_exc())
-            raise
         else:
             logger.info(f'Newest playlistItems request id: {self.playlist_items_request_id}')
             return True
