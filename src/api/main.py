@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
 import psycopg2
+from starlette.responses import PlainTextResponse
 
 app = FastAPI()
 
@@ -48,3 +49,7 @@ async def summary():
 @app.get("/test")
 async def test():
     return {"message": "test"}
+
+@app.get("/health", response_class=PlainTextResponse)
+async def test():
+    return "OK"
