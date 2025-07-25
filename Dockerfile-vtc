@@ -57,3 +57,5 @@ USER vtcuser
 
 # Default command (can be overridden)
 # CMD ["python", "-m", "src.vtc.vtc_main"]  # commented out for now
+
+ENTRYPOINT ["tail", "-f", "/dev/null"]
