@@ -10,7 +10,6 @@ services:
     env_file: ./.env.api
     depends_on:
       - postgres-db
-      - migrate_db
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 30s
@@ -64,6 +63,22 @@ services:
         condition: service_healthy
     networks:
       - backend
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin1@example.com
+      PGADMIN_DEFAULT_PASSWORD: strongpassword1
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres-db
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend
+
   proxy:
     image: nginx:alpine
     ports:
@@ -82,3 +97,4 @@ networks:
 volumes:
   pgdata:
     driver: local
+  pgadmin_data:
