@@ -90,7 +90,6 @@ def insert_youtube_video(
         youtube_channel_id='channel_id',
         published_at=DEFAULT_TIME,
         updated_at=DEFAULT_TIME,
-        kind='youtube#video',
         added_at=DEFAULT_TIME,
         **kwargs
 ):
@@ -100,7 +99,6 @@ def insert_youtube_video(
         "youtube_channel_id": youtube_channel_id,
         "published_at": published_at,
         "updated_at": updated_at,
-        "kind": kind,
         "added_at": added_at,
     }
     data.update(kwargs)

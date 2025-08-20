@@ -494,7 +494,6 @@ INSERT INTO youtube_video (
     published_at,
     description_trimmed,
     updated_at,
-    kind,
     added_at
 )
 VALUES (
@@ -503,7 +502,6 @@ VALUES (
     %(published_at)s,
     %(description_trimmed)s,
     %(updated_at)s,
-    %(kind)s,
     %(added_at)s
 )
 RETURNING youtube_video_id;
@@ -515,7 +513,6 @@ RETURNING youtube_video_id;
                 'published_at': datetime(2020, 6, 12, 6, 0, 0, tzinfo=timezone.utc),
                 'description_trimmed': 'description_tr1',
                 'updated_at': datetime.now(),
-                'kind': 'youtube#video',
                 'added_at': datetime.now()
             },
             {
@@ -524,7 +521,6 @@ RETURNING youtube_video_id;
                 'published_at': datetime(2020, 6, 12, 18, 0, 0, tzinfo=timezone.utc),
                 'description_trimmed': 'description_tr2',
                 'updated_at': datetime.now(),
-                'kind': 'youtube#video',
                 'added_at': datetime.now()
 
             },
@@ -534,7 +530,6 @@ RETURNING youtube_video_id;
                 'published_at': datetime(2020, 6, 15, 7, 0, 0, tzinfo=timezone.utc),
                 'description_trimmed': 'description_tr3',
                 'updated_at': datetime.now(),
-                'kind': 'youtube#video',
                 'added_at': datetime.now()
 
             },
@@ -544,7 +539,6 @@ RETURNING youtube_video_id;
                 'published_at': datetime(2020, 6, 15, 19, 0, 0, tzinfo=timezone.utc),
                 'description_trimmed': 'description_tr4',
                 'updated_at': datetime.now(),
-                'kind': 'youtube#video',
                 'added_at': datetime.now()
             }
         ]
@@ -1019,24 +1013,14 @@ def _populate_all_for_playlist_items(cursor):
             youtube_channel_id,
             published_at,
             updated_at,
-            kind,
-            added_at,
-            playlist_item_id,
-            playlist_item_etag,
-            playlist_item_position,
-            playlist_item_published_at
+            added_at
 )
         VALUES (
             %(youtube_video_id)s,
             %(youtube_channel_id)s,
             %(published_at)s,
             %(updated_at)s,
-            %(kind)s,
-            %(added_at)s,
-            %(playlist_item_id)s,
-            %(playlist_item_etag)s,
-            %(playlist_item_position)s,
-            %(playlist_item_published_at)s
+            %(added_at)s
         );
         """
         values = [
@@ -1045,36 +1029,21 @@ def _populate_all_for_playlist_items(cursor):
                 'youtube_channel_id': 'channel_id_0_full_upd_and_tal',
                 'published_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
                 'updated_at': datetime(2022, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
-                'kind': 'youtube#video',
                 'added_at': datetime(2022, 1, 1, 0, 0, 2, tzinfo=timezone.utc),
-                'playlist_item_id': 'video_id_0_playlist_item_id',
-                'playlist_item_etag': 'video_id_0_playlist_item_etag',
-                'playlist_item_position': 0,
-                'playlist_item_published_at': datetime(2022, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
             },
             {
                 'youtube_video_id': 'video_id_1',
                 'youtube_channel_id': 'channel_id_0_full_upd_and_tal',
                 'published_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
                 'updated_at': datetime(2022, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
-                'kind': 'youtube#video',
                 'added_at': datetime(2022, 1, 1, 0, 0, 2, tzinfo=timezone.utc),
-                'playlist_item_id': 'video_id_1_playlist_item_id',
-                'playlist_item_etag': 'video_id_1_playlist_item_etag',
-                'playlist_item_position': 0,
-                'playlist_item_published_at': datetime(2022, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
             },
             {
                 'youtube_video_id': 'video_id_2',
                 'youtube_channel_id': 'channel_id_0_full_upd_and_tal',
                 'published_at': datetime(2022, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
                 'updated_at': datetime(2022, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
-                'kind': 'youtube#video',
                 'added_at': datetime(2022, 1, 1, 0, 0, 2, tzinfo=timezone.utc),
-                'playlist_item_id': 'video_id_2_playlist_item_id',
-                'playlist_item_etag': 'video_id_2_playlist_item_etag',
-                'playlist_item_position': 0,
-                'playlist_item_published_at': datetime(2022, 1, 1, 0, 0, 3, tzinfo=timezone.utc)
             },
         ]
         for value_set in values:

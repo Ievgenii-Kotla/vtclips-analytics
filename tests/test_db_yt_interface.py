@@ -423,13 +423,8 @@ SELECT * FROM youtube_video;
                 None,  # public_stats_viewable
                 None,  # made_for_kids
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # updated_at
-                "youtube#video",  # kind
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-                None,
-                None,
-                None,
-                None,
                 None,
                 "Kronii Laughing so Hard at Her Own Flower Building in Minecraft [Kaela/Kronii]",
                 None
@@ -456,13 +451,8 @@ SELECT * FROM youtube_video;
                 None,  # public_stats_viewable
                 None,  # made_for_kids
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # updated_at
-                "youtube#video",  # kind
                 None,  # tags
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
-                None,
-                None,
-                None,
-                None,
                 None,
                 "Ame and Ina Can't Stop Teasing Kronii~ (Hololive)",
                 None
@@ -1602,12 +1592,7 @@ class TestPlaylistItems(unittest.TestCase):
             youtube_channel_id,
             published_at,
             updated_at,
-            kind,
-            added_at,
-            playlist_item_id,
-            playlist_item_etag,
-            playlist_item_position,
-            playlist_item_published_at
+            added_at
         FROM youtube_video;
         """
         with self.connection.cursor() as cur:
@@ -1624,14 +1609,7 @@ class TestPlaylistItems(unittest.TestCase):
             msg='wrong published_at'
         )
         self.assertEqual(self.playlist_items.datetime_now, saved_row[3], msg='wrong updated_at')
-        self.assertEqual(source_item['snippet']['resourceId']['kind'], saved_row[4], msg='wrong kind')
-        self.assertEqual(self.playlist_items.datetime_now, saved_row[5], msg='wrong added_at')
-        self.assertEqual(source_item['id'], saved_row[6], msg='wrong playlist_item_id')
-        self.assertEqual(source_item['etag'], saved_row[7], msg='wrong playlist_item_etag')
-        self.assertEqual(source_item['snippet']['position'], saved_row[8], msg='wrong playlist_item_position')
-        self.assertEqual(datetime.datetime.fromisoformat(source_item['snippet']['publishedAt'].replace('Z', '+00:00')),
-                         saved_row[9],
-                         msg='wrong playlist_item_published_at')
+        self.assertEqual(self.playlist_items.datetime_now, saved_row[4], msg='wrong added_at')
 
     # def _do_request(self):
     # def _update_datetime_now(self):

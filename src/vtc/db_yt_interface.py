@@ -912,7 +912,6 @@ ORDER BY s1.searched_at;
         description_trimmed,
         live_broadcast_content,
         updated_at,
-        kind,
         added_at,
         title_normalized
     )
@@ -928,7 +927,6 @@ ORDER BY s1.searched_at;
                 item["snippet"]["description"],
                 item["snippet"]["liveBroadcastContent"],
                 self.datetime_now,
-                item["id"]["kind"],
                 self.datetime_now,
                 Helper.normalize(item['snippet']['title'])
             ]
@@ -939,7 +937,7 @@ ORDER BY s1.searched_at;
             youtube_video_query,
             self.youtube_video_values,
             template=(
-                "(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                "(%s, %s, %s, %s, %s, %s, %s, %s)"
             ),
             fetch=True
         )
@@ -1429,12 +1427,7 @@ class PlaylistItems:
             youtube_channel_id,
             published_at,
             updated_at,
-            kind,
             added_at,
-            playlist_item_id,
-            playlist_item_etag,
-            playlist_item_position,
-            playlist_item_published_at,
             title_normalized,
             description_normalized
         )
@@ -1445,12 +1438,7 @@ class PlaylistItems:
             youtube_channel_id = EXCLUDED.youtube_channel_id,
             published_at = EXCLUDED.published_at,
             updated_at = EXCLUDED.updated_at,
-            kind = EXCLUDED.kind,
             added_at = COALESCE(youtube_video.added_at, EXCLUDED.added_at),
-            playlist_item_id = EXCLUDED.playlist_item_id,
-            playlist_item_etag = EXCLUDED.playlist_item_etag,
-            playlist_item_position = EXCLUDED.playlist_item_position,
-            playlist_item_published_at = EXCLUDED.playlist_item_published_at,
             title_normalized = EXCLUDED.title_normalized,
             description_normalized = EXCLUDED.description_normalized
         RETURNING youtube_video_id;
@@ -1461,12 +1449,7 @@ class PlaylistItems:
                 item['snippet']['videoOwnerChannelId'],  # youtube_channel_id
                 item['contentDetails']['videoPublishedAt'],  # published_at
                 self.datetime_now,  # updated_at
-                item['snippet']['resourceId']['kind'],  # kind
                 self.datetime_now,  # added_at
-                item['id'],  # playlist_item_id
-                item['etag'],  # playlist_item_etag
-                item['snippet']['position'],  # playlist_item_position
-                item['snippet']['publishedAt'],  # playlist_item_published_at
                 Helper.normalize(item['snippet']['title']),  # title_normalized
                 Helper.normalize(item['snippet']['description']),  # description_normalized
             ]
@@ -1477,7 +1460,7 @@ class PlaylistItems:
                 cur,
                 query,
                 values,
-                template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                template="(%s, %s, %s, %s, %s, %s, %s)",
                 fetch=False)
             result = cur.fetchall()
 
