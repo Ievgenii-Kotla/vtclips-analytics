@@ -19,7 +19,8 @@ def delete_unrelated(conn):
     CREATE TEMP TABLE tmp_related_video AS
     SELECT DISTINCT ON (yv.youtube_video_id) yv.youtube_channel_id, yv.youtube_video_id, TRUE AS related
     FROM keyword AS k
-    LEFT JOIN youtube_video yv ON yv.description_normalized ~* k.keyword_word OR yv.title_normalized ~* k.keyword_word;
+    LEFT JOIN youtube_video yv ON yv.description_normalized ~* k.keyword_word OR yv.title_normalized ~* k.keyword_word
+    WHERE k.priority IN (0, 1, 99);
     
     CREATE TEMP TABLE tmp_video_all AS
     SELECT yv.youtube_channel_id, yv.youtube_video_id, (CASE WHEN trv.related IS NULL THEN FALSE ELSE TRUE END) AS related
