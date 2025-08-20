@@ -31,7 +31,7 @@ INSERT INTO keyword (
 SELECT 
     youtube_video_id,
     published_at,
-    100
+    99
 FROM youtube_video
 WHERE youtube_channel_id IN (
     SELECT youtube_channel_id

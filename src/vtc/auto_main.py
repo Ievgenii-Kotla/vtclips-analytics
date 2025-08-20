@@ -58,7 +58,7 @@ def main():
         # up-to-date requests are guaranteed to have all data up to the start of the cooldown period
         tasks = [
             (search, {'priority': (0, 1), 'cooldown_period': datetime.timedelta(days=2)}),
-            (search, {'priority': (100,), 'cooldown_period': since_quarter_start}),
+            (search, {'priority': (99,), 'cooldown_period': since_quarter_start}),
             (request_playlist_items, {'only_talents': True, 'cooldown_period': datetime.timedelta(days=1)}),
             (request_playlist_items, {'only_talents': False, 'cooldown_period': since_month_start}),
         ]

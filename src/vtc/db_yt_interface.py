@@ -586,8 +586,8 @@ LIMIT 1;
                 cursor.execute("SELECT priority FROM keyword WHERE keyword_word = %s;", (keyword_word,))
                 priority = cursor.fetchone()[0]
 
-        # special case for when the keyword is a video id (priority 100)
-        if priority == 100:
+        # special case for when the keyword is a video id (priority 99)
+        if priority == 99:
             return self.datetime_now - published_after - days(1)
 
         # No previous search
@@ -1481,7 +1481,7 @@ class PlaylistItems:
             [
                 item['snippet']['resourceId']['videoId'],
                 item['contentDetails']['videoPublishedAt'],
-                100
+                99
             ]
             for item in self.response['items']
         ]

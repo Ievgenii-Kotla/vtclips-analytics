@@ -696,13 +696,13 @@ class TestPlaylistItems(unittest.TestCase):
             rows = cur.fetchall()
 
         self.assertEqual(1, len(rows))
-        self.assertEqual(('video_id', self.default_time_2, 100 ), rows[0])
+        self.assertEqual(('video_id', self.default_time_2, 99 ), rows[0])
 
     def test__save_keyword_talent(self):
         keyword = {
             'keyword_word': 'video_id',
             'date_since_relevant': self.default_time_2,
-            'priority': 100
+            'priority': 99
         }
         talent = {
             'first_name_eng': 'first_name_eng',
