@@ -70,6 +70,12 @@ def delete_unrelated(conn):
     );
     """
 
+    query_videos_to_delete_qty = """
+    SELECT COUNT(*)
+    FROM tmp_channel_for_purge tcfp
+    JOIN youtube_video yv ON tcfp.youtube_channel_id = yv.youtube_channel_id; \
+                                 """
+
 
     with conn.cursor() as cur:
         print("Preparing a list of unrelated videos. This may take a while.")
@@ -81,18 +87,21 @@ def delete_unrelated(conn):
 
         cur.execute(query_stats)
         row = cur.fetchone()
-        print(f"Keyword related videos: {row[1]}")
-        print(f"Keyword unrelated videos: {row[0]}")
+        print(f"Total keyword related videos: {row[1]}")
+        print(f"Total keyword unrelated videos: {row[0]}")
 
         cur.execute(query_channels_for_cleanup)
         cur.execute("SELECT youtube_channel_id FROM tmp_channel_for_purge;")
         rows = cur.fetchall()
         print(f"Qty of channels that will be cleaned: {cur.rowcount}")
 
+        cur.execute(query_videos_to_delete_qty)
+        print(f"Total videos to be deleted: {cur.fetchone()[0]}")
+
     show = input("Show channel URLs? y/n: ")
     if show == 'y':
         channel_urls = ['https://www.youtube.com/channel/' + row[0] for row in rows]
-        print(f"Channels that will be cleaned: {channel_urls}")
+        print(f"Channels that will be cleaned: \n{channel_urls}")
 
     do_delete = input("Delete permanently? y/n: ")
     if do_delete == 'y':
