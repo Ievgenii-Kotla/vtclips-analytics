@@ -1294,7 +1294,7 @@ class PlaylistItems:
 
     def _update_next_page_token(self):
         query = """
-        SELECT next_page_token
+        SELECT CASE WHEN caught_up THEN NULL ELSE next_page_token END
         FROM playlist_items_request
         WHERE playlist_id = %(playlist_id)s
         ORDER BY requested_at DESC
