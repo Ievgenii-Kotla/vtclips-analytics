@@ -3,9 +3,9 @@
 --
 
 -- Dumped from database version 17.5
--- Dumped by pg_dump version 17.5
+-- Dumped by pg_dump version 17.4
 
--- Started on 2025-07-28 12:50:12
+-- Started on 2025-08-29 12:02:35
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -30,7 +30,7 @@ SET row_security = off;
 ALTER SCHEMA public OWNER TO postgres;
 
 --
--- TOC entry 5043 (class 0 OID 0)
+-- TOC entry 5049 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
 --
@@ -47,7 +47,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 
 --
--- TOC entry 5045 (class 0 OID 0)
+-- TOC entry 5051 (class 0 OID 0)
 -- Dependencies: 2
 -- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner:
 --
@@ -56,7 +56,7 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
--- TOC entry 913 (class 1247 OID 18490303)
+-- TOC entry 919 (class 1247 OID 18490303)
 -- Name: addition_status; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -73,7 +73,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 230 (class 1259 OID 18490307)
+-- TOC entry 236 (class 1259 OID 18490307)
 -- Name: keyword; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -93,8 +93,8 @@ CREATE TABLE public.keyword (
 ALTER TABLE public.keyword OWNER TO postgres;
 
 --
--- TOC entry 5046 (class 0 OID 0)
--- Dependencies: 230
+-- TOC entry 5052 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: TABLE keyword; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -115,11 +115,11 @@ Guidelines:
 12 - titles of videos published by talents
 13 - group names
 14 - branch names (holoen, hololiveEN, etc.)
-';
+99 - video_id of a video made by a talent';
 
 
 --
--- TOC entry 231 (class 1259 OID 18490314)
+-- TOC entry 237 (class 1259 OID 18490314)
 -- Name: keyword_keyword_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -134,7 +134,7 @@ ALTER TABLE public.keyword ALTER COLUMN keyword_id ADD GENERATED ALWAYS AS IDENT
 
 
 --
--- TOC entry 232 (class 1259 OID 18490315)
+-- TOC entry 238 (class 1259 OID 18490315)
 -- Name: keyword_search_yt; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -147,8 +147,8 @@ CREATE TABLE public.keyword_search_yt (
 ALTER TABLE public.keyword_search_yt OWNER TO postgres;
 
 --
--- TOC entry 5047 (class 0 OID 0)
--- Dependencies: 232
+-- TOC entry 5053 (class 0 OID 0)
+-- Dependencies: 238
 -- Name: TABLE keyword_search_yt; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -156,7 +156,7 @@ COMMENT ON TABLE public.keyword_search_yt IS 'Junction table.';
 
 
 --
--- TOC entry 233 (class 1259 OID 18490318)
+-- TOC entry 239 (class 1259 OID 18490318)
 -- Name: keyword_talent; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -169,8 +169,8 @@ CREATE TABLE public.keyword_talent (
 ALTER TABLE public.keyword_talent OWNER TO postgres;
 
 --
--- TOC entry 5048 (class 0 OID 0)
--- Dependencies: 233
+-- TOC entry 5054 (class 0 OID 0)
+-- Dependencies: 239
 -- Name: TABLE keyword_talent; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -178,7 +178,7 @@ COMMENT ON TABLE public.keyword_talent IS 'Junction table';
 
 
 --
--- TOC entry 234 (class 1259 OID 18490321)
+-- TOC entry 240 (class 1259 OID 18490321)
 -- Name: playlist_items_request; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -199,8 +199,8 @@ CREATE TABLE public.playlist_items_request (
 ALTER TABLE public.playlist_items_request OWNER TO postgres;
 
 --
--- TOC entry 5049 (class 0 OID 0)
--- Dependencies: 234
+-- TOC entry 5055 (class 0 OID 0)
+-- Dependencies: 240
 -- Name: TABLE playlist_items_request; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -208,7 +208,7 @@ COMMENT ON TABLE public.playlist_items_request IS 'History of ''playlist'' reque
 
 
 --
--- TOC entry 235 (class 1259 OID 18490326)
+-- TOC entry 241 (class 1259 OID 18490326)
 -- Name: playlist_items_request_youtube_video; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -221,8 +221,8 @@ CREATE TABLE public.playlist_items_request_youtube_video (
 ALTER TABLE public.playlist_items_request_youtube_video OWNER TO postgres;
 
 --
--- TOC entry 5050 (class 0 OID 0)
--- Dependencies: 235
+-- TOC entry 5056 (class 0 OID 0)
+-- Dependencies: 241
 -- Name: TABLE playlist_items_request_youtube_video; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -230,7 +230,7 @@ COMMENT ON TABLE public.playlist_items_request_youtube_video IS 'Junction table 
 
 
 --
--- TOC entry 236 (class 1259 OID 18490331)
+-- TOC entry 242 (class 1259 OID 18490331)
 -- Name: playlist_request_playlist_request_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -245,7 +245,7 @@ ALTER TABLE public.playlist_items_request ALTER COLUMN playlist_items_request_id
 
 
 --
--- TOC entry 237 (class 1259 OID 18490332)
+-- TOC entry 243 (class 1259 OID 18490332)
 -- Name: search_yt; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -272,8 +272,8 @@ CREATE TABLE public.search_yt (
 ALTER TABLE public.search_yt OWNER TO postgres;
 
 --
--- TOC entry 5051 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5057 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: TABLE search_yt; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -281,8 +281,8 @@ COMMENT ON TABLE public.search_yt IS 'History of searches. ';
 
 
 --
--- TOC entry 5052 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5058 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: COLUMN search_yt.searched_at; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -290,8 +290,8 @@ COMMENT ON COLUMN public.search_yt.searched_at IS 'Time at which the search was 
 
 
 --
--- TOC entry 5053 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5059 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: COLUMN search_yt.published_after; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -299,8 +299,8 @@ COMMENT ON COLUMN public.search_yt.published_after IS 'Attribute of YT search re
 
 
 --
--- TOC entry 5054 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5060 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: COLUMN search_yt.published_before; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -308,8 +308,8 @@ COMMENT ON COLUMN public.search_yt.published_before IS 'Attribute of YT search r
 
 
 --
--- TOC entry 5055 (class 0 OID 0)
--- Dependencies: 237
+-- TOC entry 5061 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: COLUMN search_yt.q; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -318,7 +318,7 @@ Named after the corresponding search attribute in the Youtube search request API
 
 
 --
--- TOC entry 238 (class 1259 OID 18490338)
+-- TOC entry 244 (class 1259 OID 18490338)
 -- Name: search_search_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -333,7 +333,7 @@ ALTER TABLE public.search_yt ALTER COLUMN search_yt_id ADD GENERATED ALWAYS AS I
 
 
 --
--- TOC entry 239 (class 1259 OID 18490339)
+-- TOC entry 245 (class 1259 OID 18490339)
 -- Name: search_yt_youtube_video; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -346,8 +346,8 @@ CREATE TABLE public.search_yt_youtube_video (
 ALTER TABLE public.search_yt_youtube_video OWNER TO postgres;
 
 --
--- TOC entry 5056 (class 0 OID 0)
--- Dependencies: 239
+-- TOC entry 5062 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: TABLE search_yt_youtube_video; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -356,7 +356,7 @@ Joins ''search_yt'' and ''youtube_video'' tables.';
 
 
 --
--- TOC entry 240 (class 1259 OID 18490344)
+-- TOC entry 246 (class 1259 OID 18490344)
 -- Name: talent; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -374,8 +374,8 @@ CREATE TABLE public.talent (
 ALTER TABLE public.talent OWNER TO postgres;
 
 --
--- TOC entry 5057 (class 0 OID 0)
--- Dependencies: 240
+-- TOC entry 5063 (class 0 OID 0)
+-- Dependencies: 246
 -- Name: TABLE talent; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -384,7 +384,7 @@ e.g. Ouro Kronii, Gawr Gura, IRyS';
 
 
 --
--- TOC entry 241 (class 1259 OID 18490349)
+-- TOC entry 247 (class 1259 OID 18490349)
 -- Name: talent_talent_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -399,7 +399,7 @@ ALTER TABLE public.talent ALTER COLUMN talent_id ADD GENERATED ALWAYS AS IDENTIT
 
 
 --
--- TOC entry 242 (class 1259 OID 18490350)
+-- TOC entry 248 (class 1259 OID 18490350)
 -- Name: youtube_channel; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -427,8 +427,8 @@ CREATE TABLE public.youtube_channel (
 ALTER TABLE public.youtube_channel OWNER TO postgres;
 
 --
--- TOC entry 5058 (class 0 OID 0)
--- Dependencies: 242
+-- TOC entry 5064 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: TABLE youtube_channel; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -436,8 +436,8 @@ COMMENT ON TABLE public.youtube_channel IS 'Info about a youtube channel';
 
 
 --
--- TOC entry 5059 (class 0 OID 0)
--- Dependencies: 242
+-- TOC entry 5065 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN youtube_channel.published_at; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -445,8 +445,8 @@ COMMENT ON COLUMN public.youtube_channel.published_at IS 'When the channel was c
 
 
 --
--- TOC entry 5060 (class 0 OID 0)
--- Dependencies: 242
+-- TOC entry 5066 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN youtube_channel.added_at; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -454,8 +454,8 @@ COMMENT ON COLUMN public.youtube_channel.added_at IS 'When a channel was added t
 
 
 --
--- TOC entry 5061 (class 0 OID 0)
--- Dependencies: 242
+-- TOC entry 5067 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN youtube_channel.playlist_available; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -464,7 +464,7 @@ FALSE - playlist got 404 on API call';
 
 
 --
--- TOC entry 243 (class 1259 OID 18490357)
+-- TOC entry 249 (class 1259 OID 18490357)
 -- Name: youtube_channel_stats; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -481,8 +481,8 @@ CREATE TABLE public.youtube_channel_stats (
 ALTER TABLE public.youtube_channel_stats OWNER TO postgres;
 
 --
--- TOC entry 5062 (class 0 OID 0)
--- Dependencies: 243
+-- TOC entry 5068 (class 0 OID 0)
+-- Dependencies: 249
 -- Name: TABLE youtube_channel_stats; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -490,7 +490,7 @@ COMMENT ON TABLE public.youtube_channel_stats IS 'Youtube channel statistics tha
 
 
 --
--- TOC entry 244 (class 1259 OID 18490362)
+-- TOC entry 250 (class 1259 OID 18490362)
 -- Name: youtube_channel_stats_youtube_channel_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -505,7 +505,7 @@ ALTER TABLE public.youtube_channel_stats ALTER COLUMN youtube_channel_stats_id A
 
 
 --
--- TOC entry 245 (class 1259 OID 18490363)
+-- TOC entry 251 (class 1259 OID 18490363)
 -- Name: youtube_channel_talent; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -518,8 +518,8 @@ CREATE TABLE public.youtube_channel_talent (
 ALTER TABLE public.youtube_channel_talent OWNER TO postgres;
 
 --
--- TOC entry 5063 (class 0 OID 0)
--- Dependencies: 245
+-- TOC entry 5069 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: TABLE youtube_channel_talent; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -528,7 +528,7 @@ Linking talents to their respective channels';
 
 
 --
--- TOC entry 246 (class 1259 OID 18490368)
+-- TOC entry 252 (class 1259 OID 18490368)
 -- Name: youtube_video; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -553,14 +553,9 @@ CREATE TABLE public.youtube_video (
     public_stats_viewable boolean,
     made_for_kids boolean,
     updated_at timestamp with time zone NOT NULL,
-    kind text NOT NULL,
     tags text,
     added_at timestamp with time zone NOT NULL,
     etag text,
-    playlist_item_id text,
-    playlist_item_etag text,
-    playlist_item_position integer,
-    playlist_item_published_at timestamp with time zone,
     title_normalized text,
     description_normalized text
 );
@@ -569,8 +564,8 @@ CREATE TABLE public.youtube_video (
 ALTER TABLE public.youtube_video OWNER TO postgres;
 
 --
--- TOC entry 5064 (class 0 OID 0)
--- Dependencies: 246
+-- TOC entry 5070 (class 0 OID 0)
+-- Dependencies: 252
 -- Name: TABLE youtube_video; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -578,8 +573,8 @@ COMMENT ON TABLE public.youtube_video IS 'Info about a youtube video';
 
 
 --
--- TOC entry 5065 (class 0 OID 0)
--- Dependencies: 246
+-- TOC entry 5071 (class 0 OID 0)
+-- Dependencies: 252
 -- Name: COLUMN youtube_video.youtube_video_id; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -587,17 +582,8 @@ COMMENT ON COLUMN public.youtube_video.youtube_video_id IS 'Identification key t
 
 
 --
--- TOC entry 5066 (class 0 OID 0)
--- Dependencies: 246
--- Name: COLUMN youtube_video.kind; Type: COMMENT; Schema: public; Owner: postgres
---
-
-COMMENT ON COLUMN public.youtube_video.kind IS 'Stores ''kind'' field from youtube search request.';
-
-
---
--- TOC entry 5067 (class 0 OID 0)
--- Dependencies: 246
+-- TOC entry 5072 (class 0 OID 0)
+-- Dependencies: 252
 -- Name: COLUMN youtube_video.added_at; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -605,7 +591,7 @@ COMMENT ON COLUMN public.youtube_video.added_at IS 'When a video was added to th
 
 
 --
--- TOC entry 247 (class 1259 OID 18490383)
+-- TOC entry 253 (class 1259 OID 18490383)
 -- Name: youtube_video_keyword; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -624,8 +610,8 @@ CREATE TABLE public.youtube_video_keyword (
 ALTER TABLE public.youtube_video_keyword OWNER TO postgres;
 
 --
--- TOC entry 5068 (class 0 OID 0)
--- Dependencies: 247
+-- TOC entry 5073 (class 0 OID 0)
+-- Dependencies: 253
 -- Name: TABLE youtube_video_keyword; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -634,7 +620,7 @@ Also a junstion table.';
 
 
 --
--- TOC entry 248 (class 1259 OID 18490388)
+-- TOC entry 254 (class 1259 OID 18490388)
 -- Name: youtube_video_keyword_youtube_video_keyword_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -649,7 +635,7 @@ ALTER TABLE public.youtube_video_keyword ALTER COLUMN youtube_video_keyword_id A
 
 
 --
--- TOC entry 249 (class 1259 OID 18490389)
+-- TOC entry 255 (class 1259 OID 18490389)
 -- Name: youtube_video_stats; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -666,8 +652,8 @@ CREATE TABLE public.youtube_video_stats (
 ALTER TABLE public.youtube_video_stats OWNER TO postgres;
 
 --
--- TOC entry 5069 (class 0 OID 0)
--- Dependencies: 249
+-- TOC entry 5074 (class 0 OID 0)
+-- Dependencies: 255
 -- Name: TABLE youtube_video_stats; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -675,7 +661,7 @@ COMMENT ON TABLE public.youtube_video_stats IS 'Youtube video statistics that re
 
 
 --
--- TOC entry 250 (class 1259 OID 18490394)
+-- TOC entry 256 (class 1259 OID 18490394)
 -- Name: youtube_video_stats_youtube_video_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -690,7 +676,7 @@ ALTER TABLE public.youtube_video_stats ALTER COLUMN youtube_video_stats_id ADD G
 
 
 --
--- TOC entry 251 (class 1259 OID 18490395)
+-- TOC entry 257 (class 1259 OID 18490395)
 -- Name: youtube_video_youtube_video; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -703,8 +689,8 @@ CREATE TABLE public.youtube_video_youtube_video (
 ALTER TABLE public.youtube_video_youtube_video OWNER TO postgres;
 
 --
--- TOC entry 5070 (class 0 OID 0)
--- Dependencies: 251
+-- TOC entry 5075 (class 0 OID 0)
+-- Dependencies: 257
 -- Name: TABLE youtube_video_youtube_video; Type: COMMENT; Schema: public; Owner: postgres
 --
 
@@ -712,7 +698,7 @@ COMMENT ON TABLE public.youtube_video_youtube_video IS 'Junction table that show
 
 
 --
--- TOC entry 4828 (class 2606 OID 21250057)
+-- TOC entry 4834 (class 2606 OID 21250057)
 -- Name: keyword pk_keyword; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -721,7 +707,7 @@ ALTER TABLE ONLY public.keyword
 
 
 --
--- TOC entry 4832 (class 2606 OID 21250059)
+-- TOC entry 4838 (class 2606 OID 21250059)
 -- Name: keyword_search_yt pk_keyword_search_yt; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -730,7 +716,7 @@ ALTER TABLE ONLY public.keyword_search_yt
 
 
 --
--- TOC entry 4836 (class 2606 OID 21250061)
+-- TOC entry 4842 (class 2606 OID 21250061)
 -- Name: keyword_talent pk_keyword_talent; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -739,7 +725,7 @@ ALTER TABLE ONLY public.keyword_talent
 
 
 --
--- TOC entry 4845 (class 2606 OID 21250063)
+-- TOC entry 4851 (class 2606 OID 21250063)
 -- Name: search_yt pk_search_yt; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -748,7 +734,7 @@ ALTER TABLE ONLY public.search_yt
 
 
 --
--- TOC entry 4848 (class 2606 OID 21250065)
+-- TOC entry 4854 (class 2606 OID 21250065)
 -- Name: search_yt_youtube_video pk_search_yt_youtube_video; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -757,7 +743,7 @@ ALTER TABLE ONLY public.search_yt_youtube_video
 
 
 --
--- TOC entry 4850 (class 2606 OID 21250067)
+-- TOC entry 4856 (class 2606 OID 21250067)
 -- Name: talent pk_talent; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -766,7 +752,7 @@ ALTER TABLE ONLY public.talent
 
 
 --
--- TOC entry 4852 (class 2606 OID 21250069)
+-- TOC entry 4858 (class 2606 OID 21250069)
 -- Name: youtube_channel pk_youtube_channel; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -775,7 +761,7 @@ ALTER TABLE ONLY public.youtube_channel
 
 
 --
--- TOC entry 4856 (class 2606 OID 21250071)
+-- TOC entry 4862 (class 2606 OID 21250071)
 -- Name: youtube_channel_stats pk_youtube_channel_stats; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -784,7 +770,7 @@ ALTER TABLE ONLY public.youtube_channel_stats
 
 
 --
--- TOC entry 4858 (class 2606 OID 21250073)
+-- TOC entry 4864 (class 2606 OID 21250073)
 -- Name: youtube_channel_talent pk_youtube_channel_talent; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -793,7 +779,7 @@ ALTER TABLE ONLY public.youtube_channel_talent
 
 
 --
--- TOC entry 4863 (class 2606 OID 21250075)
+-- TOC entry 4869 (class 2606 OID 21250075)
 -- Name: youtube_video pk_youtube_video; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -802,7 +788,7 @@ ALTER TABLE ONLY public.youtube_video
 
 
 --
--- TOC entry 4868 (class 2606 OID 21250082)
+-- TOC entry 4874 (class 2606 OID 21250082)
 -- Name: youtube_video_keyword pk_youtube_video_keyword; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -811,7 +797,7 @@ ALTER TABLE ONLY public.youtube_video_keyword
 
 
 --
--- TOC entry 4871 (class 2606 OID 21250084)
+-- TOC entry 4877 (class 2606 OID 21250084)
 -- Name: youtube_video_stats pk_youtube_video_stats; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -820,7 +806,7 @@ ALTER TABLE ONLY public.youtube_video_stats
 
 
 --
--- TOC entry 4873 (class 2606 OID 21250086)
+-- TOC entry 4879 (class 2606 OID 21250086)
 -- Name: youtube_video_youtube_video pk_youtube_video_youtube_video; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -829,7 +815,7 @@ ALTER TABLE ONLY public.youtube_video_youtube_video
 
 
 --
--- TOC entry 4840 (class 2606 OID 21250088)
+-- TOC entry 4846 (class 2606 OID 21250088)
 -- Name: playlist_items_request playlist_items_request_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -838,7 +824,7 @@ ALTER TABLE ONLY public.playlist_items_request
 
 
 --
--- TOC entry 4843 (class 2606 OID 21250090)
+-- TOC entry 4849 (class 2606 OID 21250090)
 -- Name: playlist_items_request_youtube_video playlist_items_request_youtube_video_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -847,7 +833,7 @@ ALTER TABLE ONLY public.playlist_items_request_youtube_video
 
 
 --
--- TOC entry 4826 (class 2606 OID 21250091)
+-- TOC entry 4832 (class 2606 OID 21250091)
 -- Name: talent talent_group_name_check; Type: CHECK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -856,7 +842,7 @@ ALTER TABLE public.talent
 
 
 --
--- TOC entry 4834 (class 2606 OID 21250093)
+-- TOC entry 4840 (class 2606 OID 21250093)
 -- Name: keyword_search_yt unique_keyword_id_search_id; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -865,7 +851,7 @@ ALTER TABLE ONLY public.keyword_search_yt
 
 
 --
--- TOC entry 4838 (class 2606 OID 21250095)
+-- TOC entry 4844 (class 2606 OID 21250095)
 -- Name: keyword_talent unique_keyword_id_talent_id; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -874,7 +860,7 @@ ALTER TABLE ONLY public.keyword_talent
 
 
 --
--- TOC entry 4830 (class 2606 OID 21250097)
+-- TOC entry 4836 (class 2606 OID 21250097)
 -- Name: keyword unique_keyword_word; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -883,7 +869,7 @@ ALTER TABLE ONLY public.keyword
 
 
 --
--- TOC entry 4860 (class 2606 OID 21250099)
+-- TOC entry 4866 (class 2606 OID 21250099)
 -- Name: youtube_channel_talent unique_talent_id_youtube_channel_id; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -892,7 +878,7 @@ ALTER TABLE ONLY public.youtube_channel_talent
 
 
 --
--- TOC entry 4854 (class 2606 OID 21250101)
+-- TOC entry 4860 (class 2606 OID 21250101)
 -- Name: youtube_channel youtube_channel_yt_playlist_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -901,7 +887,7 @@ ALTER TABLE ONLY public.youtube_channel
 
 
 --
--- TOC entry 4846 (class 1259 OID 21250102)
+-- TOC entry 4852 (class 1259 OID 21250102)
 -- Name: fki_fk_search_youtube_youtube_video_youtube_video; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -909,7 +895,7 @@ CREATE INDEX fki_fk_search_youtube_youtube_video_youtube_video ON public.search_
 
 
 --
--- TOC entry 4866 (class 1259 OID 21250103)
+-- TOC entry 4872 (class 1259 OID 21250103)
 -- Name: fki_fk_youtube_video_keyword_youtube_video_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -917,7 +903,7 @@ CREATE INDEX fki_fk_youtube_video_keyword_youtube_video_id ON public.youtube_vid
 
 
 --
--- TOC entry 4869 (class 1259 OID 21250104)
+-- TOC entry 4875 (class 1259 OID 21250104)
 -- Name: fki_fk_youtube_video_stats_youtube_video_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -925,7 +911,7 @@ CREATE INDEX fki_fk_youtube_video_stats_youtube_video_id ON public.youtube_video
 
 
 --
--- TOC entry 4861 (class 1259 OID 21250105)
+-- TOC entry 4867 (class 1259 OID 21250105)
 -- Name: fki_fk_youtube_video_youtube_channel_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -933,7 +919,7 @@ CREATE INDEX fki_fk_youtube_video_youtube_channel_id ON public.youtube_video USI
 
 
 --
--- TOC entry 4841 (class 1259 OID 21250106)
+-- TOC entry 4847 (class 1259 OID 21250106)
 -- Name: fki_playlist_items_request_youtube_video_youtube_video_id_fkey; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -941,7 +927,7 @@ CREATE INDEX fki_playlist_items_request_youtube_video_youtube_video_id_fkey ON p
 
 
 --
--- TOC entry 4864 (class 1259 OID 21250107)
+-- TOC entry 4870 (class 1259 OID 21250107)
 -- Name: youtube_video_description_normalized_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -949,7 +935,7 @@ CREATE INDEX youtube_video_description_normalized_idx ON public.youtube_video US
 
 
 --
--- TOC entry 4865 (class 1259 OID 21250108)
+-- TOC entry 4871 (class 1259 OID 21250108)
 -- Name: youtube_video_title_normalized_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -957,7 +943,7 @@ CREATE INDEX youtube_video_title_normalized_idx ON public.youtube_video USING gi
 
 
 --
--- TOC entry 4874 (class 2606 OID 21250109)
+-- TOC entry 4880 (class 2606 OID 21250109)
 -- Name: keyword_search_yt fk_keyword_search_yt_keyword; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -966,7 +952,7 @@ ALTER TABLE ONLY public.keyword_search_yt
 
 
 --
--- TOC entry 4875 (class 2606 OID 22153422)
+-- TOC entry 4881 (class 2606 OID 22153422)
 -- Name: keyword_search_yt fk_keyword_search_yt_search_yt; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -975,7 +961,7 @@ ALTER TABLE ONLY public.keyword_search_yt
 
 
 --
--- TOC entry 4876 (class 2606 OID 21250119)
+-- TOC entry 4882 (class 2606 OID 21250119)
 -- Name: keyword_talent fk_keyword_talent_keyword; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -984,7 +970,7 @@ ALTER TABLE ONLY public.keyword_talent
 
 
 --
--- TOC entry 4877 (class 2606 OID 21250124)
+-- TOC entry 4883 (class 2606 OID 21250124)
 -- Name: keyword_talent fk_keyword_talent_talent; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -993,7 +979,7 @@ ALTER TABLE ONLY public.keyword_talent
 
 
 --
--- TOC entry 4882 (class 2606 OID 21250129)
+-- TOC entry 4888 (class 2606 OID 21250129)
 -- Name: search_yt_youtube_video fk_search_youtube_youtube_video_youtube_video; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1002,7 +988,7 @@ ALTER TABLE ONLY public.search_yt_youtube_video
 
 
 --
--- TOC entry 4881 (class 2606 OID 21250134)
+-- TOC entry 4887 (class 2606 OID 21250134)
 -- Name: search_yt fk_search_yt_parent_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1011,7 +997,7 @@ ALTER TABLE ONLY public.search_yt
 
 
 --
--- TOC entry 4883 (class 2606 OID 22153427)
+-- TOC entry 4889 (class 2606 OID 22153427)
 -- Name: search_yt_youtube_video fk_search_yt_youtube_video_search_yt; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1020,7 +1006,7 @@ ALTER TABLE ONLY public.search_yt_youtube_video
 
 
 --
--- TOC entry 4884 (class 2606 OID 21250144)
+-- TOC entry 4890 (class 2606 OID 21250144)
 -- Name: youtube_channel_stats fk_youtube_channel_stats_youtube_channel; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1029,7 +1015,7 @@ ALTER TABLE ONLY public.youtube_channel_stats
 
 
 --
--- TOC entry 4885 (class 2606 OID 21250149)
+-- TOC entry 4891 (class 2606 OID 21250149)
 -- Name: youtube_channel_talent fk_youtube_channel_talent_talent; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1038,7 +1024,7 @@ ALTER TABLE ONLY public.youtube_channel_talent
 
 
 --
--- TOC entry 4886 (class 2606 OID 21250154)
+-- TOC entry 4892 (class 2606 OID 21250154)
 -- Name: youtube_channel_talent fk_youtube_channel_talent_youtube_channel; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1047,7 +1033,7 @@ ALTER TABLE ONLY public.youtube_channel_talent
 
 
 --
--- TOC entry 4888 (class 2606 OID 21250159)
+-- TOC entry 4894 (class 2606 OID 21250159)
 -- Name: youtube_video_keyword fk_youtube_video_keyword_keyword; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1056,7 +1042,7 @@ ALTER TABLE ONLY public.youtube_video_keyword
 
 
 --
--- TOC entry 4889 (class 2606 OID 21250164)
+-- TOC entry 4895 (class 2606 OID 21250164)
 -- Name: youtube_video_keyword fk_youtube_video_keyword_youtube_video_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1065,7 +1051,7 @@ ALTER TABLE ONLY public.youtube_video_keyword
 
 
 --
--- TOC entry 4890 (class 2606 OID 21250169)
+-- TOC entry 4896 (class 2606 OID 21250169)
 -- Name: youtube_video_stats fk_youtube_video_stats_youtube_video_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1074,7 +1060,7 @@ ALTER TABLE ONLY public.youtube_video_stats
 
 
 --
--- TOC entry 4887 (class 2606 OID 21250174)
+-- TOC entry 4893 (class 2606 OID 21250174)
 -- Name: youtube_video fk_youtube_video_youtube_channel_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1083,7 +1069,7 @@ ALTER TABLE ONLY public.youtube_video
 
 
 --
--- TOC entry 4891 (class 2606 OID 21250179)
+-- TOC entry 4897 (class 2606 OID 21250179)
 -- Name: youtube_video_youtube_video fk_youtube_video_youtube_video_clip; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1092,7 +1078,7 @@ ALTER TABLE ONLY public.youtube_video_youtube_video
 
 
 --
--- TOC entry 4892 (class 2606 OID 21250184)
+-- TOC entry 4898 (class 2606 OID 21250184)
 -- Name: youtube_video_youtube_video fk_youtube_video_youtube_video_source; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1101,7 +1087,7 @@ ALTER TABLE ONLY public.youtube_video_youtube_video
 
 
 --
--- TOC entry 4878 (class 2606 OID 21250189)
+-- TOC entry 4884 (class 2606 OID 21250189)
 -- Name: playlist_items_request playlist_items_request_playlist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1110,7 +1096,7 @@ ALTER TABLE ONLY public.playlist_items_request
 
 
 --
--- TOC entry 4879 (class 2606 OID 21250194)
+-- TOC entry 4885 (class 2606 OID 21250194)
 -- Name: playlist_items_request_youtube_video playlist_items_request_youtube_video_playlist_request_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1119,7 +1105,7 @@ ALTER TABLE ONLY public.playlist_items_request_youtube_video
 
 
 --
--- TOC entry 4880 (class 2606 OID 21250199)
+-- TOC entry 4886 (class 2606 OID 21250199)
 -- Name: playlist_items_request_youtube_video playlist_items_request_youtube_video_youtube_video_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1128,7 +1114,7 @@ ALTER TABLE ONLY public.playlist_items_request_youtube_video
 
 
 --
--- TOC entry 5044 (class 0 OID 0)
+-- TOC entry 5050 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -1136,7 +1122,7 @@ ALTER TABLE ONLY public.playlist_items_request_youtube_video
 REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 
 
--- Completed on 2025-07-28 12:50:12
+-- Completed on 2025-08-29 12:02:36
 
 --
 -- PostgreSQL database dump complete
