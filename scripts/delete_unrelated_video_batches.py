@@ -73,8 +73,8 @@ def delete_unrelated(conn):
     query_videos_to_delete_qty = """
     SELECT COUNT(*)
     FROM tmp_channel_for_purge tcfp
-    JOIN youtube_video yv ON tcfp.youtube_channel_id = yv.youtube_channel_id; \
-                                 """
+    JOIN youtube_video yv ON tcfp.youtube_channel_id = yv.youtube_channel_id;
+    """
 
 
     with conn.cursor() as cur:
