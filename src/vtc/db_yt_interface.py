@@ -88,7 +88,7 @@ class PrepareAPI:
     @staticmethod
     def load_api_keys() -> dict[str, str]:
         """ Load API keys from environmental variables. """
-        api_keys = os.getenv('API_keys').split(",")
+        api_keys = os.getenv('API_KEYS').split(",")
         api_keys_dict = {f"API_key{i}": value for i, value in enumerate(api_keys)}
         return api_keys_dict
 
