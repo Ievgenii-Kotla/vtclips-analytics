@@ -721,7 +721,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.parent_search_id = None
         # Create the map of what keywords where searched already and at what time periods.
         self.set_search_map()
-        logger.info(f"At least {len(self.search_map)} searches needed")
+        searches_needed = sum([((dt[3] - dt[2]) // datetime.timedelta(days=2)) + 1 for dt in self.search_map])
+        logger.info(f"About {searches_needed} searches needed")
         # Current algorithm for providing the search details
         self.prepare_query_and_period_alg1()
 
