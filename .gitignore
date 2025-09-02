@@ -177,7 +177,7 @@ cython_debug/
 state/api_quota_state.json
 state/test_api_quota_state.json
 todo
-logs
+logs/*
 known_issues.txt
 
 
