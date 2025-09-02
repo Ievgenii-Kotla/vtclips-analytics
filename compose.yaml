@@ -28,6 +28,9 @@ services:
     restart: unless-stopped
     init: true
     env_file: ./.env.vtc
+    volumes:
+      - ./logs:/app/logs
+      - ./state:/app/state
     depends_on:
       - postgres-db
       - migrate_db
@@ -42,8 +45,8 @@ services:
       - ./.env.db
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - /opt/vtclips-analytics/data/initial_data:/initial_data
-      - /opt/vtclips-analytics/data/backups:/backups
+      - ./data/initial_data:/app/data/initial_data
+      - ./data/backups:/app/data/backups
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 10s
