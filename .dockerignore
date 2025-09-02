@@ -27,7 +27,7 @@ tests/
 *.test
 
 # 6. Logs and debug files
-logs/
+logs/*
 *.log
 
 # 7. Environment and secrets
@@ -75,10 +75,10 @@ target/
 alembic/versions/__pycache__/
 
 # 16. State and data backups (if not needed in build)
-data/backups/
-data/initial_data/
-data/seed_data/
-state/
+#data/backups/
+#data/initial_data/
+#data/seed_data/
+state/*
 
 # 17. Script logs
 scripts/logs/
@@ -87,6 +87,6 @@ scripts/logs/
 src/frontend/
 
 # 19. Exclude empty directories (Docker ignores them by default, but for clarity)
-**/.gitkeep
+#**/.gitkeep
 
 # End of .dockerignore
