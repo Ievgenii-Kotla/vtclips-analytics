@@ -239,6 +239,21 @@ class PrepareAPI:
         self.load_api_quotas_info()
         logger.info('Quotas updated and reloaded.')
 
+    def temporary_disable_key(self, api_key_id):
+        """ Disable key until the next reset. """
+
+        if api_key_id in self.api_quotas:
+            self.api_quotas[api_key_id]['available'] = 0
+            logger.error(f'API key {api_key_id} disabled until the next reset. Check if the key is still valid.')
+        else:
+            logger.error(f"Couldn't disable API key {api_key_id}. API key not found.")
+
+        self.save_api_quotas_info(
+            self.api_quotas,
+            self.last_reset_at,
+            self.current_time_utc()
+        )
+
 
 class SearchYTByKeyword:
     def __init__(self,
@@ -748,12 +763,12 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             self.save()
         except HttpError as err:
             if err.resp.status == 403:
-                # todo: make sure it returns current key
                 api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
                 quota_left = self.api_service.get_quota_left(api_key=self.api_key)
                 logger.info(f'Quota exceeded (prematurely). '
                             f'API key: {api_key_id}. '
                             f'Quota left: {quota_left}')
+                self.api_service.temporary_disable_key(api_key_id)
             else:
                 logger.error(err)
         return True
@@ -875,6 +890,7 @@ ORDER BY s1.searched_at;
                 logger.info(f'Quota exceeded (prematurely). '
                             f'API key: {api_key_id}. '
                             f'Quota left: {quota_left}')
+                self.api_service.temporary_disable_key(api_key_id)
             else:
                 logger.error(err)
         return True
@@ -1168,6 +1184,7 @@ class PlaylistItems:
                 logger.error(f'Quota exceeded (prematurely). '
                                f'API key: {api_key_id}. '
                                f'Quota left: {quota_left}')
+                self.api_service.temporary_disable_key(api_key_id)
             elif err.resp.status == 500:
                 seconds = 60
                 logger.warning(f'YouTube server error (500). Retry in {seconds} seconds.')
