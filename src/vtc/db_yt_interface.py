@@ -721,7 +721,14 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.parent_search_id = None
         # Create the map of what keywords where searched already and at what time periods.
         self.set_search_map()
-        searches_needed = sum([((dt[3] - dt[2]) // datetime.timedelta(days=2)) + 1 for dt in self.search_map])
+        # 'priority' *99 values are reserved for potentially _one big single search per keyword_ type of keywords
+        priority_99 = {(x + 1) % 100 == 0 for x in self.priority}
+        if priority_99 == {True}:
+            searches_needed = len(self.search_map)
+        elif priority_99 == {False}:
+            searches_needed = sum(((dt[3] - dt[2]) // datetime.timedelta(days=2)) + 1 for dt in self.search_map)
+        else:
+            searches_needed = "UNKNOWN"
         logger.info(f"About {searches_needed} searches needed")
         # Current algorithm for providing the search details
         self.prepare_query_and_period_alg1()
