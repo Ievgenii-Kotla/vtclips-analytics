@@ -57,10 +57,10 @@ class TestSetupLogger(unittest.TestCase):
         with open(path / "info.log", "r") as file:
             lines = file.readlines()
 
-        self.assertIn("info", lines[0])
-        self.assertIn("warning", lines[1])
-        self.assertIn("error", lines[2])
-        self.assertIn("critical", lines[3])
+        self.assertIn("info", lines[-4])
+        self.assertIn("warning", lines[-3])
+        self.assertIn("error", lines[-2])
+        self.assertIn("critical", lines[-1])
 
         for handler in logger.handlers[:]:
             handler.close()
