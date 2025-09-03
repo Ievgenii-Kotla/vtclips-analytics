@@ -100,6 +100,8 @@ class PrepareAPI:
         - max quota points
         - available quota points
         - quota points that are reserved
+        - purpose of the key
+        - coefficient (limits percentage wise the amount of quota points that can be used)
         General:
         - last reset time
         - last update time
