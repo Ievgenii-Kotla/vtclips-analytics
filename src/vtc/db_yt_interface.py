@@ -692,7 +692,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         removed_unrelated_qty =  filter1_qty - filter2_qty
         if removed_unrelated_qty:
             logger.warning(f"Discarded {removed_unrelated_qty} unrelated videos from dataset (search)")
-            logger.info(f"Unrelated videos: {unrelated_videos_ids}")
+            logger.warning(f"Unrelated videos: {unrelated_videos_ids}")
 
         self.api_service.change_quota(api_key, -1)
         quota_left = self.api_service.get_quota_left(api_key)
