@@ -34,4 +34,6 @@ def setup_logger():
     stream_handler.setLevel(logging.INFO)
     logger.addHandler(stream_handler)
 
+    logging.getLogger("googleapiclient.discovery_cache").disabled = True
+
     return logger
