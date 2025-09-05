@@ -1269,7 +1269,7 @@ class PlaylistItems:
                 logger.info(f'Title: {cur.fetchone()[0]}')
             return True
         else:
-            logger.warning("Couldn't select playlist.")
+            logger.info("No valid playlists.")
             return False
 
     def _prepare_request(self):
