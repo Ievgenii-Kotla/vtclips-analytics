@@ -36,7 +36,6 @@ services:
       - migrate_db
     networks:
       - backend
-    command: ["python","-u","/app/src/vtc/auto_main.py"]
 
   postgres-db:
     image: postgres:latest
