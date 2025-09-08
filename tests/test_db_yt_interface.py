@@ -1332,9 +1332,9 @@ class TestPlaylistItems(unittest.TestCase):
     def test__do_request_and_save_failure(self):
         self.playlist_items.playlist_id = None
         self.playlist_items._set_playlist_id = MagicMock(side_effect=DatabaseError('test case'))
-        with self.assertLogs(logger='src.vtc.db_yt_interface', level="ERROR") as cm:
-            is_success = self.playlist_items._do_request_and_save()
-        self.assertFalse(is_success, msg="didn't fail properly")
+        with self.assertRaises(DatabaseError):
+            with self.assertLogs(logger='src.vtc.db_yt_interface', level="ERROR") as cm:
+                is_success = self.playlist_items._do_request_and_save()
 
     def test__set_playlist_id_ongoing(self):
         self.playlist_items._set_playlist_id()
