@@ -1140,6 +1140,7 @@ class PlaylistItems:
         self.playlist_id: str | None = None
         self.cooldown_period = cooldown_period
         self.only_talents = only_talents
+        self.playlist_404_counter: int = 0
         # data for saving
         self.playlist_items_request_id: int | None = None
         self.playlist_qty: int | None = None
@@ -1191,9 +1192,18 @@ class PlaylistItems:
                 time.sleep(seconds)
                 return True
             elif err.resp.status == 404:
-                self._update_playlist_unavailable()
-                logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}')
-                logger.info(f'Playlist availability changed to FALSE')
+                self.playlist_404_counter += 1
+                if self.playlist_404_counter < 4:
+                    logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}. '
+                                   f'Try: {self.playlist_404_counter}'
+                                   f'Retry in {wait_seconds} seconds.')
+                    time.sleep(wait_seconds)
+                else:
+                    self._update_playlist_unavailable()
+                    logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}'
+                                   f'Try: {self.playlist_404_counter}')
+                    logger.info(f'Playlist availability changed to FALSE')
+                    self.playlist_404_counter = 0
                 return True
             elif err.resp.status == 503:
                 seconds = 60
