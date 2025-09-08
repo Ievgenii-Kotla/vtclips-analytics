@@ -1187,6 +1187,7 @@ class PlaylistItems:
                                f'API key: {api_key_id}. '
                                f'Quota left: {quota_left}')
                 self.api_service.temporary_disable_key(api_key_id)
+                return True
             elif err.resp.status == 500:
                 logger.warning(f'YouTube server error (500). Retry in {wait_seconds} seconds.')
                 time.sleep(wait_seconds)
@@ -1211,6 +1212,8 @@ class PlaylistItems:
                 return True
             else:
                 logger.error(err)
+                time.sleep(wait_seconds)
+                return True
         except DatabaseError as err:
             logger.error(f'Database error. \n {err}')
             logger.error(traceback.format_exc())
