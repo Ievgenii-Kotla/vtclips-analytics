@@ -111,12 +111,12 @@ class PrepareAPI:
             with open(self.filepath, "r", encoding="utf-8") as file:
                 data = json.load(file)
         except FileNotFoundError as err:
-            logger.info("File with info about quotas is not found. ", err)
+            logger.error("File with info about quotas is not found. ", err)
             self.last_update_at = self.current_time_utc()
             # Using self._reset_quotas and inline loading instead of self.reset_and_reload_quotas
             #   to avoid infinite loop if the file couldn't be created for some reason
             self._reset_quotas()
-            logger.info(f"New file created. {self.filepath}")
+            logger.error(f"New file created. {self.filepath}")
             with open(self.filepath, "r", encoding="utf-8") as file:
                 data = json.load(file)
         self.api_quotas = data["API_quotas"]
@@ -628,7 +628,7 @@ LIMIT 1;
             return min(prev_search_period, default_search_interval)
 
         # Behavior for other situations
-        logger.warning('Unexpected calculation of the search interval')
+        logger.error('Unexpected calculation of the search interval')
         return default_search_interval
 
     # TBI
@@ -654,10 +654,10 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             if talent_id is not None:
                 ids.append(int(talent_id))
             elif talent_id is None:
-                logger.warning(f"Warning: Talent's name '{name}' did not match any talents.")
+                logger.error(f"Warning: Talent's name '{name}' did not match any talents.")
             # todo: fix: despite warning appears to use the first of all returned ids
             if cursor.fetchall():
-                logger.warning(f"Warning: Talent's name '{name}' matched more than one talent.")
+                logger.error(f"Warning: Talent's name '{name}' matched more than one talent.")
         cursor.close()
         self.talents_ids = tuple(ids)
 
@@ -765,7 +765,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             if err.resp.status == 403:
                 api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
                 quota_left = self.api_service.get_quota_left(api_key=self.api_key)
-                logger.info(f'Quota exceeded (prematurely). '
+                logger.error(f'Quota exceeded (prematurely). '
                             f'API key: {api_key_id}. '
                             f'Quota left: {quota_left}')
                 self.api_service.temporary_disable_key(api_key_id)
@@ -854,7 +854,7 @@ ORDER BY s1.searched_at;
         if rows:
             middle_point = rows[(len(rows)//2)][0]
         else:
-            logger.warning(f'Nothing found for search_yt_id {parent_id} or its related videos.')
+            logger.error(f'Nothing found for search_yt_id {parent_id} or its related videos.')
             return False
 
         if subsearch_qty == 0:
@@ -887,7 +887,7 @@ ORDER BY s1.searched_at;
             if err.resp.status == 403:
                 api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
                 quota_left = self.api_service.get_quota_left(api_key=self.api_key)
-                logger.info(f'Quota exceeded (prematurely). '
+                logger.error(f'Quota exceeded (prematurely). '
                             f'API key: {api_key_id}. '
                             f'Quota left: {quota_left}')
                 self.api_service.temporary_disable_key(api_key_id)
@@ -1202,7 +1202,7 @@ class PlaylistItems:
                     self._update_playlist_unavailable()
                     logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}'
                                    f'Try: {self.playlist_404_counter}')
-                    logger.info(f'Playlist availability changed to FALSE')
+                    logger.warning(f'Playlist availability changed to FALSE')
                     self.playlist_404_counter = 0
                 return True
             elif err.resp.status == 503:
