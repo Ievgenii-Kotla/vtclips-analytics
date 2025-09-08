@@ -1566,14 +1566,15 @@ class PlaylistItems:
             WHERE playlist_id = %(playlist_id)s
         ),
         all_videos_for_playlist AS (
-            SELECT 
-                playlist_items_request_id, youtube_video_id
+            SELECT playlist_items_request_id, youtube_video_id
             FROM playlist_items_request_youtube_video
             WHERE playlist_items_request_id IN (SELECT playlist_items_request_id FROM all_requests_for_playlist)
         )
         SELECT COUNT(*)
         FROM all_videos_for_playlist avfp1
-        WHERE avfp1.playlist_items_request_id != %(request_id)s
+        WHERE NOT (avfp1.playlist_items_request_id = %(request_id)s
+                -- exclude the 'previous page' of the playlist in the current update run if there is one
+                OR avfp1.playlist_items_request_id = (%(request_id)s - 1)
             AND EXISTS (
                 SELECT youtube_video_id 
                 FROM all_videos_for_playlist avfp2
