@@ -1196,12 +1196,12 @@ class PlaylistItems:
                 self.playlist_404_counter += 1
                 if self.playlist_404_counter < 4:
                     logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}. '
-                                   f'Try: {self.playlist_404_counter}'
+                                   f'Try: {self.playlist_404_counter} '
                                    f'Retry in {wait_seconds} seconds.')
                     time.sleep(wait_seconds)
                 else:
                     self._update_playlist_unavailable()
-                    logger.warning(f'Playlist unavailable (404). id: {self.playlist_id}'
+                    logger.warning(f'Playlist unavailable (404). id: {self.playlist_id} '
                                    f'Try: {self.playlist_404_counter}')
                     logger.warning(f'Playlist availability changed to FALSE')
                     self.playlist_404_counter = 0
