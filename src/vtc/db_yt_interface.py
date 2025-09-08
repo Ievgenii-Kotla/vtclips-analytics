@@ -1168,6 +1168,7 @@ class PlaylistItems:
         return is_success
 
     def _do_request_and_save(self):
+        wait_seconds: int = 60
         try:
             if not self.playlist_id:
                 if not self._set_playlist_id():
@@ -1187,9 +1188,8 @@ class PlaylistItems:
                                f'Quota left: {quota_left}')
                 self.api_service.temporary_disable_key(api_key_id)
             elif err.resp.status == 500:
-                seconds = 60
-                logger.warning(f'YouTube server error (500). Retry in {seconds} seconds.')
-                time.sleep(seconds)
+                logger.warning(f'YouTube server error (500). Retry in {wait_seconds} seconds.')
+                time.sleep(wait_seconds)
                 return True
             elif err.resp.status == 404:
                 self.playlist_404_counter += 1
@@ -1206,9 +1206,8 @@ class PlaylistItems:
                     self.playlist_404_counter = 0
                 return True
             elif err.resp.status == 503:
-                seconds = 60
-                logger.warning(f'YouTube server error (503). Retry in {seconds} seconds.')
-                time.sleep(seconds)
+                logger.warning(f'YouTube server error (503). Retry in {wait_seconds} seconds.')
+                time.sleep(wait_seconds)
                 return True
             else:
                 logger.error(err)
