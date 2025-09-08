@@ -65,7 +65,7 @@ def main():
 
         no_more_quotas = 0
         errors = 0
-        other_outcomes = 0
+        end_of_queue = 0
         connection = connection_pool.getconn()
 
         for task in tasks:
@@ -78,13 +78,13 @@ def main():
                 logger.error(f"Unexpected error occurred while running task {task}: {e}")
                 errors += 1
             else:
-                other_outcomes += 1
+                end_of_queue += 1
 
         connection.commit()
         connection_pool.putconn(connection)
         seconds = 3600
         logger.info(f"Finished tasks cycle. Out of 4 tasks:"
-                    f"No more quotas: {no_more_quotas}. Errors: {errors}. Other outcomes: {other_outcomes}. ")
+                    f"No more quotas: {no_more_quotas}. Reached the end of queue: {end_of_queue}. Errors: {errors}.")
         logger.info(f"Sleeping for {seconds} seconds before starting the next cycle.")
         time.sleep(3600)
 
