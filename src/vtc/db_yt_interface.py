@@ -1217,7 +1217,6 @@ class PlaylistItems:
         else:
             logger.info(f'Newest playlistItems request id: {self.playlist_items_request_id}')
             return True
-        return False
 
     def _update_playlist_unavailable(self):
         query = """
