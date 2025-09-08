@@ -1089,11 +1089,11 @@ ORDER BY s1.searched_at;
 
         # todo: replace with a proper logging
         # 'logging' a few stats
-        logger.info(f'Videos in response.\n'
-                    f'Total: {len(self.youtube_video_values)}\n'
+        logger.info(f'Videos in response:\n'
+                    f'Total: {len(self.youtube_video_values)}'
                     f'New  : {len(self.new_yt_video_ids)}')
-        logger.info(f'Channels in response.\n'
-                    f'Total: {len(self.youtube_channel_values)}\n'
+        logger.info(f'Channels in response:'
+                    f'Total: {len(self.youtube_channel_values)}'
                     f'New  : {len(self.new_yt_channel_ids)}')
         logger.info(f'Newest search id: {self.search_yt_id}')
         logger.info(f'Quota left for current key: {self.quota_left}\n')
