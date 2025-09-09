@@ -69,7 +69,7 @@ def main():
         connection = connection_pool.getconn()
 
         for task in tasks:
-            logger.info(f"Running task '{task[0].__name__}' with args: \n{task[1]}...")
+            logger.info(f"Running task '{task[0].__name__}' with args: \n{task[1]}")
             try:
                 task[0](connection, **task[1])
             except NoQuotaError:
