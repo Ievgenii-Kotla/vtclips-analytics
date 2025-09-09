@@ -1091,10 +1091,10 @@ ORDER BY s1.searched_at;
         # 'logging' a few stats
         logger.info(f'Videos in response - '
                     f'Total: {len(self.youtube_video_values)} '
-                    f'New  : {len(self.new_yt_video_ids)}')
+                    f'New: {len(self.new_yt_video_ids)}')
         logger.info(f'Channels in response: - '
                     f'Total: {len(self.youtube_channel_values)} '
-                    f'New  : {len(self.new_yt_channel_ids)}')
+                    f'New: {len(self.new_yt_channel_ids)}')
         logger.info(f'Newest search id: {self.search_yt_id}')
         logger.info(f'Quota left for current key: {self.quota_left}\n')
 
