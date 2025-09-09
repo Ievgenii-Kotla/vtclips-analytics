@@ -53,3 +53,22 @@ async def test():
 @app.get("/health", response_class=PlainTextResponse)
 async def test():
     return "OK"
+
+@app.get("/status")
+async def status():
+    with open('/app/collector_info/state/api_quota_state.json', 'r') as f:
+         quota_status = f.read()
+    with open('/app/collector_info/logs/error.log', 'r') as f:
+        error_log = f.read()
+    with open('/app/collector_info/logs/warning.log', 'r') as f:
+        warning_log = f.read()
+    with open('/app/collector_info/logs/info.log', 'r') as f:
+        info_log = f.read()
+
+    return PlainTextResponse(
+        f"""QUOTA_STATUS:\n {quota_status}\n\n
+ERRORS:\n {error_log}\n\n
+WARNINGS:\n {warning_log}\n\n
+INFO:\n {info_log}
+"""
+    )
