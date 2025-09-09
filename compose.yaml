@@ -8,6 +8,9 @@ services:
     restart: unless-stopped
     init: true
     env_file: ./.env.api
+    volumes:
+      - ./logs:/app/collector_info/logs:ro
+      - ./state:/app/collector_info/state:ro
     depends_on:
       - postgres-db
     healthcheck:
