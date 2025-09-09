@@ -1174,8 +1174,10 @@ class PlaylistItems:
                 if not self._set_playlist_id():
                     return False
             self._prepare_request()
-            self._do_request()
-            self._update_quota_after_request()
+            try:
+                self._do_request()
+            finally:
+                self._update_quota_after_request()
             self._filter_response()
             self._save()
             self._do_stop_check()
