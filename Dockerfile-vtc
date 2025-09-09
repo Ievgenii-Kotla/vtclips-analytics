@@ -61,3 +61,6 @@ USER vtcuser
 # Default command (can be overridden)
 #CMD ["python","-u","/app/src/vtc/auto_main.py"]
 ENTRYPOINT ["python","-u","/app/src/vtc/auto_main.py"]
+
+# placeholder dev entrypoint
+#ENTRYPOINT [ "tail", "-f", "/dev/null" ]
