@@ -1111,12 +1111,12 @@ ORDER BY s1.searched_at;
     def session_stats(self):
         logger.info("Session statistics: ")
         logger.info(f"Searches conducted: {self.session_searches}")
-        logger.info(f'Videos found:\n'
-                    f'Total: {self.session_videos_total}\n'
-                    f'New  : {self.session_videos_new}')
-        logger.info(f'Channels found:\n'
-                    f'Total: {self.session_channels_total}\n'
-                    f'New  : {self.session_channels_new}\n')
+        logger.info(f'Videos found - '
+                    f'Total: {self.session_videos_total} '
+                    f'New: {self.session_videos_new}')
+        logger.info(f'Channels found - '
+                    f'Total: {self.session_channels_total} '
+                    f'New: {self.session_channels_new}\n')
 
 
 class PlaylistItems:
