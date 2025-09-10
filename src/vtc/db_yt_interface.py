@@ -871,6 +871,14 @@ ORDER BY s1.searched_at;
         self.search_query = f'"{q}"' if is_q_quoted else q
         self.parent_search_id = parent_id
         self.keyword_id = keyword_ids
+        if (
+                self.published_after >= self.published_before
+                or middle_point <= parent_published_after
+                or middle_point >= parent_published_before
+        ):
+            logger.error("Invalid time boundaries for a sub-search")
+            time.sleep(60)
+            return False
         return True
 
     def search_next_and_save(self):
