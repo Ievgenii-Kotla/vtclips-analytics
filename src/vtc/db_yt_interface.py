@@ -854,8 +854,10 @@ ORDER BY s1.searched_at;
         if rows:
             middle_point = rows[(len(rows)//2)][0]
         else:
-            logger.error(f'Nothing found for search_yt_id {parent_id} or its related videos.')
-            return False
+            middle_point = parent_published_after + ((parent_published_before - parent_published_after) // 2)
+            middle_point = middle_point.replace(microsecond=0) + datetime.timedelta(seconds=1)
+            logger.warning(f'No valid videos for search {parent_id} to determine optimized middle point')
+            logger.warning(f'Default middle point for sub-search boundaries selected')
 
         if subsearch_qty == 0:
             self.published_after = parent_published_after
