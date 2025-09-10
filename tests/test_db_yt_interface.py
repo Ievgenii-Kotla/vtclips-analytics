@@ -1419,8 +1419,8 @@ class TestPlaylistItems(unittest.TestCase):
                          msg='wrong qty of new rows in playlist_items_request_youtube_video table')
         self.assertEqual(3, rows_after['yv'] - rows_before['yv'],
                          msg='wrong qty of new rows in youtube_video table')
-
-    def test__save_rollback(self):
+    @patch('src.vtc.db_yt_interface.time.sleep')
+    def test__save_rollback(self, mock_sleep):
         """Test if changes are properly rolled back"""
         self.playlist_items.response = self.fake_response
         self.playlist_items.response['items'][0]['snippet']['resourceId']['videoId'] = 'video_id_3'
