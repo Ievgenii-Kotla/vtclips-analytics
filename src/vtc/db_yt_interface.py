@@ -655,9 +655,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                 ids.append(int(talent_id))
             elif talent_id is None:
                 logger.error(f"Warning: Talent's name '{name}' did not match any talents.")
-            # todo: fix: despite warning appears to use the first of all returned ids
             if cursor.fetchall():
-                logger.error(f"Warning: Talent's name '{name}' matched more than one talent.")
+                logger.error(f"Warning: Talent's name '{name}' matched more than one talent. Selected the first talent")
         cursor.close()
         self.talents_ids = tuple(ids)
 
