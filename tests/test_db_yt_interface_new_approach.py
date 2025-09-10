@@ -102,6 +102,76 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
         self.assertEqual(expected_start, self.search.published_after.astimezone(datetime.timezone.utc))
         self.assertEqual(expected_end, self.search.published_before.astimezone(datetime.timezone.utc))
 
+    def test_prepare_subsearch_query_search_with_no_videos_zero_subsearch(self):
+        db_helpers.insert_search_yt(self.conn)
+        self.search.subsearch_map = [
+            (
+                1,
+                datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2025, 1, 2, 23, 59, 59, tzinfo=datetime.timezone.utc),
+                'keyword',
+                'US',
+                1,
+                0,
+                None,
+                None,
+                1,
+                True
+            ),
+        ]
+        expected_start = datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        expected_end = datetime.datetime(2025, 1, 1, 23, 59, 59, tzinfo=datetime.timezone.utc)
+        self.search.prepare_subsearch_query()
+
+        self.assertEqual(expected_start, self.search.published_after.astimezone(datetime.timezone.utc))
+        self.assertEqual(expected_end, self.search.published_before.astimezone(datetime.timezone.utc))
+
+    def test_prepare_subsearch_query_search_with_no_videos_one_subsearch(self):
+        db_helpers.insert_search_yt(self.conn)
+        self.search.subsearch_map = [
+            (
+                1,
+                datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2025, 1, 2, 23, 59, 59, tzinfo=datetime.timezone.utc),
+                'keyword',
+                'US',
+                1,
+                1,
+                datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2025, 1, 1, 23, 59, 59, tzinfo=datetime.timezone.utc),
+                1,
+                True
+            ),
+        ]
+        expected_start = datetime.datetime(2025, 1, 2, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        expected_end = datetime.datetime(2025, 1, 2, 23, 59, 59, tzinfo=datetime.timezone.utc)
+        self.search.prepare_subsearch_query()
+
+        self.assertEqual(expected_start, self.search.published_after.astimezone(datetime.timezone.utc))
+        self.assertEqual(expected_end, self.search.published_before.astimezone(datetime.timezone.utc))
+
+    @patch('src.vtc.db_yt_interface.time.sleep')
+    def test_prepare_subsearch_query_invalid_boundaries(self, mock_sleep):
+        db_helpers.insert_search_yt(self.conn)
+        self.search.subsearch_map = [
+            (
+                1,
+                datetime.datetime(2025, 1, 2, 23, 59, 59, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+                'keyword',
+                'US',
+                1,
+                0,
+                None,
+                None,
+                1,
+                True
+            ),
+        ]
+        with self.assertLogs(logger='src.vtc.db_yt_interface', level="ERROR") as cm:
+            self.search.prepare_subsearch_query()
+
+
     @patch('src.vtc.db_yt_interface.PrepareAPI.get_quota_left')
     @patch('src.vtc.db_yt_interface.PrepareAPI.change_quota')
     @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
