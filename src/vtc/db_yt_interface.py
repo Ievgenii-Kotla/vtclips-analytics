@@ -770,6 +770,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                 self.api_service.temporary_disable_key(api_key_id)
             else:
                 logger.error(err)
+                time.sleep(60)
         return True
 
     def set_subsearch_map(self):
@@ -892,6 +893,7 @@ ORDER BY s1.searched_at;
                 self.api_service.temporary_disable_key(api_key_id)
             else:
                 logger.error(err)
+                time.sleep(60)
         return True
 
     def save_youtube_channel(self):
@@ -1363,10 +1365,12 @@ class PlaylistItems:
                 self._handle_fk_violation(err)
             else:
                 logger.error("Unexpected foreign key violation")
+                time.sleep(60)
         except DatabaseError as e:
             self.connection.rollback()
             logger.error(f"A DB error occurred while saving playlist items: {e} \nTransaction rolled back. ")
             logger.error(traceback.format_exc())
+            time.sleep(60)
         except Exception as e:
             self.connection.rollback()
             logger.error(f"An error occurred while saving playlist items: {e} \nTransaction rolled back. ")
