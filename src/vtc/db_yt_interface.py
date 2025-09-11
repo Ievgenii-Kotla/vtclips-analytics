@@ -671,7 +671,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         if removed_non_video_qty:
             logger.warning(f"Discarded {removed_non_video_qty} non-video items from dataset (search)")
 
-        # Validate videos relatebility
+        # Validate videos relatability
         video_ids = ','.join(item["id"]["videoId"] for item in self.response["items"])
         api_key = self.api_service.get_api_key(threshold=1, delay=False, purpose=PrepareAPI.VIDEO_LIST)
         youtube = build('youtube', 'v3', developerKey=api_key)
