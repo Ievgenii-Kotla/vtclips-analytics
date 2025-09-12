@@ -808,6 +808,7 @@ LEFT JOIN search_yt AS s2
     ON s1.search_yt_id = s2.parent_id
 WHERE s1.results_per_page = 50
     AND (sb.quantity = 1 OR sb.quantity is NULL)
+    AND s1.subsearch_enabled = TRUE
 ORDER BY s1.searched_at;
 """
         cursor = self.connection.cursor()
@@ -996,11 +997,16 @@ ORDER BY s1.searched_at;
         q,
         search_layer,
         parent_id,
-        is_q_quoted
+        is_q_quoted,
+        subsearch_enabled
     )
     VALUES %s
     RETURNING search_yt_id;
     """
+        subsearch_enabled = (False
+                             if self.response["pageInfo"]["totalResults"] == 50
+                                and len(self.response["items"]) == 0
+                             else True)
         search_yt_values = [
             [
                 self.response["kind"],
@@ -1016,14 +1022,15 @@ ORDER BY s1.searched_at;
                 self.search_query.strip('"'),
                 self.search_layer,
                 self.parent_search_id,
-                self.search_query.startswith('"') and self.search_query.endswith('"')
+                self.search_query.startswith('"') and self.search_query.endswith('"'),
+                subsearch_enabled,
             ]
         ]
         search_yt_ids = execute_values(
             self.cursor,
             search_yt_query,
             search_yt_values,
-            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             fetch=True
         )
         self.search_yt_id = search_yt_ids[0][0]
