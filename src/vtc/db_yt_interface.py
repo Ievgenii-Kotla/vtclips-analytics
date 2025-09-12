@@ -1004,7 +1004,7 @@ ORDER BY s1.searched_at;
     RETURNING search_yt_id;
     """
         subsearch_enabled = (False
-                             if self.response["pageInfo"]["totalResults"] == 50
+                             if self.response["pageInfo"]["resultsPerPage"] == 50
                                 and len(self.response["items"]) == 0
                              else True)
         search_yt_values = [
