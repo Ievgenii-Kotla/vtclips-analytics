@@ -1007,6 +1007,8 @@ ORDER BY s1.searched_at;
                              if self.response["pageInfo"]["resultsPerPage"] == 50
                                 and len(self.response["items"]) == 0
                              else True)
+        if not subsearch_enabled:
+            logger.warning("subsearch_enable flag set to False for this search")
         search_yt_values = [
             [
                 self.response["kind"],
