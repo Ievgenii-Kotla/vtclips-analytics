@@ -869,7 +869,7 @@ ORDER BY s1.searched_at;
         else:
             raise ValueError(f'subsearch_qty value {subsearch_qty} is unsupported')
         self.search_layer = search_layer
-        self.search_query = f'"{q}"' if is_q_quoted else q
+        self.search_query = q if (q.startswith('"') and q.endswith('"')) else f'"{q}"'
         self.parent_search_id = parent_id
         self.keyword_id = keyword_ids
         if (
