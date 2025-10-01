@@ -261,7 +261,7 @@ class SearchYTByKeyword:
                  talents_names: tuple[str] | None = None,
                  start_search_datetime: str = '1970-01-01 00:00:00+00:00',
                  end_search_datetime: str = '9000-01-01 00:00:00+00:00',
-                 priority: tuple[int] = (0, 1),
+                 priority: tuple[int, ...] = (0, 1),
                  usage_enabled: bool = True,
                  purity: tuple[str] = ('pure', 'mixed', 'dirty'),
                  api_service: PrepareAPI = None,
