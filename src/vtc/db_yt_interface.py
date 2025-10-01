@@ -605,7 +605,7 @@ LIMIT 1;
 
         # special case for when the keyword is a video id (priority 99)
         if priority == 99:
-            return self.datetime_now - published_after - days(1)
+            return self.datetime_now - published_after
 
         # No previous search
         if data is None:
