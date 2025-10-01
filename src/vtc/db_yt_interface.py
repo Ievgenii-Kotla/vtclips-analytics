@@ -390,7 +390,7 @@ WITH RECURSIVE keyword_processed AS (
         k.usage_enabled = %(usage_enabled)s
         AND k.priority IN %(priority)s
         AND k.purity IN %(purity)s
-        AND (kt.talent_id IN %(talents_ids)s OR %(all_talents)s = TRUE)
+        AND (kt.talent_id IN %(talents_ids)s OR %(all_talents)s IS TRUE)
     GROUP BY k.keyword_word, k.keyword_id, k.date_since_relevant
 ),
 -- Select search instances that lie within the time scope. 
@@ -808,7 +808,7 @@ LEFT JOIN search_yt AS s2
     ON s1.search_yt_id = s2.parent_id
 WHERE s1.results_per_page = 50
     AND (sb.quantity = 1 OR sb.quantity is NULL)
-    AND s1.subsearch_enabled = TRUE
+    AND s1.subsearch_enabled IS TRUE
 ORDER BY s1.searched_at;
 """
         cursor = self.connection.cursor()
@@ -1269,9 +1269,9 @@ class PlaylistItems:
             FROM youtube_channel AS yc
             LEFT JOIN playlist_items_request AS pir
                 ON yc.playlist_id = pir.playlist_id
-            WHERE yc.playlist_available = TRUE 
+            WHERE yc.playlist_available IS TRUE 
                 AND yc.playlist_id IS NOT NULL
-                AND (yc.is_other = FALSE OR yc.is_other IS NULL)
+                AND (yc.is_other IS FALSE OR yc.is_other IS NULL)
                 AND (%(channels)s IS NULL OR yc.youtube_channel_id = ANY(%(channels)s))
             ORDER BY yc.playlist_id, pir.requested_at DESC, pir.playlist_items_request_id DESC
          )
