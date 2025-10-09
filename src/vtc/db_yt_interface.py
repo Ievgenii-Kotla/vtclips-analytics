@@ -822,6 +822,11 @@ ORDER BY s1.searched_at;
             return False
 
     def prepare_subsearch_query(self):
+        def get_default_middle_point():
+            middle_point = parent_published_after + ((parent_published_before - parent_published_after) // 2)
+            middle_point = middle_point.replace(microsecond=0) + datetime.timedelta(seconds=1)
+            return middle_point
+
         self.update_datetime_now()
         logger.info(f'Searches in need for subsearching: {len(self.subsearch_map)}\n'
                     f'Total subsearches needed: {sum([2 - num[6] for num in self.subsearch_map])}')
@@ -854,9 +859,13 @@ ORDER BY s1.searched_at;
             rows = cursor.fetchall()
         if rows:
             middle_point = rows[(len(rows)//2)][0]
+            if len(rows) == 1:
+                middle_point = get_default_middle_point()
+                logger.warning(f'A single video for search {parent_id} '
+                               f'is not enough to determine optimized middle point')
+                logger.warning(f'Default middle point for sub-search boundaries selected')
         else:
-            middle_point = parent_published_after + ((parent_published_before - parent_published_after) // 2)
-            middle_point = middle_point.replace(microsecond=0) + datetime.timedelta(seconds=1)
+            middle_point = get_default_middle_point()
             logger.warning(f'No valid videos for search {parent_id} to determine optimized middle point')
             logger.warning(f'Default middle point for sub-search boundaries selected')
 
