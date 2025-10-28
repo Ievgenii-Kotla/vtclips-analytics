@@ -36,7 +36,7 @@ services:
       - ./state:/app/state
     depends_on:
       - postgres-db
-      - migrate_db
+      - migrate-db
     networks:
       - backend
 
@@ -59,7 +59,7 @@ services:
     expose:
       - "5432"
 
-  migrate_db:
+  migrate-db:
     image: python-api-image
     entrypoint: [ "alembic", "upgrade", "head" ]
     env_file: ./.env.db
