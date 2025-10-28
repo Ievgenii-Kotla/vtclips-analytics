@@ -607,7 +607,7 @@ LIMIT 1;
         if data is None:
             return default_search_interval
 
-# Previous search is not recent
+        # Previous search is not recent
         if published_after - end < datetime.timedelta(seconds=1):
             return default_search_interval
 
