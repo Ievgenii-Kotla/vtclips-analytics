@@ -74,7 +74,7 @@ def main():
 
         no_more_quotas = 0
         errors = 0
-        end_of_queue = 0
+        task_complete = 0
         connection = None
         try:
             connection = connection_pool.getconn()
@@ -91,7 +91,7 @@ def main():
                     errors += 1
                 else:
                     connection.commit()
-                    end_of_queue += 1
+                    task_complete += 1
         finally:
             if connection:
                 connection_pool.putconn(connection)
@@ -102,8 +102,8 @@ def main():
             time.sleep(seconds)
 
         seconds = 3600
-        logger.info(f"Finished tasks cycle. Out of 4 tasks: "
-                    f"No more quotas: {no_more_quotas}. Reached the end of queue: {end_of_queue}. Errors: {errors}.")
+        logger.info(f"Finished tasks cycle. Out of {len(tasks)} tasks: "
+                    f"No more quotas: {no_more_quotas}. Task complete: {task_complete}. Errors: {errors}.")
         logger.info(f"Sleeping for {seconds} seconds before starting the next cycle.\n")
         time.sleep(seconds)
 
