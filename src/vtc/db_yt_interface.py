@@ -17,10 +17,6 @@ from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
 from vtc_exceptions import NoQuotaError
-# TODO: big things to add:
-#  logging
-#      move or duplicate every 'print()' to logging
-#  write exceptions
 
 # create the logger
 logger = logging.getLogger(__name__)
