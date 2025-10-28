@@ -41,7 +41,7 @@ services:
       - backend
 
   postgres-db:
-    image: postgres:latest
+    image: postgres:17.6-trixie
     container_name: postgres-db
     restart: unless-stopped
     env_file:
