@@ -1629,6 +1629,168 @@ class PlaylistItems:
             else:
                 self.caught_up = False
 
+
+class DBCalculations:
+    @staticmethod
+    def map_keywords_once(conn, batch_size=10000, verbose=True):
+        """Map keyword-video pairs for a single batch of not fully mapped videos."""
+        query = """
+            DROP INDEX IF EXISTS idx_temp_title_normalized;
+            DROP INDEX IF EXISTS idx_temp_description_normalized;
+            DROP TABLE IF EXISTS temp_video_to_count;
+            
+            CREATE TEMP TABLE temp_video_to_count AS
+            WITH newest_keyword AS (
+                SELECT MAX(added_at) AS added_at
+                FROM keyword
+            ),
+            -- SELECT videos that where counted before the latest keyword was added
+            video_to_count AS (
+                SELECT youtube_video_id, keywords_counted_at
+                FROM keywords_count_status
+                WHERE keywords_counted_at IS NULL 
+                    OR keywords_counted_at <= (SELECT added_at FROM newest_keyword)
+                LIMIT %(batch_size)s
+            ),
+            video_to_count_data AS (
+                SELECT 
+                    yv.youtube_video_id, 
+                    yv.description_normalized,
+                    yv.title_normalized,
+                    yv.published_at,
+                    vtc.keywords_counted_at
+                FROM video_to_count vtc
+                JOIN youtube_video yv ON vtc.youtube_video_id = yv.youtube_video_id
+            )
+            SELECT * FROM video_to_count_data;
+            
+            CREATE INDEX idx_temp_title_normalized ON temp_video_to_count USING gin(title_normalized gin_trgm_ops);
+            CREATE INDEX idx_temp_description_normalized ON temp_video_to_count USING gin(description_normalized gin_trgm_ops);
+            
+            WITH video_keyword_pair AS (
+                SELECT 
+                    tvtc.youtube_video_id,
+                    k.keyword_id, 
+                    CASE 
+                        WHEN tvtc.description_normalized IS NOT NULL 
+                            THEN regexp_count(tvtc.description_normalized, k.keyword_word, 1, 'i')
+                            ELSE 0
+                    END AS description_count,
+                    regexp_count(tvtc.title_normalized, k.keyword_word, 1, 'i') AS title_count,
+                    k.keyword_word
+                FROM keyword AS k
+                JOIN temp_video_to_count AS tvtc ON
+                    -- exclude pairs where the video was published before the keyword became relevant
+                    tvtc.published_at >= k.date_since_relevant 
+                    -- exclude pairs where the keyword was already counted before
+                    AND (k.added_at >= tvtc.keywords_counted_at OR tvtc.keywords_counted_at IS NULL)
+                    -- exclude pairs with zero matches 
+                    AND (
+                        tvtc.title_normalized ILIKE '%%'||k.keyword_word||'%%'
+                        OR tvtc.description_normalized ILIKE '%%'||k.keyword_word||'%%' 
+                    )
+            ),
+            ins_youtube_video_keyword AS (
+                INSERT INTO youtube_video_keyword (
+                    youtube_video_id, 
+                    keyword_id, 
+                    matches_in_description_qty, 
+                    matches_in_title_qty, 
+                    updated_at
+                )
+                SELECT 
+                    youtube_video_id,
+                    keyword_id,
+                    description_count,
+                    title_count,
+                    CURRENT_TIMESTAMP(0)
+                FROM video_keyword_pair
+                RETURNING youtube_video_id
+            ),
+            upd_keywords_count_status AS (
+                UPDATE keywords_count_status AS kcs
+                SET keywords_counted_at = CURRENT_TIMESTAMP(0)
+                FROM (SELECT DISTINCT youtube_video_id FROM temp_video_to_count) tvtk
+                WHERE kcs.youtube_video_id = tvtk.youtube_video_id
+                RETURNING kcs.youtube_video_id
+            )
+            SELECT 
+                (SELECT COUNT(*) FROM ins_youtube_video_keyword) AS youtube_video_keyword_inserted,
+                (SELECT COUNT(DISTINCT youtube_video_id) FROM ins_youtube_video_keyword) AS unique_videos,
+                (SELECT COUNT(*) FROM temp_video_to_count) AS video_to_count_selected;
+        """
+        with conn.cursor() as cursor:
+            try:
+                cursor.execute(query, {'batch_size': batch_size})
+                conn.commit()
+            except Exception as e:
+                traceback.print_exc()
+                conn.rollback()
+                logger.error(f"An error occurred while updating keywords count: {e} \nTransaction rolled back. ")
+                raise
+            else:
+                conn.commit()
+                rows = cursor.fetchall()
+
+        pairs_inserted = rows[0][0]
+        related_videos = rows[0][1]
+        videos_selected = rows[0][2]
+        if verbose:
+            logger.info(f"Vid-word pairs: {pairs_inserted}, "
+                        f"related vids: {related_videos}, "
+                        f"vids selected: {videos_selected}")
+
+        if batch_size > videos_selected:
+            logger.info(f"Finished updating keywords count. Batch size ({batch_size}) is larger than videos selected.")
+            return True, pairs_inserted, related_videos, videos_selected
+        else:
+            return False, pairs_inserted, related_videos, videos_selected
+
+    @staticmethod
+    def map_keywords_all(conn, batch_size=10000, verbose=True):
+        """Map keyword-video pairs for all not fully mapped videos."""
+        pairs_inserted_total = 0
+        related_videos_total = 0
+        videos_selected_total = 0
+        while True:
+            result = DBCalculations.map_keywords_once(conn, batch_size, verbose)
+            finished, pairs_inserted, related_videos, videos_selected = result
+            pairs_inserted_total += pairs_inserted
+            related_videos_total += related_videos
+            videos_selected_total += videos_selected
+            if finished:
+                logger.info(f"Session totals:")
+                logger.info(f"Vid-word pairs: {pairs_inserted_total}, "
+                            f"related vids: {related_videos_total}, "
+                            f"vids selected: {videos_selected}")
+                break
+
+
+    @staticmethod
+    def videos_to_count(conn):
+        query = """
+            WITH newest_keyword AS (
+                SELECT MAX(added_at) AS added_at
+                FROM keyword
+            )
+            SELECT COUNT(*)
+            FROM youtube_video
+            WHERE 
+                keywords_counted_at IS NULL 
+                OR keywords_counted_at <= (SELECT added_at FROM newest_keyword)
+        """
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            row = cursor.fetchone()
+        if row:
+            video_qty = row[0]
+            logger.info(f"Number of videos to count keyword(s) in: {video_qty}")
+            return video_qty
+        else:
+            logger.error(f"Something quietly went wrong with videos_to_count estimation query. ")
+            return None
+
+
 class SearchYTByChannel:
     # TBD
     pass
