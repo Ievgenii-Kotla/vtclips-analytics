@@ -69,6 +69,7 @@ def main():
             (search, {'priority': (99,), 'cooldown_factory': period_since_quarter_start}),
             (request_playlist_items, {'only_talents': True, 'cooldown_factory': lambda: datetime.timedelta(days=1)}),
             (request_playlist_items, {'only_talents': False, 'cooldown_factory': period_since_month_start}),
+            (db_yt_interface.DBCalculations.map_keywords_all, {}),
         ]
 
         no_more_quotas = 0
