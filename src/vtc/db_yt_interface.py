@@ -1762,7 +1762,7 @@ class DBCalculations:
                 logger.info(f"Session totals:")
                 logger.info(f"Vid-word pairs: {pairs_inserted_total}, "
                             f"related vids: {related_videos_total}, "
-                            f"vids selected: {videos_selected}")
+                            f"vids selected: {videos_selected_total}")
                 break
 
 
