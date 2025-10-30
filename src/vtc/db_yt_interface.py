@@ -1647,7 +1647,7 @@ class DBCalculations:
             -- SELECT videos that where counted before the latest keyword was added
             video_to_count AS (
                 SELECT youtube_video_id, keywords_counted_at
-                FROM keywords_count_status
+                FROM youtube_video_statuses
                 WHERE keywords_counted_at IS NULL 
                     OR keywords_counted_at <= (SELECT added_at FROM newest_keyword)
                 LIMIT %(batch_size)s
@@ -1707,12 +1707,12 @@ class DBCalculations:
                 FROM video_keyword_pair
                 RETURNING youtube_video_id
             ),
-            upd_keywords_count_status AS (
-                UPDATE keywords_count_status AS kcs
+            upd_youtube_video_statuses AS (
+                UPDATE youtube_video_statuses AS yvs
                 SET keywords_counted_at = CURRENT_TIMESTAMP(0)
                 FROM (SELECT DISTINCT youtube_video_id FROM temp_video_to_count) tvtk
-                WHERE kcs.youtube_video_id = tvtk.youtube_video_id
-                RETURNING kcs.youtube_video_id
+                WHERE yvs.youtube_video_id = tvtk.youtube_video_id
+                RETURNING yvs.youtube_video_id
             )
             SELECT 
                 (SELECT COUNT(*) FROM ins_youtube_video_keyword) AS youtube_video_keyword_inserted,
