@@ -1720,15 +1720,14 @@ class DBCalculations:
         with conn.cursor() as cursor:
             try:
                 cursor.execute(query, {'batch_size': batch_size})
-                conn.commit()
             except Exception as e:
                 traceback.print_exc()
                 conn.rollback()
                 logger.error(f"An error occurred while updating keywords count: {e} \nTransaction rolled back. ")
                 raise
             else:
-                conn.commit()
                 rows = cursor.fetchall()
+                conn.commit()
 
         pairs_inserted = rows[0][0]
         related_videos = rows[0][1]
