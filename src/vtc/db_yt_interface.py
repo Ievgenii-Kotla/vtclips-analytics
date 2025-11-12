@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import unicodedata
 import html
 from pathlib import Path
+import pandas as pd
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
@@ -1786,6 +1787,297 @@ class DBCalculations:
         else:
             logger.error(f"Something quietly went wrong with videos_to_count estimation query. ")
             return None
+
+class MapTV:
+    def __init__(self, conn, youtube_video_id: str = None, cleanup_pool_size: int = 25, batch_size: int = 10000):
+        self.connection = conn
+        self.youtube_video_id: str = youtube_video_id
+        self.cleanup_pool_size: int = cleanup_pool_size
+        self.batch_size: int = batch_size
+        self.dataset: pd.DataFrame | None = None
+
+    def map_talents_to_video(self):
+        """Map talents that appear to be mentioned in videos to the videos. Update the DB data."""
+
+        batch_size = self.batch_size
+        videos_mapped = 0
+        talent_video_pairs_mapped = 0
+        talents_mapped = {}
+
+        while True:
+            self._set_video_to_map()
+            if self.youtube_video_id is None:
+                logger.info("No more videos to map talents to.")
+                break
+
+            self._get_dataset_for_cleanup()
+            if not self.dataset.empty:
+                self._cleanup_keyword_counts()
+                self._talent_video_map_alg1()
+                try:
+                    self._save_talent_video_data()
+                except Exception as e:
+                    logger.error(f"An error occurred while updating talents: {e} \nTransaction rolled back. ")
+                    self.connection.rollback()
+                    raise
+                else:
+                    self.connection.commit()
+
+                talent_video_pairs_mapped += len(self.dataset)
+                new_talents_mapped = {talent_id: 1 for talent_id in self.dataset['talent_id']}
+                talents_mapped = self.upd_stats_talents_mapped(talents_mapped, new_talents_mapped)
+
+            videos_mapped += 1
+
+
+            batch_size -= 1
+            if batch_size == 0:
+                break
+
+        logger.info(f"Videos mapped: {videos_mapped} relationships mapped: {talent_video_pairs_mapped}")
+        logger.info(f"Talents mapped (t:qty): {talents_mapped}")
+
+        return videos_mapped, talent_video_pairs_mapped, talents_mapped
+
+    def _set_video_to_map(self):
+        """Select a video eligible for mapping talents to."""
+
+        query = """
+            SELECT youtube_video_id
+            FROM youtube_video_statuses
+            WHERE algorithm1_classified_at IS NULL
+            LIMIT 1;
+        """
+        with self.connection.cursor() as cursor:
+            cursor.execute(query)
+            row = cursor.fetchone()
+            video_id = row[0] if row else None
+        self.youtube_video_id = video_id
+
+    def _get_dataset_for_cleanup(self):
+        """Prepare a data set that is necessary for cleanup of keywords that are copy-pasted across multiple videos"""
+
+        query = """
+            -- select all videos from the same channel as the target video
+            WITH channel_video AS (
+                SELECT youtube_video_id, published_at
+                FROM youtube_video
+                WHERE youtube_channel_id = (
+                    SELECT youtube_channel_id
+                    FROM youtube_video
+                    WHERE youtube_video_id = %(video_id)s
+                    LIMIT 1
+                )
+                ORDER BY published_at ASC
+            ),
+            -- number rows for future row trimming 
+            numbered_video AS (
+                SELECT *, row_number() OVER(ORDER BY published_at) AS row_num
+                FROM channel_video
+            ),
+            -- add repeated variables 
+            vars AS (
+                SELECT (
+                    SELECT row_num 
+                    FROM numbered_video 
+                    WHERE youtube_video_id = %(video_id)s 
+                ) AS target_row_num,
+                %(video_set_len)s AS video_set_len 
+            ),
+            -- calculate boundary for trimming
+            boundary AS (
+                SELECT 
+                    GREATEST(1, target_row_num - video_set_len + 1) AS lower_boundary,
+                    GREATEST (video_set_len, target_row_num) AS upper_boundary
+                FROM vars
+            ),
+            -- trim video set
+            video_set AS (
+                SELECT *
+                FROM numbered_video nv
+                CROSS JOIN boundary b
+                WHERE nv.row_num >= b.lower_boundary AND nv.row_num <= b.upper_boundary
+            )
+            -- add the columns necessary for the cleanup
+            SELECT 
+                vs.youtube_video_id, 
+                yvk.keyword_id,
+                k.priority,
+                yvk.matches_in_title_qty,
+                yvk.matches_in_description_qty,
+                kt.talent_id
+            FROM video_set vs
+            LEFT JOIN youtube_video_keyword yvk USING (youtube_video_id)
+            LEFT JOIN keyword k USING (keyword_id)
+            LEFT JOIN keyword_talent kt USING (keyword_id)
+            ;
+        """
+        values = {'video_id': self.youtube_video_id, 'video_set_len': self.cleanup_pool_size}
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, values)
+            rows = cursor.fetchall()
+
+        columns = [
+            'youtube_video_id',
+            'keyword_id',
+            'priority',
+            'matches_in_title_qty',
+            'matches_in_description_qty',
+            'talent_id',
+        ]
+        self.dataset = pd.DataFrame(rows, columns=columns)
+
+
+    def _cleanup_keyword_counts(self):
+        """Cleanup keyword counts for the target video
+
+        1. Remove keywords copied-pasted across multiple videos
+        2. Keep video-keyword pairs only for the target video"""
+
+        # Remove keywords copied-pasted across multiple videos
+        keyword_groups = self.dataset.groupby('keyword_id').agg(
+            vids_with_keyword=('youtube_video_id', 'count'),
+            min_matches_in_title=('matches_in_title_qty', 'min'),
+            min_matches_in_description=('matches_in_description_qty', 'min'),
+        )
+        bad_data = keyword_groups.loc[
+            keyword_groups['vids_with_keyword'] == self.cleanup_pool_size
+        ]
+        sub_title_map = bad_data['min_matches_in_title']
+        sub_description_map = bad_data['min_matches_in_description']
+        self.dataset['matches_in_title_qty'] -= (
+            self.dataset['keyword_id']
+            .map(sub_title_map)
+            .fillna(0)
+            .astype(int)
+        )
+        self.dataset['matches_in_description_qty'] -= (
+            self.dataset['keyword_id']
+            .map(sub_description_map)
+            .fillna(0)
+            .astype(int)
+        )
+
+        # Keep video-keyword pairs only for the target video
+        self.dataset = self.dataset.loc[self.dataset['youtube_video_id'] == self.youtube_video_id]
+
+    def _talent_video_map_alg1(self):
+        """Algorithmically map talents that appear to be mentioned in the video"""
+
+        """
+            0 - channel's handle
+            1 - channel's ID (str of seemingly random characters)
+            2 - first name last name
+            3 - last name first name
+            4 - first name last name, with space inbetween
+            5 - last name first name, with space inbetween
+            6 - first name
+            7 - last name
+            8 - middle name
+            9 - nicknames popular
+            10 - nicknames somewhat common
+            11 - nicknames rare
+            12 - channel handle without '@'
+            13 - group name
+            14 - branch name (holoen, hololiveEN, etc.)
+            99 - video_id of a video made by a talent
+            Note: do not add/use keywords that are too short and may appear inside other words like 'ame' in 'america'
+            or 'wawa' in 'kiwawa', 'fuwawa'
+        """
+        # priority weights
+        #  0: not use, 3: solid indicator, 2: good indicator, 1: medium indicator,
+        weights = [
+            {'priority': 0, 'title': 0, 'description': 2},
+            {'priority': 1, 'title': 0, 'description': 2},
+            {'priority': 2, 'title': 3, 'description': 2},
+            {'priority': 3, 'title': 3, 'description': 2},
+            {'priority': 4, 'title': 3, 'description': 2},
+            {'priority': 5, 'title': 3, 'description': 2},
+            {'priority': 6, 'title': 2, 'description': 1},
+            {'priority': 7, 'title': 2, 'description': 1},
+            {'priority': 8, 'title': 0, 'description': 0},
+            {'priority': 9, 'title': 2, 'description': 1},
+            {'priority': 10, 'title': 2, 'description': 1},
+            {'priority': 11, 'title': 2, 'description': 1},
+            {'priority': 12, 'title': 2, 'description': 1},
+            {'priority': 13, 'title': 0, 'description': 0},
+            {'priority': 14, 'title': 0, 'description': 0},
+            {'priority': 99, 'title': 0, 'description': 3},
+        ]
+
+        weights = pd.DataFrame(weights).set_index('priority')
+
+        self.dataset['total_score'] = (
+            self.dataset['matches_in_title_qty'] * self.dataset['priority'].map(weights['title'])
+            + self.dataset['matches_in_description_qty'] * self.dataset['priority'].map(weights['description'])
+        )
+
+        self.dataset = self.dataset.loc[:, ['talent_id', 'total_score']]
+        self.dataset = self.dataset.groupby('talent_id', as_index=False).agg(total_score=('total_score', 'sum'))
+
+    def _save_talent_video_data(self):
+        """Update the DB data regarding target video - talents pairs"""
+
+        del_old_pairs_query = """
+            DELETE FROM talent_youtube_video
+            WHERE youtube_video_id = %(youtube_video_id)s;
+        """
+        del_old_pairs_values = {'youtube_video_id': self.youtube_video_id}
+        with self.connection.cursor() as cursor:
+            cursor.execute(del_old_pairs_query, del_old_pairs_values)
+        logger.info(f"Deleted old video_talent pairs for video: {self.youtube_video_id}")
+
+        insert_video_talent_pairs_query = """
+        INSERT INTO talent_youtube_video (
+            youtube_video_id,
+            talent_id,
+            algorithm
+        )
+        VALUES %s;
+        """
+
+        insert_video_talent_pairs_values = [
+            [
+                self.youtube_video_id,
+                int(talent_id),
+                1
+            ]
+            for talent_id in self.dataset['talent_id']
+        ]
+        with self.connection.cursor() as cursor:
+            execute_values(
+                cursor,
+                insert_video_talent_pairs_query,
+                insert_video_talent_pairs_values,
+                template="(%s, %s, %s)"
+            )
+
+        update_status_query = """
+            UPDATE youtube_video_statuses AS yvs
+            SET algorithm1_classified_at = CURRENT_TIMESTAMP(0)
+            WHERE yvs.youtube_video_id = %(youtube_video_id)s;
+        """
+        update_status_values = {'youtube_video_id': self.youtube_video_id}
+        with self.connection.cursor() as cursor:
+            cursor.execute(update_status_query, update_status_values)
+
+    @staticmethod
+    def upd_stats_talents_mapped(talents_mapped_old: dict, talents_mapped_new: dict) -> dict:
+        """Update details about talents mapped to videos.
+
+        format for dictionaries: key = talent_id, value = number of times the talent was mapped to a video"""
+
+        if isinstance(talents_mapped_new, dict):
+            for key, value in talents_mapped_new.items():
+                talents_mapped_old[key] = talents_mapped_old.get(key, 0) + value
+        else:
+            raise ValueError(f"Invalid type for talents_mapped_new: {type(talents_mapped_new)}")
+
+        return talents_mapped_old
+
+
+
+
 
 
 class SearchYTByChannel:
