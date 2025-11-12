@@ -1101,7 +1101,6 @@ ORDER BY s1.searched_at;
             self.save_keyword_search_yt()
             self.save_search_yt_youtube_video()
 
-        # todo: replace with more specific exceptions
         except Exception as e:
             traceback.print_exc()
             self.connection.rollback()
@@ -1112,7 +1111,6 @@ ORDER BY s1.searched_at;
             self.connection.commit()
             logger.info("Changes committed.")
 
-        # todo: replace with a proper logging
         # 'logging' a few stats
         logger.info(f'Videos in response - '
                     f'Total: {len(self.youtube_video_values)} '
