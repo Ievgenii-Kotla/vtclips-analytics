@@ -105,23 +105,34 @@ def show_info():
     """
     Display info about what data will be requested from the user.
 
-    Guidelines for priority values:
-    0 - channel id (@channelID)
-    1 - channel alt id (line of random characters)
-    2 - firstname last name
-    3 - last name first name
-    4 - first name
-    5 - last name
-    6 - middle name
-    7 - channel alt id without '@'
-    100+ - nicknames popular
-    200+ - nicknames rare
-    300+ - other
+    Guidelines:
+    0 - channel's handle
+    1 - channel's ID (str of seemingly random characters)
+    2 - first name last name (no space)
+    3 - last name first name (no space)
+    4 - first name last name (with space inbetween)
+    5 - last name first name (with space inbetween)
+    6 - first name
+    7 - last name
+    8 - middle name
+    9 - nicknames popular
+    10 - nicknames somewhat common
+    11 - nicknames rare
+    12 - channel handle without '@'
+    13 - group name
+    14 - branch name (holoen, hololiveEN, etc.)
+    99 - video_id of a video made by a talent
+
+    Note: do not add/use keywords that are too short and may appear inside other words
+    like ame in america
+    or wawa in kiwawa, fuwawa'
     """
     print("keyword:                 keyword itself",
           "talent's name:           first name of the associated talent",
           "usage enabled:           y or n, default = y",
-          "priority:                top is 0, low is 9, default = 9",
+          "priority:                keyword category represented by a number"
+          "                         (important, consult documentation) "
+          "                         default = 9",
           "date since relevant:     date since keyword became relevant;",
           "                         format: 'YYYY-MM-DD'; ",
           "                         default = 1 month before talent's debut",
