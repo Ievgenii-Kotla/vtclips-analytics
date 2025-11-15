@@ -47,6 +47,13 @@ def request_playlist_items(connection,
         if not playlist_items.get_new_playlist_items(delay_sec=0.5):
             break
 
+def map_talents_videos(connection):
+    """Continuously fetch and save data available through the 'playlist_items' endpoint of YT API"""
+
+    instance = db_yt_interface.MapTV(connection)
+    instance.map_talents_to_video_all()
+
+
 def period_since_quarter_start() -> datetime.timedelta:
     now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
     quarter_start_month = (now.month - 1) // 3 * 3 + 1
@@ -74,6 +81,7 @@ def main():
         ]
         tasks_daily = [
             (db_yt_interface.DBCalculations.map_keywords_all, {}),
+            (map_talents_videos, {}),
         ]
 
         no_more_quotas = 0
