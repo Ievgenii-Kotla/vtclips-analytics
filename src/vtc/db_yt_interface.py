@@ -2048,8 +2048,30 @@ class MapTV:
             dataset = dataset.groupby('talent_id', as_index=False).agg(total_score=('total_score', 'sum'))
             return dataset
 
-        self.dataset = self.dataset.loc[:, ['talent_id', 'total_score']]
-        self.dataset = self.dataset.groupby('talent_id', as_index=False).agg(total_score=('total_score', 'sum'))
+        self._cleanup_keyword_counts(cross_video=True)
+        cross_video = map_t_v(self.cleaned_dataset)
+        self._cleanup_keyword_counts(cross_video=False)
+        single_video = map_t_v(self.dataset)
+        # When cross video keyword cleaning reduces mapped talents for target video by exactly one talent
+        #  - we keep the talent in the resulting talent_video_map
+        #  This is a special case for clippers that clip mostly a single talent
+        if len(cross_video) == len(single_video) - 1:
+            self.dataset = single_video
+        else:
+            self.dataset = cross_video
+        # maybe a filter should be applied here to keep only talents with the highest total scores
+        cut_off_score = 2
+        soft_talent_limit = 3
+
+        self.dataset = self.dataset[self.dataset['total_score'] > cut_off_score]
+        self.dataset = self.dataset.sort_values(by='total_score', ascending=False).reset_index(drop=True)
+        if len(self.dataset) > soft_talent_limit:
+            total_score_cutoff = self.dataset['total_score'].iloc[soft_talent_limit - 1]
+            # keep talents tied with soft_talent_limit place
+            self.dataset = self.dataset[self.dataset['total_score'] >= total_score_cutoff]
+            # remove tied talents if there are too many of them
+            if len(self.dataset) > soft_talent_limit + 2:
+                self.dataset = self.dataset[self.dataset['total_score'] == total_score_cutoff]
 
     def _save_talent_video_data(self):
         """Update the DB data regarding target video - talents pairs"""
