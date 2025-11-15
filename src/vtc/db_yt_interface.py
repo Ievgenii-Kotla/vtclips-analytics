@@ -1698,6 +1698,7 @@ class DBCalculations:
                         tvtc.title_normalized ILIKE '%%'||k.keyword_word||'%%'
                         OR tvtc.description_normalized ILIKE '%%'||k.keyword_word||'%%' 
                     )
+                WHERE k.priority NOT IN(13, 14)
             ),
             ins_youtube_video_keyword AS (
                 INSERT INTO youtube_video_keyword (
@@ -1949,6 +1950,7 @@ class MapTV:
             JOIN youtube_video_keyword yvk USING (youtube_video_id)
             JOIN keyword k USING (keyword_id)
             JOIN keyword_talent kt USING (keyword_id)
+            WHERE k.priority NOT IN(13, 14);
             ;
         """
         values = {'video_id': self.youtube_video_id, 'video_set_len': self.cleanup_pool_size}
