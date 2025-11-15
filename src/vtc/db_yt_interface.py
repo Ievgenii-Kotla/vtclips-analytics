@@ -1868,10 +1868,9 @@ class MapTV:
             batch_size -= 1
             if batch_size == 0:
                 break
-
+        sorted_talents_mapped = {k: talents_mapped[k] for k in sorted(talents_mapped)}
         logger.info(f"Videos mapped: {videos_mapped} relationships mapped: {talent_video_pairs_mapped}")
-        logger.info(f"Talents mapped (t:qty): {talents_mapped}")
-
+        logger.info(f"Talents mapped (t:qty): {sorted_talents_mapped}")
         return videos_mapped, talent_video_pairs_mapped, talents_mapped
 
     def _set_video_to_map(self):
