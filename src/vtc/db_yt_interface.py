@@ -1806,6 +1806,8 @@ class MapTV:
         self.cleanup_pool_size: int = cleanup_pool_size
         self.batch_size: int = batch_size
         self.dataset: pd.DataFrame | None = None
+        self.cleaned_dataset: pd.DataFrame | None = None
+
     def map_talents_to_video_all(self):
         self.dataset: pd.DataFrame | None = None
         self.cleaned_dataset: pd.DataFrame | None = None
@@ -1843,25 +1845,26 @@ class MapTV:
                 break
 
             self._get_dataset_for_cleanup()
-            if not self.dataset.empty:
-                self._cleanup_keyword_counts()
-                self._talent_video_map_alg1()
-                try:
-                    self._save_talent_video_data()
-                except Exception as e:
-                    logger.error(f"An error occurred while updating talents: {e} \nTransaction rolled back. ")
-                    self.connection.rollback()
-                    raise
-                else:
-                    self.connection.commit()
+            # check if the target video is in the dataset (it is not in it if it had no keywords matched)
+            if not (self.dataset['youtube_video_id'] == self.youtube_video_id).any():
+                self.dataset = self.dataset.iloc[0:0]
 
-                talent_video_pairs_mapped += len(self.dataset)
-                new_talents_mapped = {talent_id: 1 for talent_id in self.dataset['talent_id']}
-                talents_mapped = self.upd_stats_talents_mapped(talents_mapped, new_talents_mapped)
+            if not self.dataset.empty:
+                self._talent_video_map_alg1()
+            try:
+                self._save_talent_video_data()
+            except Exception:
+                logger.error(f"An error occurred while updating talents: {e} \nTransaction rolled back. ")
+                self.connection.rollback()
+                raise
+            else:
+                self.connection.commit()
+
+            talent_video_pairs_mapped += len(self.dataset)
+            new_talents_mapped = {talent_id: 1 for talent_id in self.dataset['talent_id'].astype(int)}
+            talents_mapped = self.upd_stats_talents_mapped(talents_mapped, new_talents_mapped)
 
             videos_mapped += 1
-
-
             batch_size -= 1
             if batch_size == 0:
                 break
