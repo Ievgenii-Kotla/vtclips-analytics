@@ -9,7 +9,7 @@ import os
 import psycopg2
 
 
-# value = [keyword, talent_first_name, usage_enabled, priority, date_since_relevant, purity]
+# value = [keyword, talent_first_name, usage_enabled (for search endpoint?), priority, date_since_relevant, purity]
 keywords = {
     'handle': [
         ['@TakanashiKiara', 'Kiara', 'y', 0, '', 'pure'],
@@ -59,6 +59,7 @@ keywords = {
         ['KiaraTakanashi', 'Kiara', 'y', 2, '', 'pure'],
         ['AmeliaWatson', 'Amelia', 'y', 2, '', 'pure'],
         ["Ina'nisNinomae", "Ina'nis", 'y', 2, '', 'pure'],
+        ["InanisNinomae", "Ina'nis", 'n', 2, '', 'pure'],
         ['GuraGawr', 'Gura', 'y', 2, '', 'pure'],
         ['CalliopeMori', 'Calliope', 'y', 2, '', 'pure'],
         ['KroniiOuro', 'Kronii', 'y', 2, '', 'pure'],
@@ -66,7 +67,7 @@ keywords = {
         ['MumeiNanashi', 'Mumei', 'y', 2, '', 'pure'],
         ['BaelzHakos', 'Baelz', 'y', 2, '', 'pure'],
         ['SanaTsukumo', 'Sana', 'y', 2, '', 'pure'],
-        ['IRyS', 'IRyS', 'y', 2, '', 'dirty'],
+        # ['IRyS', 'IRyS', 'n', 2, '', 'dirty'],  excluding to avoid overcounting
         ['BijouKoseki', 'Bijou', 'y', 2, '', 'pure'],
         ['NerissaRavencroft', 'Nerissa', 'y', 2, '', 'pure'],
         ['ShioriNovella', 'Shiori', 'y', 2, '', 'pure'],
@@ -81,6 +82,7 @@ keywords = {
         ['TakanashiKiara', 'Kiara', 'y', 3, '', 'pure'],
         ['WatsonAmelia', 'Amelia', 'y', 3, '', 'pure'],
         ["NinomaeIna'nis", "Ina'nis", 'y', 3, '', 'pure'],
+        ["NinomaeInanis", "Ina'nis", 'n', 3, '', 'pure'],
         ['GawrGura', 'Gura', 'y', 3, '', 'pure'],
         ['MoriCalliope', 'Calliope', 'y', 3, '', 'pure'],
         ['OuroKronii', 'Kronii', 'y', 3, '', 'pure'],
@@ -99,6 +101,164 @@ keywords = {
         ['ImmergreenCecilia', 'Cecilia', 'y', 3, '', 'pure'],
         ['PantheraRaora', 'Raora', 'y', 3, '', 'pure'],
     ],
+    'first_middle_last_name_spaced': [
+        ['Kiara Takanashi', 'Kiara', 'n', 4, '', 'pure'],
+        ['Amelia Watson', 'Amelia', 'n', 4, '', 'pure'],
+        ["Ina'nis Ninomae", "Ina'nis", 'n', 4, '', 'pure'],
+        ["Inanis Ninomae", "Ina'nis", 'n', 4, '', 'pure'],
+        ['Gura Gawr', 'Gura', 'n', 4, '', 'pure'],
+        ['Calliope Mori', 'Calliope', 'n', 4, '', 'pure'],
+        ['Kronii Ouro', 'Kronii', 'n', 4, '', 'pure'],
+        ['Fauna Ceres', 'Fauna', 'n', 4, '', 'pure'],
+        ['Mumei Nanashi', 'Mumei', 'n', 4, '', 'pure'],
+        ['Baelz Hakos', 'Baelz', 'n', 4, '', 'pure'],
+        ['Sana Tsukumo', 'Sana', 'n', 4, '', 'pure'],
+        # ['IRyS', 'IRyS', 'n', 4, '', 'dirty'],  excluding to avoid overcounting
+        ['Bijou Koseki', 'Bijou', 'n', 4, '', 'pure'],
+        ['Nerissa Ravencroft', 'Nerissa', 'n', 4, '', 'pure'],
+        ['Shiori Novella', 'Shiori', 'n', 4, '', 'pure'],
+        ['Fuwawa Abyssgard', 'Fuwawa', 'n', 4, '', 'pure'],
+        ['Mococo Abyssgard', 'Mococo', 'n', 4, '', 'pure'],
+        ['Elizabeth Rose Bloodflame', 'Elizabeth', 'n', 4, '', 'pure'],
+        ['Gigi Murin', 'Gigi', 'n', 4, '', 'pure'],
+        ['Cecilia Immergreen', 'Cecilia', 'n', 4, '', 'pure'],
+        ['Raora Panthera', 'Raora', 'n', 4, '', 'pure'],
+    ],
+    'last_middle_first_name_spaced': [
+        ['Takanashi Kiara', 'Kiara', 'n', 5, '', 'pure'],
+        ['Watson Amelia', 'Amelia', 'n', 5, '', 'pure'],
+        ["Ninomae Ina'nis", "Ina'nis", 'n', 5, '', 'pure'],
+        ["Ninomae Inanis", "Ina'nis", 'n', 5, '', 'pure'],
+        ['Gawr Gura', 'Gura', 'n', 5, '', 'pure'],
+        ['Mori Calliope', 'Calliope', 'n', 5, '', 'pure'],
+        ['Ouro Kronii', 'Kronii', 'n', 5, '', 'pure'],
+        ['Ceres Fauna', 'Fauna', 'n', 5, '', 'pure'],
+        ['Nanashi Mumei', 'Mumei', 'n', 5, '', 'pure'],
+        ['Hakos Baelz', 'Baelz', 'n', 5, '', 'pure'],
+        ['Tsukumo Sana', 'Sana', 'n', 5, '', 'pure'],
+        # ['IRyS', 'IRyS', 'n', 5, '', 'dirty'],  excluded in an attempt to balance points across talents
+        ['Koseki Bijou', 'Bijou', 'n', 5, '', 'pure'],
+        ['Ravencroft Nerissa', 'Nerissa', 'n', 5, '', 'pure'],
+        ['Novella Shiori', 'Shiori', 'n', 5, '', 'pure'],
+        ['Abyssgard Fuwawa', 'Fuwawa', 'n', 5, '', 'pure'],
+        ['Abyssgard Mococo', 'Mococo', 'n', 5, '', 'pure'],
+        ['Bloodflame Rose Elizabeth', 'Elizabeth', 'n', 5, '', 'pure'],
+        ['Murin Gigi', 'Gigi', 'n', 5, '', 'pure'],
+        ['Immergreen Cecilia', 'Cecilia', 'n', 5, '', 'pure'],
+        ['Panthera Raora', 'Raora', 'n', 5, '', 'pure'],
+    ],
+    'first_name': [
+        ['kiara', 'Kiara', 'n', 6, '', 'pure'],
+        ['calliope', 'Calliope', 'n', 6, '', 'pure'],
+        ['amelia', 'Amelia', 'n', 6, '', 'pure'],
+        ["ina'nis", "Ina'nis", 'n', 6, '', 'pure'],
+        ["inanis", "Ina'nis", 'n', 6, '', 'pure'],
+        ['gura', 'Gura', 'n', 6, '', 'pure'],
+        ['irys', 'IRyS', 'n', 6, '', 'pure'],
+        ['fauna', 'Fauna', 'n', 6, '', 'pure'],
+        ['mumei', 'Mumei', 'n', 6, '', 'pure'],
+        ['baelz', 'Baelz', 'n', 6, '', 'pure'],
+        ['kronii', 'Kronii', 'n', 6, '', 'pure'],
+        ['sana', 'Sana', 'n', 6, '', 'pure'],
+        ['bijou', 'Bijou', 'n', 6, '', 'pure'],
+        ['shiori', 'Shiori', 'n', 6, '', 'pure'],
+        ['nerissa', 'Nerissa', 'n', 6, '', 'pure'],
+        ['gigi', 'Gigi', 'n', 6, '', 'pure'],
+        ['elizabeth', 'Elizabeth', 'n', 6, '', 'pure'],
+        ['cecilia', 'Cecilia', 'n', 6, '', 'pure'],
+        ['raora', 'Raora', 'n', 6, '', 'pure'],
+        ['fuwawa', 'Fuwawa', 'n', 6, '', 'pure'],
+        ['mococo', 'Mococo', 'n', 6, '', 'pure'],
+    ],
+    'last_name': [
+        ['takanashi', 'Kiara', 'n', 7, '', 'pure'],
+        ['mori', 'Calliope', 'n', 7, '', 'pure'],
+        ['watson', 'Amelia', 'n', 7, '', 'pure'],
+        ['ninomae', "Ina'nis", 'n', 7, '', 'pure'],
+        ['gawr', 'Gura', 'n', 7, '', 'pure'],
+        # ['irys', 'IRyS', 'n', 7, '', 'pure'],  excluding to avoid overcounting
+        ['ceres', 'Fauna', 'n', 7, '', 'pure'],
+        ['nanashi', 'Mumei', 'n', 7, '', 'pure'],
+        ['hakos', 'Baelz', 'n', 7, '', 'pure'],
+        ['ouro', 'Kronii', 'n', 7, '', 'pure'],
+        ['tsukumo', 'Sana', 'n', 7, '', 'pure'],
+        ['koseki', 'Bijou', 'n', 7, '', 'pure'],
+        ['novella', 'Shiori', 'n', 7, '', 'pure'],
+        ['ravencroft', 'Nerissa', 'n', 7, '', 'pure'],
+        ['murin', 'Gigi', 'n', 7, '', 'pure'],
+        ['bloodflame', 'Elizabeth', 'n', 7, '', 'pure'],
+        ['Immergreen', 'Cecilia', 'n', 7, '', 'pure'],
+        ['panthera', 'Raora', 'n', 7, '', 'pure'],
+        ['abyssgard', 'Fuwawa', 'n', 7, '', 'pure'],
+        ['abyssgard', 'Mococo', 'n', 7, '', 'pure'],
+    ],
+    'middle_name': [
+
+    ],
+    'nickname_popular': [
+        ['kiwawa', 'Kiara', 'n', 9, '', 'pure'],
+        ['calli', 'Calliope', 'n', 9, '', 'pure'],
+        ["ina", "Ina'nis", 'n', 9, '', 'pure'],
+        ['bae', 'Baelz', 'n', 9, '', 'pure'],
+        ['biboo', 'Bijou', 'n', 9, '', 'pure'],
+        ['rissa', 'Nerissa', 'n', 9, '', 'pure'],
+        ['liz', 'Elizabeth', 'n', 9, '', 'pure'],
+        ['ceci', 'Cecilia', 'n', 9, '', 'pure'],
+        ['cece', 'Cecilia', 'n', 9, '', 'pure'],
+    ],
+    'nickname_somewhat_common': [
+
+    ],
+    'nickname_rare': [
+
+    ],
+    'first_name_in_japanese': [
+        ['キアラ', 'Kiara', 'n', 26, '', 'pure'],
+        ['カリオペ', 'Calliope', 'n', 26, '', 'pure'],
+        ['アメリア', 'Amelia', 'n', 26, '', 'pure'],
+        # ["栖", "Ina'nis", 'n', 26, '', 'pure'],  some false matches
+        # ['ぐら', 'Gura', 'n', 26, '', 'pure'],  matches with hologra
+        ['アイリス', 'IRyS', 'n', 26, '', 'pure'],
+        ['ファウナ', 'Fauna', 'n', 26, '', 'pure'],
+        ['ムメイ', 'Mumei', 'n', 26, '', 'pure'],
+        ['ベールズ', 'Baelz', 'n', 26, '', 'pure'],
+        ['クロニー', 'Kronii', 'n', 26, '', 'pure'],
+        ['佐命', 'Sana', 'n', 26, '', 'pure'],
+        ['ビジュ―', 'Bijou', 'n', 26, '', 'pure'],
+        ['ビブー', 'Bijou', 'n', 26, '', 'pure'],  # it's a nickname, should be in japanese nickname category, but oh well
+        ['シオリ', 'Shiori', 'n', 26, '', 'pure'],
+        ['ネリッサ', 'Nerissa', 'n', 26, '', 'pure'],
+        # ['ジジ', 'Gigi', 'n', 26, '', 'pure'],  some false matches
+        ['エリザベス', 'Elizabeth', 'n', 26, '', 'pure'],
+        ['セシリア', 'Cecilia', 'n', 26, '', 'pure'],
+        ['ラオーラ', 'Raora', 'n', 26, '', 'pure'],
+        ['フワワ', 'Fuwawa', 'n', 26, '', 'pure'],
+        ['モココ', 'Mococo', 'n', 26, '', 'pure'],
+    ],
+    'last_name_in_japanese': [
+        ['小鳥遊', 'Kiara', 'n', 27, '', 'pure'],
+        ['森', 'Calliope', 'n', 27, '', 'pure'],
+        ['ワトソン', 'Amelia', 'n', 27, '', 'pure'],
+        ['一伊那尓', "Ina'nis", 'n', 27, '', 'pure'],
+        ['がうる', 'Gura', 'n', 27, '', 'pure'],
+        # ['irys', 'IRyS', 'n', 27, '', 'pure'],  excluding to avoid overcounting
+        ['セレス', 'Fauna', 'n', 27, '', 'pure'],
+        ['七詩', 'Mumei', 'n', 27, '', 'pure'],
+        ['ハコス', 'Baelz', 'n', 27, '', 'pure'],
+        ['オーロ', 'Kronii', 'n', 27, '', 'pure'],
+        ['九十九', 'Sana', 'n', 27, '', 'pure'],
+        ['古石', 'Bijou', 'n', 27, '', 'pure'],
+        ['ノヴェラ', 'Shiori', 'n', 27, '', 'pure'],
+        ['レイヴンクロフト', 'Nerissa', 'n', 27, '', 'pure'],
+        ['ムリン', 'Gigi', 'n', 27, '', 'pure'],
+        ['ブラッドフレイム', 'Elizabeth', 'n', 27, '', 'pure'],
+        ['イマーグリーン', 'Cecilia', 'n', 27, '', 'pure'],
+        ['パンテーラ', 'Raora', 'n', 27, '', 'pure'],
+        ['アビスガード', 'Fuwawa', 'n', 27, '', 'pure'],
+        ['アビスガード', 'Mococo', 'n', 27, '', 'pure'],
+    ],
+}
+
 
 
 def show_info():
@@ -121,12 +281,11 @@ def show_info():
     12 - channel handle without '@'
     13 - group name
     14 - branch name (holoen, hololiveEN, etc.)
+    26 - first name in japanese
+    27 - last name in japanese
     99 - video_id of a video made by a talent
-
-    Note: do not add/use keywords that are too short and may appear inside other words
-    like ame in america
-    or wawa in kiwawa, fuwawa'
     """
+
     print("keyword:                 keyword itself",
           "talent's name:           first name of the associated talent",
           "usage enabled:           y or n, default = y",
