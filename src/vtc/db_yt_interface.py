@@ -1994,53 +1994,59 @@ class MapTV:
     def _talent_video_map_alg1(self):
         """Algorithmically map talents that appear to be mentioned in the video"""
 
-        """
-            0 - channel's handle
-            1 - channel's ID (str of seemingly random characters)
-            2 - first name last name
-            3 - last name first name
-            4 - first name last name, with space inbetween
-            5 - last name first name, with space inbetween
-            6 - first name
-            7 - last name
-            8 - middle name
-            9 - nicknames popular
-            10 - nicknames somewhat common
-            11 - nicknames rare
-            12 - channel handle without '@'
-            13 - group name
-            14 - branch name (holoen, hololiveEN, etc.)
-            99 - video_id of a video made by a talent
-            Note: do not add/use keywords that are too short and may appear inside other words like 'ame' in 'america'
-            or 'wawa' in 'kiwawa', 'fuwawa'
-        """
-        # priority weights
-        #  0: not use, 3: solid indicator, 2: good indicator, 1: medium indicator,
-        weights = [
-            {'priority': 0, 'title': 0, 'description': 2},
-            {'priority': 1, 'title': 0, 'description': 2},
-            {'priority': 2, 'title': 3, 'description': 2},
-            {'priority': 3, 'title': 3, 'description': 2},
-            {'priority': 4, 'title': 3, 'description': 2},
-            {'priority': 5, 'title': 3, 'description': 2},
-            {'priority': 6, 'title': 2, 'description': 1},
-            {'priority': 7, 'title': 2, 'description': 1},
-            {'priority': 8, 'title': 0, 'description': 0},
-            {'priority': 9, 'title': 2, 'description': 1},
-            {'priority': 10, 'title': 2, 'description': 1},
-            {'priority': 11, 'title': 2, 'description': 1},
-            {'priority': 12, 'title': 2, 'description': 1},
-            {'priority': 13, 'title': 0, 'description': 0},
-            {'priority': 14, 'title': 0, 'description': 0},
-            {'priority': 99, 'title': 0, 'description': 3},
-        ]
+        def map_t_v(dataset):
+            """Map talents to the videos using weights"""
+            """
+                0 - channel's handle
+                1 - channel's ID (str of seemingly random characters)
+                2 - first name last name
+                3 - last name first name
+                4 - first name last name, with space inbetween
+                5 - last name first name, with space inbetween
+                6 - first name
+                7 - last name
+                8 - middle name
+                9 - nicknames popular
+                10 - nicknames somewhat common
+                11 - nicknames rare
+                12 - channel handle without '@'
+                13 - group name
+                14 - branch name (holoen, hololiveEN, etc.)
+                26 - first name in japanese
+                27 - last name in japanese
+                99 - video_id of a video made by a talent
+            """
 
-        weights = pd.DataFrame(weights).set_index('priority')
-
-        self.dataset['total_score'] = (
-            self.dataset['matches_in_title_qty'] * self.dataset['priority'].map(weights['title'])
-            + self.dataset['matches_in_description_qty'] * self.dataset['priority'].map(weights['description'])
-        )
+            # priority weights
+            #  0: not use, 3: solid indicator, 2: good indicator, 1: medium indicator,
+            weights = [
+                {'priority': 0, 'title': 0, 'description': 4},
+                {'priority': 1, 'title': 0, 'description': 4},
+                {'priority': 2, 'title': 5, 'description': 2},
+                {'priority': 3, 'title': 5, 'description': 2},
+                {'priority': 4, 'title': 5, 'description': 2},
+                {'priority': 5, 'title': 5, 'description': 2},
+                {'priority': 6, 'title': 4, 'description': 2},
+                {'priority': 7, 'title': 4, 'description': 2},
+                {'priority': 8, 'title': 0, 'description': 0},
+                {'priority': 9, 'title': 4, 'description': 2},
+                {'priority': 10, 'title': 2, 'description': 1},
+                {'priority': 11, 'title': 2, 'description': 1},
+                {'priority': 12, 'title': 2, 'description': 1},
+                {'priority': 13, 'title': 0, 'description': 0},
+                {'priority': 14, 'title': 0, 'description': 0},
+                {'priority': 26, 'title': 3, 'description': 2},
+                {'priority': 27, 'title': 3, 'description': 2},
+                {'priority': 99, 'title': 0, 'description': 5},
+            ]
+            weights = pd.DataFrame(weights).set_index('priority')
+            dataset['total_score'] = (
+                dataset['matches_in_title_qty'] * dataset['priority'].map(weights['title'])
+                + dataset['matches_in_description_qty'] * dataset['priority'].map(weights['description'])
+            )
+            dataset = dataset.loc[:, ['talent_id', 'total_score']]
+            dataset = dataset.groupby('talent_id', as_index=False).agg(total_score=('total_score', 'sum'))
+            return dataset
 
         self.dataset = self.dataset.loc[:, ['talent_id', 'total_score']]
         self.dataset = self.dataset.groupby('talent_id', as_index=False).agg(total_score=('total_score', 'sum'))
