@@ -1806,6 +1806,27 @@ class MapTV:
         self.cleanup_pool_size: int = cleanup_pool_size
         self.batch_size: int = batch_size
         self.dataset: pd.DataFrame | None = None
+    def map_talents_to_video_all(self):
+        self.dataset: pd.DataFrame | None = None
+        self.cleaned_dataset: pd.DataFrame | None = None
+
+        videos_mapped_total = 0
+        talent_video_pairs_mapped_total = 0
+        talents_mapped_total = {}
+        while True:
+            vm, tvpm, tm = self.map_talents_to_video()
+            videos_mapped_total += vm
+            talent_video_pairs_mapped_total += tvpm
+            talents_mapped_total = self.upd_stats_talents_mapped(talents_mapped_total, tm)
+            if vm < self.batch_size:
+                break
+
+        sorted_talents_mapped_total = {k: talents_mapped_total[k] for k in sorted(talents_mapped_total)}
+        logger.info(f"Session totals:")
+        logger.info(f"Videos mapped: {videos_mapped_total}")
+        logger.info(f"Talent-video pairs mapped: {talent_video_pairs_mapped_total}")
+        logger.info(f"Talents mapped: {sorted_talents_mapped_total}")
+
 
     def map_talents_to_video(self):
         """Map talents that appear to be mentioned in videos to the videos. Update the DB data."""
