@@ -1801,7 +1801,7 @@ class DBCalculations:
             return None
 
 class MapTV:
-    def __init__(self, conn, youtube_video_id: str = None, cleanup_pool_size: int = 11, batch_size: int = 10000):
+    def __init__(self, conn, youtube_video_id: str = None, cleanup_pool_size: int = 6, batch_size: int = 10000):
         self.connection = conn
         self.youtube_video_id: str = youtube_video_id
         self.cleanup_pool_size: int = cleanup_pool_size
