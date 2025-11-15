@@ -1955,7 +1955,6 @@ class MapTV:
         with self.connection.cursor() as cursor:
             cursor.execute(query, values)
             rows = cursor.fetchall()
-
         columns = [
             'youtube_video_id',
             'keyword_id',
@@ -1966,39 +1965,31 @@ class MapTV:
         ]
         self.dataset = pd.DataFrame(rows, columns=columns)
 
-
-    def _cleanup_keyword_counts(self):
+    def _cleanup_keyword_counts(self, cross_video=True):
         """Cleanup keyword counts for the target video
 
         1. Remove keywords copied-pasted across multiple videos
         2. Keep video-keyword pairs only for the target video"""
-
-        # Remove keywords copied-pasted across multiple videos
-        keyword_groups = self.dataset.groupby('keyword_id').agg(
-            vids_with_keyword=('youtube_video_id', 'count'),
-            min_matches_in_title=('matches_in_title_qty', 'min'),
-            min_matches_in_description=('matches_in_description_qty', 'min'),
-        )
-        bad_data = keyword_groups.loc[
-            keyword_groups['vids_with_keyword'] == self.cleanup_pool_size
-        ]
-        sub_title_map = bad_data['min_matches_in_title']
-        sub_description_map = bad_data['min_matches_in_description']
-        self.dataset['matches_in_title_qty'] -= (
-            self.dataset['keyword_id']
-            .map(sub_title_map)
-            .fillna(0)
-            .astype(int)
-        )
-        self.dataset['matches_in_description_qty'] -= (
-            self.dataset['keyword_id']
-            .map(sub_description_map)
-            .fillna(0)
-            .astype(int)
-        )
+        dataset = self.dataset.copy()
+        if cross_video:
+            # Remove keywords copied-pasted across multiple videos
+            keyword_groups = dataset.groupby('keyword_id').agg(
+                vids_with_keyword=('youtube_video_id', 'count'),
+                min_matches_in_description=('matches_in_description_qty', 'min'),
+            )
+            bad_data = keyword_groups.loc[
+                keyword_groups['vids_with_keyword'] == self.cleanup_pool_size
+            ]
+            sub_description_map = bad_data['min_matches_in_description']
+            dataset['matches_in_description_qty'] -= (
+                dataset['keyword_id']
+                .map(sub_description_map)
+                .fillna(0)
+                .astype(int)
+            )
 
         # Keep video-keyword pairs only for the target video
-        self.dataset = self.dataset.loc[self.dataset['youtube_video_id'] == self.youtube_video_id]
+        self.cleaned_dataset = dataset.loc[dataset['youtube_video_id'] == self.youtube_video_id]
 
     def _talent_video_map_alg1(self):
         """Algorithmically map talents that appear to be mentioned in the video"""
