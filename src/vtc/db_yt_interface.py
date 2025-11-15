@@ -1714,6 +1714,7 @@ class DBCalculations:
                     title_count,
                     CURRENT_TIMESTAMP(0)
                 FROM video_keyword_pair
+                WHERE (title_count + description_count) > 0
                 RETURNING youtube_video_id
             ),
             upd_youtube_video_statuses AS (
