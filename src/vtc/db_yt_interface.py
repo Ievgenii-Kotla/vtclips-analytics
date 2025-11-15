@@ -1672,10 +1672,20 @@ class DBCalculations:
                     k.keyword_id, 
                     CASE 
                         WHEN tvtc.description_normalized IS NOT NULL 
-                            THEN regexp_count(tvtc.description_normalized, k.keyword_word, 1, 'i')
+                            THEN regexp_count(
+                                tvtc.description_normalized, 
+                                '(?<![a-zA-Z])' || k.keyword_word || '(?![a-zA-Z])', 
+                                1, 
+                                'i'
+                            )
                             ELSE 0
                     END AS description_count,
-                    regexp_count(tvtc.title_normalized, k.keyword_word, 1, 'i') AS title_count,
+                    regexp_count(
+                        tvtc.title_normalized, 
+                        '(?<![a-zA-Z])' || k.keyword_word || '(?![a-zA-Z])', 
+                        1, 
+                        'i'
+                    ) AS title_count,
                     k.keyword_word
                 FROM keyword AS k
                 JOIN temp_video_to_count AS tvtc ON
