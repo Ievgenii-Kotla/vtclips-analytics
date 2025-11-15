@@ -237,7 +237,7 @@ keywords = {
     ],
     'last_name_in_japanese': [
         ['小鳥遊', 'Kiara', 'n', 27, '', 'pure'],
-        ['森', 'Calliope', 'n', 27, '', 'pure'],
+        # ['森', 'Calliope', 'n', 27, '', 'pure'], too generic
         ['ワトソン', 'Amelia', 'n', 27, '', 'pure'],
         ['一伊那尓', "Ina'nis", 'n', 27, '', 'pure'],
         ['がうる', 'Gura', 'n', 27, '', 'pure'],
