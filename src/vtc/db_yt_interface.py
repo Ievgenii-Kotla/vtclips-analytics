@@ -2084,30 +2084,30 @@ class MapTV:
         with self.connection.cursor() as cursor:
             cursor.execute(del_old_pairs_query, del_old_pairs_values)
 
-        insert_video_talent_pairs_query = """
-        INSERT INTO talent_youtube_video (
-            youtube_video_id,
-            talent_id,
-            algorithm
-        )
-        VALUES %s;
-        """
-
-        insert_video_talent_pairs_values = [
-            [
-                self.youtube_video_id,
-                int(talent_id),
-                1
-            ]
-            for talent_id in self.dataset['talent_id']
-        ]
-        with self.connection.cursor() as cursor:
-            execute_values(
-                cursor,
-                insert_video_talent_pairs_query,
-                insert_video_talent_pairs_values,
-                template="(%s, %s, %s)"
+        if not self.dataset.empty:
+            insert_video_talent_pairs_query = """
+            INSERT INTO talent_youtube_video (
+                youtube_video_id,
+                talent_id,
+                algorithm
             )
+            VALUES %s;
+            """
+            insert_video_talent_pairs_values = [
+                [
+                    self.youtube_video_id,
+                    int(talent_id),
+                    1
+                ]
+                for talent_id in self.dataset['talent_id'].astype(int)
+            ]
+            with self.connection.cursor() as cursor:
+                execute_values(
+                    cursor,
+                    insert_video_talent_pairs_query,
+                    insert_video_talent_pairs_values,
+                    template="(%s, %s, %s)"
+                )
 
         update_status_query = """
             UPDATE youtube_video_statuses AS yvs
