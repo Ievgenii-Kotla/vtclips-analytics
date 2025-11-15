@@ -2083,7 +2083,6 @@ class MapTV:
         del_old_pairs_values = {'youtube_video_id': self.youtube_video_id}
         with self.connection.cursor() as cursor:
             cursor.execute(del_old_pairs_query, del_old_pairs_values)
-        logger.info(f"Deleted old video_talent pairs for video: {self.youtube_video_id}")
 
         insert_video_talent_pairs_query = """
         INSERT INTO talent_youtube_video (
