@@ -2073,7 +2073,7 @@ class MapTV:
             self.dataset = self.dataset[self.dataset['total_score'] >= total_score_cutoff]
             # remove tied talents if there are too many of them
             if len(self.dataset) > soft_talent_limit + 2:
-                self.dataset = self.dataset[self.dataset['total_score'] == total_score_cutoff]
+                self.dataset = self.dataset[self.dataset['total_score'] != total_score_cutoff]
 
     def _save_talent_video_data(self):
         """Update the DB data regarding target video - talents pairs"""
