@@ -1902,11 +1902,11 @@ class MapTV:
                     WHERE youtube_video_id = %(video_id)s
                     LIMIT 1
                 )
-                ORDER BY published_at ASC
+                ORDER BY published_at DESC
             ),
             -- number rows for future row trimming 
             numbered_video AS (
-                SELECT *, row_number() OVER(ORDER BY published_at) AS row_num
+                SELECT *, row_number() OVER(ORDER BY published_at DESC) AS row_num
                 FROM channel_video
             ),
             -- add repeated variables 
@@ -1916,13 +1916,17 @@ class MapTV:
                     FROM numbered_video 
                     WHERE youtube_video_id = %(video_id)s 
                 ) AS target_row_num,
+                (
+                    SELECT MAX(row_num)
+                    FROM numbered_video
+                ) AS last_row_num,
                 %(video_set_len)s AS video_set_len 
             ),
             -- calculate boundary for trimming
             boundary AS (
                 SELECT 
-                    GREATEST(1, target_row_num - video_set_len + 1) AS lower_boundary,
-                    GREATEST (video_set_len, target_row_num) AS upper_boundary
+                    LEAST(target_row_num, last_row_num - (video_set_len - 1)) AS lower_boundary,
+                    LEAST(last_row_num, target_row_num + (video_set_len - 1)) AS upper_boundary
                 FROM vars
             ),
             -- trim video set
@@ -1931,6 +1935,7 @@ class MapTV:
                 FROM numbered_video nv
                 CROSS JOIN boundary b
                 WHERE nv.row_num >= b.lower_boundary AND nv.row_num <= b.upper_boundary
+                LIMIT %(video_set_len)s
             )
             -- add the columns necessary for the cleanup
             SELECT 
@@ -1941,9 +1946,9 @@ class MapTV:
                 yvk.matches_in_description_qty,
                 kt.talent_id
             FROM video_set vs
-            LEFT JOIN youtube_video_keyword yvk USING (youtube_video_id)
-            LEFT JOIN keyword k USING (keyword_id)
-            LEFT JOIN keyword_talent kt USING (keyword_id)
+            JOIN youtube_video_keyword yvk USING (youtube_video_id)
+            JOIN keyword k USING (keyword_id)
+            JOIN keyword_talent kt USING (keyword_id)
             ;
         """
         values = {'video_id': self.youtube_video_id, 'video_set_len': self.cleanup_pool_size}
