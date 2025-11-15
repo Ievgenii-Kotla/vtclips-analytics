@@ -253,13 +253,13 @@ def write_to_keyword(values: list, connection):
     check_keyword_unique_query = """
     SELECT *
     FROM keyword
-    WHERE keyword_word = %s;
+    WHERE keyword_word = %s and priority = %s;
     """
     cur = connection.cursor()
-    cur.execute(check_keyword_unique_query, (values[0],))
+    cur.execute(check_keyword_unique_query, (values[0], values[3]))
     if cur.fetchone():
-        print(f"The keyword already exists in the db.    "
-              f"keyword: {values[0]}")
+        print(f"The keyword_word - priority pair already exists in the db. "
+              f"keyword: {values[0]}, pair: {values[3]}")
         cur.close()
         return 0
 
@@ -281,10 +281,10 @@ def write_to_keyword_talent(values: list, connection):
     get_keyword_id_query = """
     SELECT keyword_id
     FROM keyword
-    WHERE keyword_word = %s;
+    WHERE keyword_word = %s AND priority = %s;
     """
     cur = connection.cursor()
-    cur.execute(get_keyword_id_query, (values[0],))
+    cur.execute(get_keyword_id_query, (values[0], values[3]))
     values.append(cur.fetchone()[0])
 
     # Check if the record already exists in the junction table.
