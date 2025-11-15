@@ -61,14 +61,18 @@ def period_since_month_start() -> datetime.timedelta:
 
 def main():
     connection_pool = pool.SimpleConnectionPool(minconn=1, maxconn=1, dsn=os.environ['DATABASE_URL'])
+    last_run_day = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0).day - 1
 
     while True:
+        current_day = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0).day
         # up-to-date requests are guaranteed to have all data up to the start of the cooldown period
         tasks = [
             (search, {'priority': (0, 1), 'cooldown_factory': lambda: datetime.timedelta(days=2)}),
             (search, {'priority': (99,), 'cooldown_factory': period_since_quarter_start}),
             (request_playlist_items, {'only_talents': True, 'cooldown_factory': lambda: datetime.timedelta(days=1)}),
             (request_playlist_items, {'only_talents': False, 'cooldown_factory': period_since_month_start}),
+        ]
+        tasks_daily = [
             (db_yt_interface.DBCalculations.map_keywords_all, {}),
         ]
 
@@ -92,6 +96,18 @@ def main():
                 else:
                     connection.commit()
                     task_complete += 1
+            if current_day != last_run_day:
+                for task in tasks_daily:
+                    logger.info(f"Running daily task '{task[0].__name__}' with args: \n{task[1]}")
+                    try:
+                        task[0](connection, **task[1])
+                    except Exception as e:
+                        connection.rollback()
+                        logger.exception(f"Unexpected error occurred while running daily task {task}: {e} ")
+                    else:
+                        connection.commit()
+                        task_complete += 1
+            last_run_day = current_day
         finally:
             if connection:
                 connection_pool.putconn(connection)
