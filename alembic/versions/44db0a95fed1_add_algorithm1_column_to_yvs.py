@@ -21,7 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Add a column that represents the time a video was categorized by algorithm1."""
 
-    op.execute("""``
+    op.execute("""
         ALTER TABLE youtube_video_statuses ADD COLUMN algorithm1_classified_at timestamptz;
     """)
 
