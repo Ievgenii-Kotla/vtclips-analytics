@@ -1541,7 +1541,7 @@ class PlaylistItems:
             priority
         )
         VALUES %s
-        ON CONFLICT (keyword_word) DO NOTHING
+        ON CONFLICT (keyword_word, priority) DO NOTHING
         RETURNING keyword_id;
         """
         values = [
