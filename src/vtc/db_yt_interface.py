@@ -1980,7 +1980,7 @@ class MapTV:
                 min_matches_in_description=('matches_in_description_qty', 'min'),
             )
             bad_data = keyword_groups.loc[
-                keyword_groups['vids_with_keyword'] == self.cleanup_pool_size
+                keyword_groups['vids_with_keyword'] >= self.cleanup_pool_size
             ]
             sub_description_map = bad_data['min_matches_in_description']
             dataset['matches_in_description_qty'] -= (
