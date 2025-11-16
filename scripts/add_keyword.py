@@ -74,6 +74,7 @@ keywords = {
         ['FuwawaAbyssgard', 'Fuwawa', 'y', 2, '', 'pure'],
         ['MococoAbyssgard', 'Mococo', 'y', 2, '', 'pure'],
         ['ElizabethRoseBloodflame', 'Elizabeth', 'y', 2, '', 'pure'],
+        ['erbloodflame', 'Elizabeth', 'y', 2, '', 'pure'],  # added for count balancing between talents
         ['GigiMurin', 'Gigi', 'y', 2, '', 'pure'],
         ['CeciliaImmergreen', 'Cecilia', 'y', 2, '', 'pure'],
         ['RaoraPanthera', 'Raora', 'y', 2, '', 'pure'],
@@ -169,6 +170,8 @@ keywords = {
         ['raora', 'Raora', 'n', 6, '', 'pure'],
         ['fuwawa', 'Fuwawa', 'n', 6, '', 'pure'],
         ['mococo', 'Mococo', 'n', 6, '', 'pure'],
+        ['fuwamoco', 'Fuwawa', 'n', 6, '', 'pure'],  # added for balancing points across talents
+        ['fuwamoco', 'Mococo', 'n', 6, '', 'pure'],  # added for balancing points across talents
     ],
     'last_name': [
         ['takanashi', 'Kiara', 'n', 7, '', 'pure'],
@@ -205,6 +208,9 @@ keywords = {
         ['liz', 'Elizabeth', 'n', 9, '', 'pure'],
         ['ceci', 'Cecilia', 'n', 9, '', 'pure'],
         ['cece', 'Cecilia', 'n', 9, '', 'pure'],
+        ['fuwamoco', 'Fuwawa', 'n', 7, '', 'pure'],
+        ['fuwamoco', 'Mococo', 'n', 7, '', 'pure'],
+
     ],
     'nickname_somewhat_common': [
 
