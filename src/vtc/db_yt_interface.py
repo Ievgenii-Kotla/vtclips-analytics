@@ -2053,7 +2053,7 @@ class MapTV:
         self._cleanup_keyword_counts(cross_video=True)
         cross_video = map_t_v(self.cleaned_dataset)
         self._cleanup_keyword_counts(cross_video=False)
-        single_video = map_t_v(self.dataset)
+        single_video = map_t_v(self.cleaned_dataset)
         # When cross video keyword cleaning reduces mapped talents for target video by exactly one talent
         #  - we keep the talent in the resulting talent_video_map
         #  This is a special case for clippers that clip mostly a single talent
