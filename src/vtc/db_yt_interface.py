@@ -2001,10 +2001,10 @@ class MapTV:
             """
                 0 - channel's handle
                 1 - channel's ID (str of seemingly random characters)
-                2 - first name last name
-                3 - last name first name
-                4 - first name last name, with space inbetween
-                5 - last name first name, with space inbetween
+                2 - first name middle name last name (no space)
+                3 - last name middle name first name (no space)
+                4 - first name middle name last name (with space inbetween)
+                5 - last name middle name first name (with space inbetween)
                 6 - first name
                 7 - last name
                 8 - middle name
@@ -2016,7 +2016,7 @@ class MapTV:
                 14 - branch name (holoen, hololiveEN, etc.)
                 26 - first name in japanese
                 27 - last name in japanese
-                99 - video_id of a video made by a talent
+                99 - video_id of a video made by a talent'
             """
 
             # priority weights
