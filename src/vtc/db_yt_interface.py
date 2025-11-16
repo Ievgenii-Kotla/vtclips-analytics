@@ -1690,7 +1690,7 @@ class DBCalculations:
                 FROM keyword AS k
                 JOIN temp_video_to_count AS tvtc ON
                     -- exclude pairs where the video was published before the keyword became relevant
-                    tvtc.published_at >= k.date_since_relevant 
+                    tvtc.published_at + interval '1 week' >= k.date_since_relevant 
                     -- exclude pairs where the keyword was already counted before
                     AND (k.added_at >= tvtc.keywords_counted_at OR tvtc.keywords_counted_at IS NULL)
                     -- exclude pairs with zero matches 
