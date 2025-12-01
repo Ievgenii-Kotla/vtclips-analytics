@@ -1,0 +1,14 @@
+updating the code and the DB:
+    - run the collector and api code updates and the DB updates separately
+    - run the DB update first and the collector and api code update last
+    - before updating the DB - stop python-vtc process
+        python-vtc is a data collector that reads and writes to the db
+    - after updating the DB - make sure that the db finished updating
+        some updates insert new data into the DB which might take a while
+        there is no automatic safeguard healthcheck implemented for DB activity
+
+backup instructions are in data/backups
+
+
+adding new keywords:
+    - add them to the 'keyword' dictionary in the add_keyword.py script in the scripts directory
