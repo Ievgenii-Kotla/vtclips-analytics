@@ -7,7 +7,7 @@ import time
 
 from psycopg2 import pool
 
-import db_yt_interface, vtc_logging
+import db_yt_interface, vtc_logging, data_prep
 from vtc_exceptions import NoQuotaError
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def request_playlist_items(connection,
 def map_talents_videos(connection):
     """Continuously fetch and save data available through the 'playlist_items' endpoint of YT API"""
 
-    instance = db_yt_interface.MapTV(connection)
+    instance = data_prep.MapTV(connection)
     instance.map_talents_to_video_all()
 
 
@@ -80,7 +80,7 @@ def main():
             (request_playlist_items, {'only_talents': False, 'cooldown_factory': period_since_month_start}),
         ]
         tasks_daily = [
-            (db_yt_interface.DBCalculations.map_keywords_all, {}),
+            (data_prep.DBCalculations.map_keywords_all, {}),
             (map_talents_videos, {}),
         ]
 
