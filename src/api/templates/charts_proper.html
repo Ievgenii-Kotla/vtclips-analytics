@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- Immediately apply stored theme to avoid flash -->
+  <script>
+    (function(){
+      try {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem("theme", theme);
+      } catch(e) { /* ignore */ }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/static/css/style.css">
+
+  <!-- eCharts (preload to make charts appear faster) -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/theme/dark.js" defer></script>
+
+  <title>Dashboard</title>
+
+  <style>
+    /* small helpers when not using full Tailwind build */
+    .fade { transition: opacity .25s ease, transform .25s ease; }
+    .fade-enter { opacity: 0; transform: translateY(6px); }
+    .fade-enter.fade-enter-active { opacity: 1; transform: translateY(0); }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }
+  </style>
+</head>
+<body class="bg-base-50 min-h-screen">
+
+  <div class="container mx-auto p-4 space-y-4">
+
+    <!-- TOP LINE -->
+    <div class="flex items-center justify-between gap-4">
+      <!-- Header info from FastAPI -->
+      <div id="header-info" class="text-base-content text-sm opacity-90 transition-opacity">
+        <!-- Placeholder: fetch '/header-info' to populate text -->
+        Loading...
+      </div>
+
+      <!-- Theme toggle -->
+      <div class="flex items-center gap-2">
+
+        <label class="flex cursor-pointer items-center gap-2">
+          <span>Light</span>
+          <input id="theme-toggle" type="checkbox" class="toggle" />
+          <span>Dark</span>
+        </label>
+
+        <script>
+          const toggle = document.getElementById("theme-toggle");
+          const saved = localStorage.getItem("theme");
+
+          if (saved === "dark") {
+            toggle.checked = true;
+          } else if (saved === "light") {
+            toggle.checked = false;
+          } else {
+            // no saved theme, fallback to system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            toggle.checked = prefersDark;  // true if system prefers dark
+          }
+        </script>
+
+      </div>
+    </div>
+
+
+
+    <!-- SECOND LINE: TABS -->
+    <div id="tabs-wrapper" class="sticky top-0 z-40 bg-base-100 py-2 -mx-4 px-4 border-b border-base-200">
+      <div role="tablist" class="tabs tabs-boxed">
+        <!-- data-tab values will be used in fetch -->
+        <button class="tab" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="tab2">Tab 2</button>
+        <button class="tab" data-tab="tab3">Tab 3</button>
+        <button class="tab" data-tab="tab4">Tab 4</button>
+        <button class="tab" data-tab="misc">Miscellaneous</button>
+      </div>
+    </div>
+
+    <!-- CARDS AREA -->
+    <main id="cards-area" class="space-y-4">
+      <!-- Cards are rendered here. Each card is 1 per row (vertical list). -->
+      <!-- Initially, load default tab (tab1) -->
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-8 py-4 border-t border-base-200 text-center text-sm text-base-content/80">
+      Footer text / small notes go here.
+    </footer>
+  </div>
+
+  <script>
+  const charts = {};
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      Object.values(charts).forEach(c => c && c.resize && c.resize());
+    }, 100);
+  });
+
+  function clearCharts() {
+  Object.values(charts).forEach(chart => {
+    if (chart) chart.dispose();  // frees memory, removes event listeners
+  });
+  Object.keys(charts).forEach(k => delete charts[k]);  // clear references
+  }
+
+  (function(){
+    // === Config / endpoints ===
+    const ENDPOINTS = {
+      header: '/header-info',         // GET -> { text: "..." } or raw string
+      cards: '/overview'  //'/cards?tab=',           // GET -> [ { id, title, chartOption } , ... ]
+    };
+
+    // === Header info fetch ===
+    const headerEl = document.getElementById('header-info');
+    async function loadHeader() {
+      try {
+        const res = await fetch(ENDPOINTS.header, {cache: 'no-cache'});
+        if (!res.ok) throw new Error('Header fetch failed');
+        const contentType = res.headers.get('content-type') || '';
+        let txt = '';
+        if (contentType.includes('application/json')) {
+          const json = await res.json();
+          txt = (json.text ?? JSON.stringify(json));
+        } else {
+          txt = await res.text();
+        }
+        headerEl.textContent = txt;
+      } catch (e) {
+        headerEl.textContent = '—';
+        console.warn('Header load error', e);
+      }
+    }
+    loadHeader();
+
+    // === Tabs + cards logic ===
+    const tabsWrapper = document.getElementById('tabs-wrapper');
+    const cardsArea = document.getElementById('cards-area');
+    let currentTab = 'overview';
+    let currentFetchController = null; // used to cancel slow fetches
+
+    // helper: clear active tab classes
+    function setActiveTab(buttonEl) {
+      const buttons = tabsWrapper.querySelectorAll('[data-tab]');
+      buttons.forEach(b => b.classList.toggle('tab-active', b === buttonEl));
+    }
+
+    // skeleton generator: create N skeleton card placeholders
+    function showSkeletons(count = 3) {
+      cardsArea.innerHTML = '';
+      for (let i=0;i<count;i++) {
+        const sk = document.createElement('article');
+        sk.className = 'card p-4 animate-fade fade-enter';
+        sk.innerHTML = `
+          <div class="flex justify-between items-center mb-3">
+            <div class="h-4 w-40 rounded skeleton"></div>
+            <div class="h-4 w-20 rounded skeleton"></div>
+          </div>
+          <div class="h-64 rounded-lg skeleton"></div>
+        `;
+        cardsArea.appendChild(sk);
+      }
+    }
+
+    // render cards from server response
+    // expected cardsData: [ {id, title, chartOption}, ... ]
+    async function renderCards(cardsData) {
+      cardsArea.innerHTML = '';
+      for (const card of cardsData) {
+        const cardEl = document.createElement('article');
+        cardEl.className = 'card bg-base-200/40 border border-base-200 p-4 shadow-sm transition-opacity fade';
+        cardEl.style.opacity = '0';
+        // card layout: title + chart container with loading overlay
+        cardEl.innerHTML = `
+          {#<div class="flex items-center justify-between mb-3">#}
+          {#  <h3 class="text-lg font-medium">${escapeHtml(card.title || card.id)}</h3>#}
+          {#  <div class="text-xs text-base-content/60">${escapeHtml(card.id)}</div>#}
+          {#</div>#}
+          <div class="relative">
+            <div id="chart-${card.id}" class="w-full" style="height:512px;"></div>
+            <div id="loader-${card.id}" class="absolute inset-0 flex items-center justify-center">
+              <div class="h-10 w-10 rounded-full skeleton"></div>
+            </div>
+          </div>
+        `;
+        cardsArea.appendChild(cardEl);
+
+        // small enter animation
+        requestAnimationFrame(() => {
+          cardEl.style.opacity = '1';
+        });
+
+        // initialize chart from provided option object (server-side)
+        // server may return full echarts option in card.chartOption
+        try {
+          // wait a tick so DOM paints loader
+          await tick(10);
+          const chartDiv = document.getElementById(`chart-${card.id}`);
+          if (!chartDiv) continue;
+          // initialize echarts
+          let chart;
+          if (localStorage.getItem("theme") === "dark") {
+            chart = echarts.init(chartDiv, 'dark');
+            chart.setOption({ backgroundColor: '#1b2127' }, { notMerge: true });
+          } else {
+            chart = echarts.init(chartDiv);
+          }
+          charts[card.id] = chart;
+          // chartOption should be provided by server (so server controls chart content)
+          if (card.chartOption) {
+            chart.setOption(card.chartOption);
+          } else if (card.chartConfigEndpoint) {
+            // optional: server provided endpoint to fetch config per-chart
+            const cfgRes = await fetch(card.chartConfigEndpoint);
+            const cfg = await cfgRes.json();
+            chart.setOption(cfg);
+          } else {
+            // no config: show empty state
+            chart.showLoading();
+            chart.hideLoading();
+          }
+        } catch (e) {
+          console.warn('Chart init failed for', card.id, e);
+        } finally {
+          // hide loader overlay
+          const loader = document.getElementById(`loader-${card.id}`);
+          if (loader) loader.style.display = 'none';
+        }
+      }
+    }
+
+    // utility: make a short delay (ms)
+    function tick(ms=0){ return new Promise(r => setTimeout(r, ms)); }
+
+    // escape HTML minimal
+    function escapeHtml(s='') {
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    // fetch cards for a tab and render; simple abort logic to handle rapid tab clicks
+    async function loadTab(tabId) {
+      // cancel previous fetch (simple fast-click protection)
+      if (currentFetchController) {
+        try { currentFetchController.abort(); } catch(e){}
+      }
+      currentFetchController = new AbortController();
+      const signal = currentFetchController.signal;
+
+      clearCharts();
+      // show skeletons while loading (number can be adjusted)
+      showSkeletons(2);
+        // this is set up for use with /blabla=tabs? type of endpoint
+        // and it should be. I need to change my fastapi endpoint to reflect that.
+        // or maybe i need to rethink this part. Like it is now, all charts will be handled by a single endpoint.
+        // I cound probably easily change it to a separate endpoint for each tab
+        // Since I already have encodeURIComponent(tabId bit here
+      try {
+      // const res = await fetch(ENDPOINTS.cards + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
+        const res = await fetch('/' + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
+        {#const res = await fetch(ENDPOINTS.cards, {signal, cache: 'no-cache'});#}
+        console.log('loadTab:', tabId, res.ok, res);
+        if (!res.ok) throw new Error('cards fetch failed');
+        const cardsData = await res.json();
+        // expected: array of objects { id, title, chartOption }
+        await renderCards(cardsData);
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          // fetch was aborted due to a new tab click -- silently ignore
+          return;
+        }
+        console.error('Load tab failed:', err);
+        cardsArea.innerHTML = `<div class="text-warning">Failed to load content.</div>`;
+      } finally {
+        currentFetchController = null;
+      }
+    }
+
+    // attach tab click handlers
+    tabsWrapper.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-tab]');
+      if (!btn) return;
+      const tabId = btn.getAttribute('data-tab');
+      if (!tabId || tabId === currentTab) return;
+      currentTab = tabId;
+      setActiveTab(btn);
+      loadTab(tabId);
+    });
+
+    // load default tab on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      // set Tab 1 active (first button)
+      const firstBtn = tabsWrapper.querySelector('[data-tab]');
+      if (firstBtn) setActiveTab(firstBtn);
+      // initial load for default tab (tab1)
+      loadTab(currentTab);
+    });
+
+    // Toggle logic
+    document.getElementById("theme-toggle").addEventListener("change", (e) => {
+      const theme = e.target.checked ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+      window.__dashboard.loadTab(currentTab);
+    });
+
+    // expose some functions for debug in console (optional)
+    window.__dashboard = { loadTab, loadHeader };
+  })();
+  </script>
+</body>
+</html>
