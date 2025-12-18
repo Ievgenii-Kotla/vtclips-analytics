@@ -53,7 +53,6 @@ def map_talents_videos(connection):
     instance = data_prep.MapTV(connection)
     instance.map_talents_to_video_all()
 
-
 def period_since_quarter_start() -> datetime.timedelta:
     now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
     quarter_start_month = (now.month - 1) // 3 * 3 + 1
@@ -113,6 +112,7 @@ def main():
                     except Exception as e:
                         connection.rollback()
                         logger.exception(f"Unexpected error occurred while running daily task {task}: {e} ")
+                        errors += 1
                     else:
                         connection.commit()
                         task_complete += 1
