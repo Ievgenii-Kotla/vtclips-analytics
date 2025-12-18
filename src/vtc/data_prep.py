@@ -155,13 +155,15 @@ class DBCalculations:
 
     @staticmethod
     def videos_to_count(conn):
+        """Estimate the number of videos to count keyword(s) in."""
+
         query = """
             WITH newest_keyword AS (
                 SELECT MAX(added_at) AS added_at
                 FROM keyword
             )
             SELECT COUNT(*)
-            FROM youtube_video
+            FROM youtube_video_statuses
             WHERE 
                 keywords_counted_at IS NULL 
                 OR keywords_counted_at <= (SELECT added_at FROM newest_keyword)
