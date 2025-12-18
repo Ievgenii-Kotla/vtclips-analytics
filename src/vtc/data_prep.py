@@ -2,6 +2,7 @@ import logging
 import traceback
 import pandas as pd
 from psycopg2.extras import execute_values
+from psycopg2.extensions import connection as psycopg2_connection
 
 logger = logging.getLogger(__name__)
 
@@ -509,3 +510,172 @@ class MapTV:
             raise ValueError(f"Invalid type for talents_mapped_new: {type(talents_mapped_new)}")
 
         return talents_mapped_old
+
+class DBCharts:
+
+    @staticmethod
+    def refresh_all_charts(connection: psycopg2_connection):
+        DBCharts.refresh_all_clips_day(connection)
+        DBCharts.refresh_active_clippers_monthly(connection)
+        DBCharts.refresh_clips_per_channel_distribution(connection)
+        DBCharts.refresh_videos_per_talent_monthly(connection)
+        DBCharts.refresh_videos_group_share_monthly(connection)
+
+
+    @staticmethod
+    def refresh_table(connection: psycopg2_connection, table_name: str, query: str):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+        except Exception as e:
+            connection.rollback()
+            logger.error(f"An error occurred while updating table {table_name}: {e} \nTransaction rolled back. ")
+            raise
+        else:
+            connection.commit()
+            logger.info(f"{table_name} refreshed.")
+
+    @staticmethod
+    def refresh_all_clips_day(connection: psycopg2_connection):
+        table_name = "chart_all_clips_day"
+        query = """
+                TRUNCATE TABLE chart_all_clips_day;
+
+                INSERT INTO chart_all_clips_day (published_at_date, clips_num)
+                SELECT yv.published_at::date AS published_at_date, COUNT(*) AS clips_num
+                FROM youtube_video yv
+                         JOIN talent_youtube_video tyv USING (youtube_video_id)
+                GROUP BY published_at_date
+                ORDER BY published_at_date; \
+                """
+        DBCharts.refresh_table(connection, table_name, query)
+
+    @staticmethod
+    def refresh_active_clippers_monthly(connection: psycopg2_connection):
+        table_name = "chart_active_clippers_monthly"
+        query = """
+            TRUNCATE TABLE chart_active_clippers_monthly;
+            
+            WITH cm AS (
+                SELECT DISTINCT yv.youtube_channel_id, date_trunc('month', published_at)::date AS published_at_month
+                FROM youtube_video yv
+                JOIN talent_youtube_video tyv USING (youtube_video_id)
+                WHERE yv.published_at < date_trunc('month', CURRENT_DATE)
+            )
+            INSERT INTO chart_active_clippers_monthly (published_at_month, clippers_num)
+            SELECT published_at_month, COUNT(*)
+            FROM cm
+            GROUP BY published_at_month;
+        """
+        DBCharts.refresh_table(connection, table_name, query)
+
+    @staticmethod
+    def refresh_clips_per_channel_distribution(connection: psycopg2_connection):
+        table_name = "chart_clips_per_channel_distribution"
+        query = """
+            TRUNCATE TABLE chart_clips_per_channel_distribution;
+            
+            WITH clips_per_channel AS (
+                SELECT COUNT(*) AS clip_count
+                FROM youtube_video yv
+                JOIN talent_youtube_video tyv USING (youtube_video_id)
+                GROUP BY yv.youtube_channel_id
+            ),
+            number_series AS (
+                SELECT num
+                FROM generate_series(1, (SELECT MAX(clip_count) FROM clips_per_channel)) AS num
+            )
+            INSERT INTO chart_clips_per_channel_distribution (clip_count, channel_count)
+            SELECT num AS clip_count, nullif((
+                SELECT COUNT(*) 
+                FROM clips_per_channel cpc
+                WHERE n.num = cpc.clip_count
+            ), 0) AS channel_count
+            FROM number_series AS n
+            ORDER BY num;
+        """
+        DBCharts.refresh_table(connection, table_name, query)
+
+    @staticmethod
+    def refresh_videos_per_talent_monthly(connection: psycopg2_connection):
+        table_name = "chart_videos_per_talent_monthly"
+        query = """
+            TRUNCATE TABLE chart_videos_per_talent_monthly;
+            
+            INSERT INTO chart_videos_per_talent_monthly (published_at_month, videos_num, talent_name, color, order_id)
+            SELECT 
+                date_trunc('month', yv.published_at)::date AS published_at_month, 
+                COUNT(*) AS videos_num, 
+                t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name,
+                dark_color AS color,
+                t.talent_id AS order_id
+            FROM youtube_video yv
+            JOIN youtube_channel_talent yct USING (youtube_channel_id)
+            JOIN talent t USING (talent_id)
+            WHERE yct.talent_id NOT IN (21)
+                AND yv.published_at < date_trunc('month', CURRENT_DATE)
+            GROUP BY published_at_month, t.talent_id, color;
+        """
+        DBCharts.refresh_table(connection, table_name, query)
+
+    @staticmethod
+    def refresh_videos_group_share_monthly(connection: psycopg2_connection):
+        table_name = "chart_videos_group_share_monthly"
+        query = """
+            TRUNCATE TABLE chart_videos_group_share_monthly;
+            
+            WITH talent_group AS (
+                SELECT 
+                    date_trunc('month', yv.published_at)::date AS published_at_month, 
+                    CASE
+                        WHEN t.talent_id IN (1, 2, 3, 4, 5) THEN 'Myth'
+                        WHEN t.talent_id IN (6, 7, 8, 9, 10, 11) THEN 'CouncilRyS'
+                        WHEN t.talent_id IN (12, 13, 14, 15) THEN 'Advent'
+                        WHEN t.talent_id IN (17, 18, 19, 20) THEN 'Justice'
+                        ELSE 'other'
+                    END AS group_name
+                FROM youtube_video yv
+                JOIN youtube_channel_talent yct USING (youtube_channel_id)
+                JOIN talent t USING (talent_id)
+                WHERE yct.talent_id NOT IN (16, 21)
+                    AND yv.published_at < date_trunc('month', CURRENT_DATE)
+            ),
+            pct_per_group AS (
+                SELECT 
+                    published_at_month, 
+                    COUNT(*) AS videos_num, 
+                    group_name,
+                    CASE 
+                        WHEN group_name = 'Myth' THEN 1
+                        WHEN group_name = 'CouncilRyS' THEN 2
+                        WHEN group_name = 'Advent' THEN 3
+                        WHEN group_name = 'Justice' THEN 4
+                        ELSE 5
+                    END AS order_id,
+                    ROUND(COUNT(*) * 100 / SUM(COUNT(*)) OVER (PARTITION BY published_at_month)) AS pct,
+                    COUNT(*) * 100 / SUM(COUNT(*)) OVER (PARTITION BY published_at_month) AS raw_pct,
+                    SUM(COUNT(*)) OVER (PARTITION BY published_at_month) AS total_video_num
+                FROM talent_group
+                GROUP BY published_at_month, group_name
+                ORDER BY published_at_month, order_id
+            ),
+            pct_per_group_with_rn AS (
+                SELECT 
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY published_at_month ORDER BY raw_pct DESC) AS rn
+                FROM pct_per_group
+            ) 
+            INSERT INTO chart_videos_group_share_monthly (published_at_month, videos_num, group_name, order_id, pct)
+            SELECT 
+                published_at_month,
+                videos_num,
+                group_name,
+                order_id,
+                CASE
+                    WHEN rn = 1 THEN ROUND(pct + (100 - SUM(pct) OVER (PARTITION BY published_at_month)))
+                    ELSE pct
+                END AS pct
+            FROM pct_per_group_with_rn
+            ORDER BY published_at_month, order_id;
+        """
+        DBCharts.refresh_table(connection, table_name, query)
