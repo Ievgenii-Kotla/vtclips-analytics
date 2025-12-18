@@ -82,6 +82,7 @@ def main():
         tasks_daily = [
             (data_prep.DBCalculations.map_keywords_all, {}),
             (map_talents_videos, {}),
+            (data_prep.DBCharts.refresh_all_charts, {}),
         ]
 
         no_more_quotas = 0
