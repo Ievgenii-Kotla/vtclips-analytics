@@ -1,6 +1,18 @@
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
+import json
+from pathlib import Path
+
+from pandas.core.groupby.base import groupby_other_methods
+from starlette.responses import PlainTextResponse, JSONResponse
+from datetime import date
+import pandas as pd
+import numpy as np
+
 templates = Jinja2Templates(directory="src/api/templates")
+BASE_DIR = Path(__file__).resolve().parent
+CHART_TEMPLATE_DIR = BASE_DIR / "static" / "chart_templates"
+
 
 def jinja(request: Request):
     contex = {

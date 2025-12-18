@@ -1,23 +1,15 @@
-import os
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
-import psycopg2
 from starlette.responses import PlainTextResponse, JSONResponse
 
 import src.api.services as svc
+from src.api.db import get_connection
 
 router = APIRouter()
 
 @router.get("/")
 def root():
-    with psycopg2.connect(os.environ['DATABASE_URL']) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM youtube_channel;")
-            rows = cur.fetchall()
-            text = f"youtube_channels: {rows[0][0]})"
-    return {"message": text}
-
-
+    return "Nothing here yet..."
 
 @router.get("/summary")
 def summary():
@@ -47,49 +39,31 @@ def summary():
             rows = cur.fetchall()
             text = f"youtube_channels: {rows[0][0]})"
     return {"message": rows}
+def summary(conn=Depends(get_connection)):
+    return svc.summary(conn)
 
-@router.get("/test")
-def test():
-    return {"message": "test"}
+@router.get("/status")
+def status():
+    return svc.status()
 
 @router.get("/health", response_class=PlainTextResponse)
 def test():
     return "OK"
 
-@router.get("/status")
-def status():
-    with open('/app/collector_info/state/api_quota_state.json', 'r') as f:
-         quota_status = f.read()
-    with open('/app/collector_info/logs/error.log', 'r') as f:
-        error_log = f.read()
-    with open('/app/collector_info/logs/warning.log', 'r') as f:
-        warning_log = f.read()
-    with open('/app/collector_info/logs/info.log', 'r') as f:
-        info_log = f.read()
-
-    return PlainTextResponse(
-        f"""QUOTA_STATUS:\n {quota_status}\n\n
-ERRORS:\n {error_log}\n\n
-WARNINGS:\n {warning_log}\n\n
-INFO:\n {info_log}
-"""
-    )
-
-
-@router.get("/jinja", response_class=HTMLResponse)
+@router.get("/jinja")
 def jinja(request: Request):
     html = svc.jinja(request)
     return html
 
-@router.get("/daisy", response_class=HTMLResponse)
+@router.get("/daisy")
 def daisy(request: Request):
     return svc.daisy(request)
 
-@router.get("/charts", response_class=HTMLResponse)
+@router.get("/charts")
 def charts(request: Request):
     return svc.charts(request)
 
-@router.get("/header-info", response_class=PlainTextResponse)
+@router.get("/header-info")
 def header_info():
     return "399 999 clips in the database"
 
