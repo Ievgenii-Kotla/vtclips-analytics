@@ -1,11 +1,14 @@
 Restore:
-pg_restore -U postgres -d vtc -c -F c -v /app/data/backups/vtc_backup_2025_10_02_0011.dump
+pg_restore -U postgres -d vtc -c -F c -v /app/data/backups/vtc_full_backup_2025_10_02_0011.dump
 -c - clean objects before recreating
 -F c - custom format
 -v - verbose
 
+Go into the postgres-db container
+sudo docker exec -it postgres-db bash
 Back up:
 pg_dump -U postgres -h localhost -p 5432 -F c -v -f /app/data/backups/vtc_full_backup_2025_10_27_1822.dump vtc
+
 -f filename
 
 for pg_restore and for pg_dump -h and -p are used to run outside a container. (might require a password)
