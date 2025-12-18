@@ -1,0 +1,59 @@
+{
+  "id": 6,
+  "title": "videos pct share of total per group per month",
+  "chartOption": {
+    "title": {
+      "text": "Monthly Video Share by Talent Group"
+    },
+    "tooltip": {
+      "trigger": "item",
+      "axisPointer": {
+        "type": "shadow"
+      },
+      "formatter": "{b}<br/>{a}: {c} <br/> vids: {videos_num}"
+    },
+    "legend": {
+      "top": 30,
+      "type": "scroll"
+    },
+    "grid": {
+      "top": "70",
+      "left": "40",
+      "right": "20",
+      "bottom": "50",
+      "containLabel": true
+    },
+    "xAxis": [
+      {
+        "type": "category",
+        "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        "axisTick": {
+          "alignWithLabel": true
+        }
+      }
+    ],
+    "yAxis": [
+      {
+        "type": "value"
+      }
+    ],
+    "series": [
+      {
+        "name": "Direct",
+        "type": "bar",
+        "stack": "total",
+        "barWidth": "80%",
+        "label": {
+          "show": true
+        },
+        "emphasis": {
+          "focus": "series"
+        },
+        "data": [
+          {"value": 10, "videos_num": 11},
+          {"value": 10, "videos_num": 8}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": 4,
+  "title": "clips per channel distribution",
+  "chartOption": {
+    "title": {
+      "text": "Channel Count by Number of Clips"
+    },
+    "tooltip": {
+      "trigger": "axis",
+      "axisPointer": {
+        "type": "shadow"
+      }
+    },
+    "grid": {
+      "left": "3%",
+      "right": "4%",
+      "bottom": "3%",
+      "containLabel": true
+    },
+    "xAxis": [
+      {
+        "type": "category",
+        "data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        "axisTick": {
+          "alignWithLabel": true
+        }
+      }
+    ],
+    "yAxis": [
+      {
+        "type": "value"
+      }
+    ],
+    "dataZoom": [
+        {
+            "type": "inside",
+            "xAxisIndex": 0,
+            "moveOnMouseMove": true,
+            "moveOnMouseWheel": false,
+            "minSpan": 1
+        }
+    ],
+    "series": [
+      {
+        "name": "Channels",
+        "type": "scatter",
+        "data": [10, 52, 200, 334, 390, 330, 220]
+      }
+    ]
+  }
+}
