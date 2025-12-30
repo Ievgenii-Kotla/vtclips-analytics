@@ -154,14 +154,13 @@ def miscellaneous(conn):
     ]
     return charts
 
-@apply_chart_defaults
 def sample_chart():
   path = CHART_TEMPLATE_DIR / "sample_chart1.json"
   with open(path, "r", encoding="utf-8") as f:
     data = json.load(f)
     return data
 
-@apply_chart_defaults
+def all_clips_daily(conn):
     query = """SELECT * FROM chart_all_clips_day ORDER BY published_at_date;"""
     with conn.cursor() as cur:
         cur.execute(query)
@@ -181,6 +180,7 @@ def sample_chart():
     return data
 
 @apply_chart_defaults
+#@apply_chart_defaults
 def active_clippers_monthly(conn):
     query = """SELECT * FROM chart_active_clippers_monthly ORDER BY published_at_month;"""
     with conn.cursor() as cur:
@@ -201,6 +201,7 @@ def active_clippers_monthly(conn):
     return data
 
 @apply_chart_defaults
+
 def clips_per_channel_distribution(conn):
     query = """SELECT * FROM chart_clips_per_channel_distribution ORDER BY clip_count;"""
     with conn.cursor() as cur:
@@ -220,7 +221,6 @@ def clips_per_channel_distribution(conn):
     data["chartOption"]["series"][0]["data"] = series_data
     return data
 
-@apply_chart_defaults
 def videos_per_talent_monthly(conn):
     query = """SELECT * FROM chart_videos_per_talent_monthly ORDER BY published_at_month;"""
     with conn.cursor() as cur:
@@ -271,6 +271,7 @@ def videos_per_talent_monthly(conn):
     return data
 
 @apply_chart_defaults
+
 def videos_group_share_monthly(conn):
     query = """SELECT * FROM chart_videos_group_share_monthly ORDER BY published_at_month;"""
     with conn.cursor() as cur:
