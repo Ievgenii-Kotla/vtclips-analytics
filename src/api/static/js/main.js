@@ -129,9 +129,6 @@ async function renderCards(cardsData) {
         chart.showLoading();
         chart.hideLoading();
       }
-    console.log("LOGchart.getOption().series", chart.getOption().series)
-    console.log("LOGchart.getOption().xaxis", chart.getOption().xAxis)
-    console.log("asdf", chart.getOption().series.length)
     } catch (e) {
       console.warn('Chart init failed for card.id ', card.id, e);
     } finally {
@@ -171,7 +168,6 @@ async function loadTab(tabId) {
   // const res = await fetch(ENDPOINTS.cards + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
     const res = await fetch('/' + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
     //const res = await fetch(ENDPOINTS.cards, {signal, cache: 'no-cache'});
-    console.log('loadTab:', tabId, res.ok, res);
     if (!res.ok) throw new Error('cards fetch failed');
     const cardsData = await res.json();
     // expected: array of objects { id, title, chartOption }
