@@ -13,25 +13,6 @@ templates = Jinja2Templates(directory="src/api/templates")
 BASE_DIR = Path(__file__).resolve().parent
 CHART_TEMPLATE_DIR = BASE_DIR / "static" / "chart_templates"
 
-def apply_chart_defaults(func):
-    def wrapper(*args, **kwargs):
-        def merge_dicts(d1, d2):
-            for key, value in d2.items():
-                if isinstance(value, dict) and key in d1 and isinstance(d1[key], dict):
-                    merge_dicts(d1[key], value)
-                else:
-                    if key not in d1:
-                        d1[key] = value
-            return d1
-
-        path = CHART_TEMPLATE_DIR / "chart_defaults.json"
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        chart = func(*args, **kwargs)
-        merge_dicts(chart, data)
-        return chart
-    return wrapper
-
 def mutate_fuwamoco_colors(colors):
     fuwawa_key = [k for k in colors.keys() if "fuwawa" in k.lower()]
     mococo_key = [k for k in colors.keys() if "mococo" in k.lower()]
@@ -179,7 +160,8 @@ def all_clips_daily(conn):
     data["chartOption"]["series"][0]["data"] = series_data
     return data
 
-@apply_chart_defaults
+    return chart_data
+
 #@apply_chart_defaults
 def active_clippers_monthly(conn):
     query = """SELECT * FROM chart_active_clippers_monthly ORDER BY published_at_month;"""
@@ -200,7 +182,7 @@ def active_clippers_monthly(conn):
     data["chartOption"]["series"][0]["data"] = series_data
     return data
 
-@apply_chart_defaults
+    return chart_data
 
 def clips_per_channel_distribution(conn):
     query = """SELECT * FROM chart_clips_per_channel_distribution ORDER BY clip_count;"""
@@ -270,7 +252,16 @@ def videos_per_talent_monthly(conn):
     data["chartOption"]["xAxis"][0]["data"] = wide.index.tolist()
     return data
 
-@apply_chart_defaults
+    chart_data = {
+        "id": 3,
+        "title": "videos per talent monthly",
+        "builder": "videosPerTalentMonthly",
+        "data": {
+            "xLabels": x_axis_data,
+            "series": series_data
+        }
+    }
+    return chart_data
 
 def videos_group_share_monthly(conn):
     query = """SELECT * FROM chart_videos_group_share_monthly ORDER BY published_at_month;"""
