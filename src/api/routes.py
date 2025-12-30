@@ -42,8 +42,7 @@ def header_info():
 
 @router.get("/sample_chart", response_class=JSONResponse)
 def sample_chart(conn=Depends(get_connection)):
-    return [svc.all_clips_day(conn),]
-    # return [svc.sample_chart(), ]
+    return [svc.sample_chart(), ]
 
 @router.get("/overview", response_class=JSONResponse)
 def overview(conn=Depends(get_connection)):
