@@ -147,19 +147,19 @@ def all_clips_daily(conn):
         cur.execute(query)
         rows = cur.fetchall()
 
-    x_axis_data = []
-    series_data = []
+    x_axis = []
+    series = []
     for row in rows:
-        x_axis_data.append(row[0].isoformat())
-        series_data.append(row[1])
+        x_axis.append(row[0].isoformat())
+        series.append(row[1])
 
     chart_data = {
         "id": 1,
         "title": "overview of all clips posted by date",
         "builder": "allVideosDaily",
         "data": {
-            "xLabels": x_axis_data,
-            "series": series_data
+            "xLabels": x_axis,
+            "series": series
         }
     }
 
@@ -172,19 +172,19 @@ def active_clippers_monthly(conn):
         cur.execute(query)
         rows = cur.fetchall()
 
-    x_axis_data = []
-    series_data = []
+    x_axis = []
+    series = []
     for row in rows:
-        x_axis_data.append(row[0].isoformat())
-        series_data.append(row[1])
+        x_axis.append(row[0].isoformat())
+        series.append(row[1])
 
     chart_data = {
         "id": 2,
         "title": "clipper channels active monthly",
         "builder": "activeClippersMonthly",
         "data": {
-            "xLabels": x_axis_data,
-            "series": series_data
+            "xLabels": x_axis,
+            "series": series
         }
     }
 
@@ -196,19 +196,19 @@ def clips_per_channel_distribution(conn):
         cur.execute(query)
         rows = cur.fetchall()
 
-    x_axis_data = []
-    series_data = []
+    x_axis = []
+    series = []
     for row in rows:
-        x_axis_data.append(row[0])
-        series_data.append(row[1])
+        x_axis.append(row[0])
+        series.append(row[1])
 
     chart_data = {
         "id": 5,
         "title": "clips per channel",
         "builder": "clipsPerChannelDistribution",
         "data": {
-            "xLabels": x_axis_data,
-            "series": series_data
+            "xLabels": x_axis,
+            "series": series
         }
     }
     return chart_data
@@ -255,15 +255,15 @@ def videos_per_talent_monthly(conn):
         }
         for talent in wide.columns
     ]
-    x_axis_data = wide.index.tolist()
+    x_axis = wide.index.tolist()
 
     chart_data = {
         "id": 3,
         "title": "videos per talent monthly",
         "builder": "videosPerTalentMonthly",
         "data": {
-            "xLabels": x_axis_data,
-            "series": series_data
+            "xLabels": x_axis,
+            "series": series
         }
     }
     return chart_data
