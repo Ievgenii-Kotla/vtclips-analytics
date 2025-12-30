@@ -178,6 +178,7 @@ state/api_quota_state.json
 state/test_api_quota_state.json
 todo
 logs/*
+vtc/logs/*
 known_issues.txt
 
 
