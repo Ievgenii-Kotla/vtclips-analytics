@@ -130,6 +130,9 @@ def daisy(request: Request):
 def charts(request: Request):
     return templates.TemplateResponse("charts.html", {"request": request})
 
+def main(request: Request):
+    return templates.TemplateResponse("main.html", {"request": request})
+
 def overview(conn):
     charts = [
         all_clips_day(conn),

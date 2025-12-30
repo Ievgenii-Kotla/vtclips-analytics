@@ -32,9 +32,9 @@ def jinja(request: Request):
 def daisy(request: Request):
     return svc.daisy(request)
 
-@router.get("/charts")
+@router.get("/main")
 def charts(request: Request):
-    return svc.charts(request)
+    return svc.main(request)
 
 @router.get("/header-info")
 def header_info():
