@@ -278,7 +278,7 @@ def videos_group_share_monthly(conn):
     df = pd.DataFrame(rows, columns=columns)
     order = df.sort_values("order_id")["group_name"].unique()
     df["group_name"] = pd.Categorical(df["group_name"], categories=order, ordered=True)
-    x_axis = df["published_at_month"].drop_duplicates().sort_values()
+    x_axis = df["published_at_month"].drop_duplicates().sort_values().tolist()
     series = []
     for group_name in df["group_name"].cat.categories:
         group_name_df = (
@@ -291,6 +291,7 @@ def videos_group_share_monthly(conn):
                 "name": group_name,
                 "type": "bar",
                 "stack": "total",
+                "stackStrategy": 'all',
                 "barWidth": "80%",
                 "label": {
                   "show": True
