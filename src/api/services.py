@@ -318,4 +318,5 @@ def videos_group_share_monthly(conn):
             "series": series
         }
     }
+    return chart_data
 
