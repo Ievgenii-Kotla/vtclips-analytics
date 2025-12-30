@@ -153,12 +153,15 @@ def all_clips_daily(conn):
         x_axis_data.append(row[0].isoformat())
         series_data.append(row[1])
 
-    path = CHART_TEMPLATE_DIR / "all_clips_day_bar.json"
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data["chartOption"]["xAxis"][0]["data"] = x_axis_data
-    data["chartOption"]["series"][0]["data"] = series_data
-    return data
+    chart_data = {
+        "id": 1,
+        "title": "overview of all clips posted by date",
+        "builder": "allVideosDaily",
+        "data": {
+            "xLabels": x_axis_data,
+            "series": series_data
+        }
+    }
 
     return chart_data
 
@@ -175,12 +178,15 @@ def active_clippers_monthly(conn):
         x_axis_data.append(row[0].isoformat())
         series_data.append(row[1])
 
-    path = CHART_TEMPLATE_DIR / "active_clippers_monthly.json"
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data["chartOption"]["xAxis"][0]["data"] = x_axis_data
-    data["chartOption"]["series"][0]["data"] = series_data
-    return data
+    chart_data = {
+        "id": 2,
+        "title": "clipper channels active monthly",
+        "builder": "activeClippersMonthly",
+        "data": {
+            "xLabels": x_axis_data,
+            "series": series_data
+        }
+    }
 
     return chart_data
 
@@ -196,12 +202,16 @@ def clips_per_channel_distribution(conn):
         x_axis_data.append(row[0])
         series_data.append(row[1])
 
-    path = CHART_TEMPLATE_DIR / "clips_per_channel_distribution.json"
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data["chartOption"]["xAxis"][0]["data"] = x_axis_data
-    data["chartOption"]["series"][0]["data"] = series_data
-    return data
+    chart_data = {
+        "id": 5,
+        "title": "clips per channel",
+        "builder": "clipsPerChannelDistribution",
+        "data": {
+            "xLabels": x_axis_data,
+            "series": series_data
+        }
+    }
+    return chart_data
 
 def videos_per_talent_monthly(conn):
     query = """SELECT * FROM chart_videos_per_talent_monthly ORDER BY published_at_month;"""
@@ -245,12 +255,7 @@ def videos_per_talent_monthly(conn):
         }
         for talent in wide.columns
     ]
-    path = CHART_TEMPLATE_DIR / "videos_per_talent_monthly.json"
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data["chartOption"]["series"] = series
-    data["chartOption"]["xAxis"][0]["data"] = wide.index.tolist()
-    return data
+    x_axis_data = wide.index.tolist()
 
     chart_data = {
         "id": 3,
@@ -303,10 +308,13 @@ def videos_group_share_monthly(conn):
             }
         )
 
-    path = CHART_TEMPLATE_DIR / "videos_group_share_monthly.json"
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    data["chartOption"]["series"] = series
-    data["chartOption"]["xAxis"][0]["data"] = x_axis.tolist()
-    return data
+    chart_data = {
+        "id": 4,
+        "title": "videos group share monthly",
+        "builder": "videosGroupShareMonthly",
+        "data": {
+            "xLabels": x_axis,
+            "series": series
+        }
+    }
 
