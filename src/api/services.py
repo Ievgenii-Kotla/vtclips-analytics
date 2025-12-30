@@ -135,11 +135,10 @@ def main(request: Request):
 
 def overview(conn):
     charts = [
-        all_clips_day(conn),
+        all_clips_daily(conn),
         active_clippers_monthly(conn),
         videos_per_talent_monthly(conn),
         videos_group_share_monthly(conn),
-        sample_chart(),
     ]
     return charts
 
@@ -163,7 +162,6 @@ def sample_chart():
     return data
 
 @apply_chart_defaults
-def all_clips_day(conn):
     query = """SELECT * FROM chart_all_clips_day ORDER BY published_at_date;"""
     with conn.cursor() as cur:
         cur.execute(query)
