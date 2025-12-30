@@ -4,24 +4,23 @@ const charts = {};
 
 let resizeTimer;
 window.addEventListener('resize', () => {
-clearTimeout(resizeTimer);
-resizeTimer = setTimeout(() => {
-  Object.values(charts).forEach(c => c && c.resize && c.resize());
-}, 100);
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    Object.values(charts).forEach(c => c && c.resize && c.resize());
+  }, 100);
 });
 
 function clearCharts() {
-Object.values(charts).forEach(chart => {
-if (chart) chart.dispose();  // frees memory, removes event listeners
-});
-Object.keys(charts).forEach(k => delete charts[k]);  // clear references
+  Object.values(charts).forEach(chart => {
+    if (chart) chart.dispose();  // frees memory, removes event listeners
+  });
+  Object.keys(charts).forEach(k => delete charts[k]);  // clear references
 }
 
 (function(){
-// === Config / endpoints ===
 const ENDPOINTS = {
-  header: '/header-info',         // GET -> { text: "..." } or raw string
-  cards: '/overview'  //'/cards?tab=',           // GET -> [ { id, title, chartOption } , ... ]
+  header: '/header-info',
+  cards: '/overview'  // GET -> [ { id, title, chartOption } , ... ]
 };
 
 // === Header info fetch ===
@@ -83,7 +82,6 @@ async function renderCards(cardsData) {
     const cardEl = document.createElement('article');
     cardEl.className = 'card bg-base-200/40 border border-base-200 p-4 shadow-sm transition-opacity fade';
     cardEl.style.opacity = '0';
-    // card layout: title + chart container with loading overlay
     cardEl.innerHTML = `
       <div class="relative">
         <div id="chart-${card.id}" class="w-full" style="height:512px;"></div>
@@ -157,17 +155,9 @@ async function loadTab(tabId) {
   const signal = currentFetchController.signal;
 
   clearCharts();
-  // show skeletons while loading (number can be adjusted)
   showSkeletons(2);
-    // this is set up for use with /blabla=tabs? type of endpoint
-    // and it should be. I need to change my fastapi endpoint to reflect that.
-    // or maybe i need to rethink this part. Like it is now, all charts will be handled by a single endpoint.
-    // I cound probably easily change it to a separate endpoint for each tab
-    // Since I already have encodeURIComponent(tabId bit here
   try {
-  // const res = await fetch(ENDPOINTS.cards + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
     const res = await fetch('/' + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
-    //const res = await fetch(ENDPOINTS.cards, {signal, cache: 'no-cache'});
     if (!res.ok) throw new Error('cards fetch failed');
     const cardsData = await res.json();
     // expected: array of objects { id, title, chartOption }
