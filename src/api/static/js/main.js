@@ -21,7 +21,7 @@ Object.keys(charts).forEach(k => delete charts[k]);  // clear references
 // === Config / endpoints ===
 const ENDPOINTS = {
   header: '/header-info',         // GET -> { text: "..." } or raw string
-  cards: '/overview_p'  //'/cards?tab=',           // GET -> [ { id, title, chartOption } , ... ]
+  cards: '/overview'  //'/cards?tab=',           // GET -> [ { id, title, chartOption } , ... ]
 };
 
 // === Header info fetch ===
@@ -49,7 +49,7 @@ loadHeader();
 // === Tabs + cards logic ===
 const tabsWrapper = document.getElementById('tabs-wrapper');
 const cardsArea = document.getElementById('cards-area');
-let currentTab = 'overview_p';
+let currentTab = 'overview';
 let currentFetchController = null; // used to cancel slow fetches
 
 // helper: clear active tab classes
