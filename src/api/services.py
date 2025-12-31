@@ -247,8 +247,8 @@ def videos_per_talent_monthly(conn):
     wide = df.pivot(index="published_at_month", columns="talent_name", values="videos_num")
     wide = wide.replace([np.nan, np.inf, -np.inf], None)
 
-    colors = mutate_fuwamoco_colors(colors)
-    wide = mutate_fuwamoco_wide(wide)
+    #colors = mutate_fuwamoco_colors(colors)
+    #wide = mutate_fuwamoco_wide(wide)
 
     series = [
         {
