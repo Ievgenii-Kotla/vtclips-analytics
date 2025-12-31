@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from starlette.responses import PlainTextResponse, JSONResponse
+from fastapi.responses import Response
+import json
+
 
 import src.api.services as svc
 from src.api.db import get_connection
@@ -52,9 +55,13 @@ def overview(conn=Depends(get_connection)):
 def tab_2(conn=Depends(get_connection)):
     return svc.tab_2025(conn)
 
-@router.get("/tab3", response_class=JSONResponse)
+@router.get("/tab3")
 def tab_3(conn=Depends(get_connection)):
-    return svc.tab_3(conn)
+    result = svc.tab_3(conn)
+    return Response(
+        content=json.dumps(result),
+        media_type="application/json"
+    )
 
 @router.get("/tab4", response_class=JSONResponse)
 def tab_3(conn=Depends(get_connection)):
