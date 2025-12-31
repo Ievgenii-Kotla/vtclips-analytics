@@ -525,7 +525,7 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         """
 
         #  Requires self.search_map to be updated before each new use
-        pick = min if self.newer_first else max
+        pick = max if self.newer_first else min
         keyword_id, keyword_word, start, end = pick(self.search_map, key=lambda x: x[2])
 
         end = min(
