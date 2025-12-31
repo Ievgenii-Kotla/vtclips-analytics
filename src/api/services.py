@@ -247,8 +247,8 @@ def videos_per_talent_monthly(conn):
     wide = df.pivot(index="published_at_month", columns="talent_name", values="videos_num")
     wide = wide.replace([np.nan, np.inf, -np.inf], None)
 
-    #colors = mutate_fuwamoco_colors(colors)
-    #wide = mutate_fuwamoco_wide(wide)
+    colors = mutate_fuwamoco_colors(colors)
+    wide = mutate_fuwamoco_wide(wide)
 
     series = [
         {
@@ -262,14 +262,14 @@ def videos_per_talent_monthly(conn):
             "emphasis": {
                 "focus": "series"
             },
-            "data": [None if pd.isna(v) else int(v) for v in wide[talent]],
+            "data": wide[talent].tolist(),
             "itemStyle": {
                 "color": colors[talent]
             }
         }
         for talent in wide.columns
     ]
-    x_axis = [d.isoformat() for d in wide.index.tolist()]
+    x_axis = wide.index.tolist()
 
     chart_data = {
         "id": 3,
@@ -280,14 +280,6 @@ def videos_per_talent_monthly(conn):
             "series": series
         }
     }
-    try:
-        json.dumps(chart_data)
-    except (ValueError, TypeError) as e:
-        print(f"Error: {e}")
-        print(f"x_axis types: {[type(v) for v in x_axis]}")
-        for s in series:
-            print("*" * 50)
-            print(f"Series {s['name']} data types: {set(type(v) for v in s['data'])}")
     return chart_data
 
 def videos_group_share_monthly(conn):
