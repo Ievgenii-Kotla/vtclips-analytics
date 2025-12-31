@@ -262,7 +262,7 @@ def videos_per_talent_monthly(conn):
             "emphasis": {
                 "focus": "series"
             },
-            "data": wide[talent].tolist(),
+            "data": [None if pd.isna(v) else int(v) for v in wide[talent]],
             "itemStyle": {
                 "color": colors[talent]
             }
