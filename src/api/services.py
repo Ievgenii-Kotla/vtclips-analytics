@@ -280,6 +280,14 @@ def videos_per_talent_monthly(conn):
             "series": series
         }
     }
+    try:
+        json.dumps(chart_data)
+    except (ValueError, TypeError) as e:
+        print(f"Error: {e}")
+        print(f"x_axis types: {[type(v) for v in x_axis]}")
+        for s in series:
+            print("*" * 50)
+            print(f"Series {s['name']} data types: {set(type(v) for v in s['data'])}")
     return chart_data
 
 def videos_group_share_monthly(conn):
