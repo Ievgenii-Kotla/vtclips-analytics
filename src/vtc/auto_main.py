@@ -14,12 +14,14 @@ logger = logging.getLogger(__name__)
 
 def search(connection,
            priority: tuple[int, ...],
-           cooldown_factory: Callable[[], datetime.timedelta] = lambda: datetime.timedelta(days=2)):
+           cooldown_factory: Callable[[], datetime.timedelta] = lambda: datetime.timedelta(days=2),
+           newer_first: bool = False,):
     """Continuously fetch and save data available through the 'search' endpoint of YT API"""
 
     search_instance = db_yt_interface.SearchYTByKeyword(connection,
                                                         priority=priority,
-                                                        cooldown_period=cooldown_factory())
+                                                        cooldown_period=cooldown_factory(),
+                                                        newer_first=newer_first,)
     while True:
         search_instance.cooldown_period = cooldown_factory()
         # do subsearch if possible
@@ -74,7 +76,7 @@ def main():
         # up-to-date requests are guaranteed to have all data up to the start of the cooldown period
         tasks = [
             (search, {'priority': (0, 1), 'cooldown_factory': lambda: datetime.timedelta(days=2)}),
-            (search, {'priority': (99,), 'cooldown_factory': period_since_quarter_start}),
+            (search, {'priority': (99,), 'cooldown_factory': period_since_quarter_start, 'newer_first': True}),
             (request_playlist_items, {'only_talents': True, 'cooldown_factory': lambda: datetime.timedelta(days=1)}),
             (request_playlist_items, {'only_talents': False, 'cooldown_factory': period_since_month_start}),
         ]

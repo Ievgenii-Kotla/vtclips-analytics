@@ -264,6 +264,7 @@ class SearchYTByKeyword:
                  api_service: PrepareAPI = None,
                  search_layer: int = None,
                  cooldown_period: datetime.timedelta = datetime.timedelta(days=1),
+                 newer_first: bool = False,
                  ):
         # Command line arguments that where provided
         self.connection = connection
@@ -295,6 +296,7 @@ class SearchYTByKeyword:
         self.subsearch_map: List[Tuple[int, datetime.datetime, datetime.datetime, str, str,
         int, int, datetime.datetime | None, datetime.datetime | None, int, bool]] | None = None
         self.cooldown_period = cooldown_period
+        self.newer_first = newer_first
 
         # Default values for constant YT search parameters
         self.part = "snippet"
@@ -523,14 +525,8 @@ WHERE lower(nspu.non_searched) + interval '1 second' <> upper(nspu.non_searched)
         """
 
         #  Requires self.search_map to be updated before each new use
-        keyword_id, keyword_word, start, end = None, None, None, None
-        search_map = self.search_map
-        for new_keyword_id, new_keyword_word, new_start, new_end in search_map:
-            if start is None or new_start < start:
-                keyword_id = new_keyword_id
-                keyword_word = new_keyword_word
-                start = new_start
-                end = new_end
+        pick = min if self.newer_first else max
+        keyword_id, keyword_word, start, end = pick(self.search_map, key=lambda x: x[2])
 
         end = min(
             start + self.calculate_search_interval(keyword_word=keyword_word, published_after=start),
