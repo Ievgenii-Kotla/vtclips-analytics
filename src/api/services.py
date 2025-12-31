@@ -133,13 +133,13 @@ def tab_2025(conn):
 def tab_3(conn):
     charts = [
         videos_per_talent_monthly(conn),
-        videos_group_share_monthly(conn),
+
     ]
     return charts
 
-def tab_2(conn):
+def tab_4(conn):
     charts = [
-        sample_chart(),
+        videos_group_share_monthly(conn),
     ]
     return charts
 
