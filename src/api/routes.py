@@ -52,12 +52,13 @@ def overview(conn=Depends(get_connection)):
 def tab_2(conn=Depends(get_connection)):
     return svc.tab_2025(conn)
 
-@router.get("/tab3", response_class=JSONResponse)
+@router.get("/tab3")
 def tab_3(conn=Depends(get_connection)):
     result = svc.tab_3(conn)
-    import json
-    json.dumps(result)
-    return result
+    return Response(
+        content=json.dumps(result),
+        media_type="application/json"
+    )
 
 @router.get("/tab4", response_class=JSONResponse)
 def tab_3(conn=Depends(get_connection)):
