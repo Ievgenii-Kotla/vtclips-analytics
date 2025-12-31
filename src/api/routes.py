@@ -48,9 +48,13 @@ def sample_chart(conn=Depends(get_connection)):
 def overview(conn=Depends(get_connection)):
     return svc.overview(conn)
 
-@router.get("/tab2", response_class=JSONResponse)
+@router.get("/2025", response_class=JSONResponse)
 def tab_2(conn=Depends(get_connection)):
-    return svc.tab_2(conn)
+    return svc.tab_2025(conn)
+
+@router.get("/tab3", response_class=JSONResponse)
+def tab_2(conn=Depends(get_connection)):
+    return svc.tab_3(conn)
 
 @router.get("/misc", response_class=JSONResponse)
 def miscellaneous(conn=Depends(get_connection)):

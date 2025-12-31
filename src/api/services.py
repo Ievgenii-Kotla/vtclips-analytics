@@ -123,6 +123,20 @@ def overview(conn):
     ]
     return charts
 
+def tab_2025(conn):
+    charts = [
+        all_clips_daily(conn),
+        active_clippers_monthly(conn),
+    ]
+    return charts
+
+def tab_3(conn):
+    charts = [
+        videos_per_talent_monthly(conn),
+        videos_group_share_monthly(conn),
+    ]
+    return charts
+
 def tab_2(conn):
     charts = [
         sample_chart(),
