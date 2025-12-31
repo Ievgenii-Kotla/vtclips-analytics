@@ -703,7 +703,6 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
             logger.error("API key not found.")
         youtube = build('youtube', 'v3', developerKey=self.api_key)
 
-        # todo: add an exception for not enough quota left
         # Search for videos related to a specific query
         self.response = youtube.search().list(
             part="snippet",
