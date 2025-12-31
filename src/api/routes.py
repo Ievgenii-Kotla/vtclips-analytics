@@ -54,7 +54,10 @@ def tab_2(conn=Depends(get_connection)):
 
 @router.get("/tab3", response_class=JSONResponse)
 def tab_3(conn=Depends(get_connection)):
-    return svc.tab_3(conn)
+    result = svc.tab_3(conn)
+    import json
+    json.dumps(result)
+    return result
 
 @router.get("/tab4", response_class=JSONResponse)
 def tab_3(conn=Depends(get_connection)):
