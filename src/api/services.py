@@ -269,7 +269,7 @@ def videos_per_talent_monthly(conn):
         }
         for talent in wide.columns
     ]
-    x_axis = wide.index.tolist()
+    x_axis = [d.isoformat() for d in wide.index.tolist()]
 
     chart_data = {
         "id": 3,
