@@ -681,3 +681,29 @@ class DBCharts:
             ORDER BY published_at_month, order_id;
         """
         DBCharts.refresh_table(connection, table_name, query)
+
+    @staticmethod
+    def refresh_cum_count_clips_per_talent_daily(connection: psycopg2_connection):
+        table_name = "chart_cum_count_clips_per_talent_daily"
+        query = """
+            TRUNCATE TABLE chart_cum_count_clips_per_talent_daily;
+                
+            WITH prep AS (
+                SELECT 
+                    COUNT(*) AS vid_count, 
+                    t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name, 
+                    yv.published_at::date AS pub_date
+                FROM youtube_video yv
+                JOIN youtube_channel_talent yct USING (youtube_channel_id)
+                JOIN talent t USING (talent_id)
+                GROUP BY talent_name, pub_date
+                ORDER BY pub_date
+            )
+            INSERT INTO chart_cum_count_clips_per_talent_daily (vid_count, talent_name, pub_date)
+            SELECT 
+                SUM(vid_count) OVER (PARTITION BY talent_name ORDER BY pub_date) AS cum_sum,
+                talent_name,
+                pub_date
+            FROM prep;     
+        """
+        DBCharts.refresh_table(connection, table_name, query)
