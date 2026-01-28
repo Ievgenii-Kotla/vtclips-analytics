@@ -758,7 +758,8 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
                 quota_left = self.api_service.get_quota_left(api_key=self.api_key)
                 logger.error(f'Quota exceeded (prematurely). '
                             f'API key: {api_key_id}. '
-                            f'Quota left: {quota_left}')
+                            f'Quota left: {quota_left}'
+                            f'Error 403 : {err}')
                 self.api_service.temporary_disable_key(api_key_id)
             else:
                 logger.error(err)
