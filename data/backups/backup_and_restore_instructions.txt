@@ -1,20 +1,27 @@
 Restore:
+If you need to remove tables that are in old db, but not in the .dump:
+It DELETES everything! Make sure you have backup before doing so!
+dropdb -U postgres --force vtc
+createdb -U postgres vtc
+Restore data from preexisting .dump:
 pg_restore -U postgres -d vtc -c -F c -v /app/data/backups/vtc_full_backup_2025_10_02_0011.dump
+
 -c - clean objects before recreating
 -F c - custom format
 -v - verbose
 
-Go into the postgres-db container
-sudo docker exec -it postgres-db bash
 Back up:
+Go into the postgres-db container:
+sudo docker exec -it postgres-db bash
+Create a db dump:
 pg_dump -U postgres -h localhost -p 5432 -F c -v -f /app/data/backups/vtc_full_backup_2025_10_27_1822.dump vtc
 
 -f filename
-
 for pg_restore and for pg_dump -h and -p are used to run outside a container. (might require a password)
 
-Copy to local PC:
-scp /path/to/local/file username@vps_ip:/path/to/remote/directory/
-scp backup_and_restore_instructions.txt %username%@%vps_address%:/home/%username%/vtclips-analytics/data/backups
-To copy the other way around switch source and destination (duh)
+Copy backup file to a local PC:
+1. open cmd in the destination folder
+2. type:
+    scp %username%@%vps_adress%:/home/%username%/vtclips-analytics/data/backups/backup_name.dump .
+To copy the other way around switch source and destination
 
