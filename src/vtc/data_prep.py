@@ -610,7 +610,7 @@ class DBCharts:
                 date_trunc('month', yv.published_at)::date AS published_at_month, 
                 COUNT(*) AS videos_num, 
                 t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name,
-                dark_color AS color,
+                t.dark_color AS color,
                 t.talent_id AS order_id
             FROM youtube_video yv
             JOIN youtube_channel_talent yct USING (youtube_channel_id)
