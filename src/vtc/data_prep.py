@@ -522,6 +522,7 @@ class DBCharts:
         DBCharts.refresh_clips_per_channel_distribution(connection)
         DBCharts.refresh_videos_per_talent_monthly(connection)
         DBCharts.refresh_videos_group_share_monthly(connection)
+        DBCharts.refresh_cum_count_svideos_per_talent_daily(connection)
 
 
     @staticmethod
@@ -683,26 +684,30 @@ class DBCharts:
         DBCharts.refresh_table(connection, table_name, query)
 
     @staticmethod
-    def refresh_cum_count_clips_per_talent_daily(connection: psycopg2_connection):
+    def refresh_cum_count_svideos_per_talent_daily(connection: psycopg2_connection):
         table_name = "chart_cum_count_clips_per_talent_daily"
         query = """
-            TRUNCATE TABLE chart_cum_count_clips_per_talent_daily;
+            TRUNCATE TABLE chart_cum_count_svideos_per_talent_daily;
                 
             WITH prep AS (
                 SELECT 
                     COUNT(*) AS vid_count, 
-                    t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name, 
+                    t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name,
+                    t.debut_datetime AS debut_datetime,
+                    t.dark_color AS color,
                     yv.published_at::date AS pub_date
                 FROM youtube_video yv
                 JOIN youtube_channel_talent yct USING (youtube_channel_id)
                 JOIN talent t USING (talent_id)
-                GROUP BY talent_name, pub_date
+                GROUP BY talent_name, debut_datetime, color, pub_date
                 ORDER BY pub_date
             )
-            INSERT INTO chart_cum_count_clips_per_talent_daily (vid_count, talent_name, pub_date)
+            INSERT INTO chart_cum_count_svideos_per_talent_daily (cum_sum, talent_name, debut_datetime, color, pub_date)
             SELECT 
                 SUM(vid_count) OVER (PARTITION BY talent_name ORDER BY pub_date) AS cum_sum,
                 talent_name,
+                debut_datetime,
+                color,
                 pub_date
             FROM prep;     
         """

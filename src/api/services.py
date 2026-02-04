@@ -124,6 +124,7 @@ def overview(conn):
         active_clippers_monthly(conn),
         videos_per_talent_monthly(conn),
         videos_group_share_monthly(conn),
+        cum_count_svideos_per_talent_daily(conn),
     ]
     return charts
 
@@ -336,5 +337,71 @@ def videos_group_share_monthly(conn):
             "series": series
         }
     }
+    return chart_data
+
+def cum_count_svideos_per_talent_daily(conn):
+    query = """SELECT * FROM chart_cum_count_svideos_per_talent_daily ORDER BY pub_date"""
+    with conn.cursor() as cur:
+        cur.execute(query)
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+
+    df = pd.DataFrame(rows, columns=columns)
+    order = df.sort_values("debut_datetime")["talent_name"].unique()
+    df["talent_name"] = pd.Categorical(df["talent_name"], categories=order, ordered=True)
+    colors = (
+        df[["talent_name", "color"]]
+        .drop_duplicates()
+        .assign(color=lambda x: '#' + x["color"])
+        .set_index("talent_name")["color"]
+        .to_dict()
+    )
+    wide = df.pivot(index="pub_date", columns="talent_name", values="cum_sum")
+    all_dates = pd.date_range(df["pub_date"].min(), df["pub_date"].max(), freq="D").date
+    wide = wide.reindex(all_dates).ffill()
+    wide = wide.replace([np.nan, np.inf, -np.inf], None)
+
+    colors = mutate_fuwamoco_colors(colors)
+    wide = mutate_fuwamoco_wide(wide)
+
+    series = [
+        {
+            "name": talent,
+            "type": "line",
+            "showSymbol": False,
+            "emphasis": {
+                "focus": "series",
+                "label": {
+                    "show": True,
+                    "formatter": "{a}: {c}"
+                }
+            },
+            "blur": {
+                "label": {
+                    "show": False
+                }
+            },
+            "label": {
+                "show": False
+            },
+            "data": wide[talent].tolist(),
+            "itemStyle": {
+                "color": colors[talent]
+            },
+        }
+        for talent in wide.columns
+    ]
+    x_axis = [d.isoformat() for d in wide.index.tolist()]
+
+    chart_data = {
+        "id": 5,
+        "title": "cum count source videos per talent daily",
+        "builder": "cumCountSVideosPerTalentDaily",
+        "data": {
+            "xLabels": x_axis,
+            "series": series
+        }
+    }
+
     return chart_data
 
