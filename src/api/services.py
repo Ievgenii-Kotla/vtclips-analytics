@@ -14,6 +14,8 @@ BASE_DIR = Path(__file__).resolve().parent
 CHART_TEMPLATE_DIR = BASE_DIR / "static" / "chart_templates"
 
 def mutate_fuwamoco_colors(colors):
+    """Replace fuwamoco related hex-value colors with ECharts friendly gradient of the two colors"""
+
     fuwawa_key = [k for k in colors.keys() if "fuwawa" in k.lower()]
     mococo_key = [k for k in colors.keys() if "mococo" in k.lower()]
     if fuwawa_key and mococo_key:
@@ -42,6 +44,8 @@ def mutate_fuwamoco_colors(colors):
     return colors
 
 def mutate_fuwamoco_wide(wide):
+    """Remove 'mococo' column and rename fuwawa column"""
+
     fuwawa_key = [k for k in wide.columns if "fuwawa" in k.lower()]
     mococo_key = [k for k in wide.columns if "mococo" in k.lower()]
     wide = wide.rename(columns={fuwawa_key[0]: "FUWAMOCO"})
