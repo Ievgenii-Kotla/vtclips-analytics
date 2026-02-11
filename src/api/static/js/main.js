@@ -158,8 +158,9 @@ async function loadTab(tabId) {
   showSkeletons(2);
   try {
     const res = await fetch('/' + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
-    if (!res.ok) throw new Error('cards fetch failed');
-    const cardsData = await res.json();
+    if (!res.ok) throw new Error('tab fetch failed');
+    const tabData = await res.json();
+    const cardsData = tabData.charts;
     // expected: array of objects { id, title, chartOption }
     await renderCards(cardsData);
   } catch (err) {

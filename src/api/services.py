@@ -127,33 +127,37 @@ def overview(conn):
         cum_count_svideos_per_talent_daily(conn),
         cum_count_dvideos_per_talent_daily(conn),
     ]
-    return charts
+    tab_data = {"charts": charts}
+    return tab_data
 
 def tab_2025(conn):
     charts = [
         all_clips_daily(conn),
         active_clippers_monthly(conn),
     ]
-    return charts
+    tab_data = {"charts": charts}
+    return tab_data
 
 def tab_3(conn):
     charts = [
         videos_per_talent_monthly(conn),
-
     ]
-    return charts
+    tab_data = {"charts": charts}
+    return tab_data
 
-def tab_4(conn):
+def who_clips_my_oshi(conn):
     charts = [
         videos_group_share_monthly(conn),
     ]
-    return charts
+    tab_data = {"charts": charts}
+    return tab_data
 
 def miscellaneous(conn):
     charts = [
         clips_per_channel_distribution(conn),
     ]
-    return charts
+    tab_data = {"charts": charts}
+    return tab_data
 
 def sample_chart():
   path = CHART_TEMPLATE_DIR / "sample_chart1.json"
