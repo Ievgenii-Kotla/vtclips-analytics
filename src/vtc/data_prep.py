@@ -686,7 +686,7 @@ class DBCharts:
 
     @staticmethod
     def refresh_cum_count_svideos_per_talent_daily(connection: psycopg2_connection):
-        table_name = "chart_cum_count_clips_per_talent_daily"
+        table_name = "chart_cum_count_svideos_per_talent_daily"
         query = """
             TRUNCATE TABLE chart_cum_count_svideos_per_talent_daily;
                 
