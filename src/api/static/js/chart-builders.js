@@ -269,7 +269,7 @@ export const chartBuilders = {
         "type": "shadow"
       },
         "position": function (point, params, dom, rect, size) {
-        return ['0%', '-20%'];  // center horizontally, 10% from top
+        return ['0%', '-20%'];
       },
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
@@ -277,7 +277,7 @@ export const chartBuilders = {
         let result = 'Date (YYYY-MM-DD): ' + params[0].axisValueLabel + '<br/>';
         params.forEach(item => {
           if (typeof item.value === 'number') {
-            result += '<div style="display:flex; justify-content:space-between; width:240px">'
+            result += '<div style="display:flex; justify-content:space-between; width:250px">'
               + '<span>' + item.marker + ' ' + item.seriesName + '</span>'
               + '<b style="margin-left:15px">' + item.value + '</b></div>';
           }
