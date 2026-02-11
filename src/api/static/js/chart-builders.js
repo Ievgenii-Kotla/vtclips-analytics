@@ -216,6 +216,51 @@ export const chartBuilders = {
   }),
   cumCountSVideosPerTalentDaily: (chartData) => ({
     "title": {
+      "text": "Original Videos Per Talent Cumulative"
+    },
+    "tooltip": {
+      "trigger": "axis",
+      "axisPointer": {
+        "type": "shadow"
+      },
+        "position": function (point, params, dom, rect, size) {
+        return ['0%', '-20%'];
+      },
+      "formatter": function(params) {
+        params.sort((a, b) => b.value - a.value);
+
+        let result = 'Date (YYYY-MM-DD): ' + params[0].axisValueLabel + '<br/>';
+        params.forEach(item => {
+          if (typeof item.value === 'number') {
+            result += '<div style="display:flex; justify-content:space-between; width:250px">'
+              + '<span>' + item.marker + ' ' + item.seriesName + '</span>'
+              + '<b style="margin-left:15px">' + item.value + '</b></div>';
+          }
+        });
+        return result;
+      }
+    },
+    "legend": {},
+    "xAxis": {
+      "type": 'category',
+      "data": chartData.xLabels
+    },
+    "yAxis": {
+      "type": 'value'
+    },
+    "dataZoom": [
+      {
+        "type": "inside",
+        "xAxisIndex": 0,
+        "moveOnMouseMove": true,
+        "moveOnMouseWheel": false,
+        "minSpan": 1
+      }
+    ],
+    "series": chartData.series
+  }),
+  cumCountDVideosPerTalentDaily: (chartData) => ({
+    "title": {
       "text": "Clips Per Talent Cumulative"
     },
     "tooltip": {
