@@ -19,8 +19,8 @@ function clearCharts() {
 
 (function(){
 const ENDPOINTS = {
-  header: '/header-info',
-  cards: '/overview'  // GET -> [ { id, title, chartOption } , ... ]
+  header: '/api/header-info',
+  cards: '/api/tab/overview'  // GET -> [ { id, title, chartOption } , ... ]
 };
 
 // === Header info fetch ===
@@ -154,6 +154,7 @@ async function loadTab(tabId) {
   currentFetchController = new AbortController();
   const signal = currentFetchController.signal;
 
+  document.getElementById('controls-area').innerHTML = '';
   clearCharts();
   showSkeletons(2);
   try {
@@ -161,6 +162,14 @@ async function loadTab(tabId) {
     if (!res.ok) throw new Error('tab fetch failed');
     const tabData = await res.json();
     const cardsData = tabData.charts;
+
+    if (tabData?.selector?.options?.length > 0) {
+      document.getElementById('controls-area').innerHTML = `
+        <select class="select select-bordered" id="mySelect">
+          ${tabData.selector.options.map(opt => `<option>${opt}</option>`).join("\n")}
+        </select>
+      `;
+    }
     // expected: array of objects { id, title, chartOption }
     await renderCards(cardsData);
   } catch (err) {
@@ -201,6 +210,13 @@ document.getElementById("theme-toggle").addEventListener("change", (e) => {
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
   window.__dashboard.loadTab(currentTab);
+});
+
+window.addEventListener('popstate', () => {
+  const tabId = window.location.pathname.slice(1);
+  const btn = tabsWrapper.querySelector(`[data-tab="${tabId}"]`);
+  setActiveTab(btn)
+  loadTab(tabId);
 });
 
 // expose some functions for debug in console (optional)

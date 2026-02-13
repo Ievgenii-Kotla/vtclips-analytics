@@ -135,7 +135,15 @@ def tab_2025(conn):
         all_clips_daily(conn),
         active_clippers_monthly(conn),
     ]
-    tab_data = {"charts": charts}
+    tab_data = {
+        "charts": charts,
+        "selector": {
+            "options": [
+                "kronii",
+                "bob"
+            ]
+        }
+    }
     return tab_data
 
 def tab_3(conn):
