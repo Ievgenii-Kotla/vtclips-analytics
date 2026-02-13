@@ -158,7 +158,7 @@ async function loadTab(tabId) {
   clearCharts();
   showSkeletons(2);
   try {
-    const res = await fetch('/' + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
+    const res = await fetch('/api/tab/' + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
     if (!res.ok) throw new Error('tab fetch failed');
     const tabData = await res.json();
     const cardsData = tabData.charts;
@@ -191,17 +191,23 @@ tabsWrapper.addEventListener('click', (ev) => {
   const tabId = btn.getAttribute('data-tab');
   if (!tabId || tabId === currentTab) return;
   currentTab = tabId;
+  window.history.pushState({}, '', '/' + tabId);
   setActiveTab(btn);
   loadTab(tabId);
 });
 
-// load default tab on page load
 document.addEventListener('DOMContentLoaded', () => {
-  // set Tab 1 active (first button)
-  const firstBtn = tabsWrapper.querySelector('[data-tab]');
-  if (firstBtn) setActiveTab(firstBtn);
-  // initial load for default tab (tab1)
-  loadTab(currentTab);
+  const tabId = window.location.pathname.slice(1) || 'overview';
+  const btn = tabsWrapper.querySelector(`[data-tab="${tabId}"]`);
+  if (btn) {
+    setActiveTab(btn);
+    loadTab(tabId);
+  } else {
+    window.history.replaceState({}, '', '/overview');
+    const defaultBtn = tabsWrapper.querySelector(`[data-tab="overview"]`);
+    setActiveTab(defaultBtn);
+    loadTab('overview');
+  }
 });
 
 // Toggle logic

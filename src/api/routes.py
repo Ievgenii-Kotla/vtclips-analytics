@@ -11,8 +11,8 @@ from src.api.db import get_connection
 router = APIRouter()
 
 @router.get("/")
-def root():
-    return "Nothing here yet..."
+def root(request: Request):
+    return svc.main(request)
 
 @router.get("/summary")
 def summary(conn=Depends(get_connection)):
@@ -35,11 +35,7 @@ def jinja(request: Request):
 def daisy(request: Request):
     return svc.daisy(request)
 
-@router.get("/main")
-def charts(request: Request):
-    return svc.main(request)
-
-@router.get("/header-info")
+@router.get("/api/header-info")
 def header_info():
     return "399 999 clips in the database"
 
@@ -47,15 +43,15 @@ def header_info():
 def sample_chart(conn=Depends(get_connection)):
     return [svc.sample_chart(), ]
 
-@router.get("/overview", response_class=JSONResponse)
+@router.get("/api/tab/overview", response_class=JSONResponse)
 def overview(conn=Depends(get_connection)):
     return svc.overview(conn)
 
-@router.get("/2025", response_class=JSONResponse)
+@router.get("/api/tab/2025", response_class=JSONResponse)
 def tab_2(conn=Depends(get_connection)):
     return svc.tab_2025(conn)
 
-@router.get("/tab3")
+@router.get("/api/tab/tab3")
 def tab_3(conn=Depends(get_connection)):
     result = svc.tab_3(conn)
     return Response(
@@ -63,10 +59,14 @@ def tab_3(conn=Depends(get_connection)):
         media_type="application/json"
     )
 
-@router.get("/tab4", response_class=JSONResponse)
-def tab_3(conn=Depends(get_connection)):
-    return svc.tab_4(conn)
+@router.get("api/tab/who-clips-my-oshi", response_class=JSONResponse)
+def who_clips_my_oshi(conn=Depends(get_connection)):
+    return svc.who_clips_my_oshi(conn)
 
-@router.get("/misc", response_class=JSONResponse)
+@router.get("api/tab/misc", response_class=JSONResponse)
 def miscellaneous(conn=Depends(get_connection)):
     return svc.miscellaneous(conn)
+
+@router.get("/{full_path:path}")
+async def serve_page(request: Request, full_path: str):
+    return svc.main(request)
