@@ -161,8 +161,9 @@ class PrepareAPI:
             if total_actions_available > 0:
                 break
             else:
-                logger.info(f"No available quota for {purpose} key.\n")
-                raise NoQuotaError(f"No available quota for {purpose} key.")
+                message = f"No available quota for {purpose} key.\n"
+                logger.info(message)
+                raise NoQuotaError(message)
 
         if random_key:
             key_id = choices(list(valid_quotas.keys()),
