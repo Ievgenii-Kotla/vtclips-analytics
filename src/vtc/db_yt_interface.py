@@ -1649,6 +1649,7 @@ class Channels:
         # data for saving
 
     def update_channels_info(self, channel_count:int=1, delay_sec:float=0) -> int:
+        """Find channels that need info update and update it."""
 
         self._set_channels_to_update()
         logger.info(f"{len(self._channels)} are queued for an info update.")
