@@ -97,6 +97,20 @@ def playlist_items():
     print(json.dumps(response, indent=4))
 
 
+def channels():
+    api_service = db_yt_interface.PrepareAPI(filepath='../state/api_quota_state.json')
+    api_key = api_service.get_api_key(delay=False, purpose=db_yt_interface.PrepareAPI.CHANNELS)
+    youtube = build('youtube', 'v3', developerKey=api_key)
+    response = youtube.channels().list(
+        # part= 'brandingSettings,contentDetails,id,localizations,snippet,statistics,status,topicDetails',
+        part='snippet,statistics',
+        id = 'UCUY4NGgaom5tDxhe4b1YX0g'
+    ).execute()
+    api_service.change_quota(api_key, -1)
+    quota_left = api_service.get_quota_left(api_key)
+    print("Quota left: ", quota_left)
+    print(json.dumps(response, indent=4))
+
 def main():
     if 1:
         search()
@@ -108,6 +122,8 @@ def main():
         search_channel_videos()
     if 0:
         playlist_items()
+    if 1:
+        channels()
 
 
 if __name__ == '__main__':
