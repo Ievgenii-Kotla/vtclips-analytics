@@ -1625,7 +1625,225 @@ class PlaylistItems:
                 self.caught_up = False
 
 
-class SearchYTByChannel:
-    # TBD
-    pass
+class Channels:
+    """Working with YT Data API 'channels' endpoint."""
+    def __init__(self,
+                 connection,
+                 api_service: PrepareAPI | None = None,
+                 only_unupdated: bool = False,
+                 cooldown_period: datetime.timedelta = datetime.timedelta(days=30)):
 
+        self._connection = connection
+        self._api_service= api_service or PrepareAPI()
+        self._api_key: str | None = None
+        self._response: dict | None = None
+        self._datetime_now: datetime.datetime | None = None
+        # data for choosing a channel
+        self._channels: list[str] | None = None
+        self._channel_id: str | None = None
+        self._cooldown_period = cooldown_period
+        self._only_unupdated = only_unupdated
+        # data for saving
+
+    # todo: add 60 second pauses on http errors as in playlist request
+    def update_channels_info(self, channel_count:int=1, delay_sec:float=0) -> int:
+
+        self._set_channels_to_update()
+        logger.info(f"{len(self._channels)} are queued for an info update.")
+        channel_count = min(channel_count, len(self._channels))
+        wait_seconds = 60
+
+        for i in range(channel_count):
+            time.sleep(delay_sec)
+            try:
+                self._prepare_request()
+                self._request()
+                self._api_service.change_quota(self._api_key, -1)
+                self._verify_response()
+                self._save()
+            except VerificationError:
+                continue
+            except NoQuotaError:
+                logger.info(f"{i} channels received an info update.\n")
+                raise
+            except HttpError as err:
+                if err.resp.status == 403:
+                    api_key_id = self._api_service.get_api_key_id(api_key=self._api_key)
+                    quota_left = self._api_service.get_quota_left(api_key=self._api_key)
+                    logger.error(f'Quota exceeded (prematurely). '
+                                 f'API key: {api_key_id}. '
+                                 f'Quota left: {quota_left}')
+                    self._api_service.temporary_disable_key(api_key_id)
+                    return True
+                elif err.resp.status == 500:
+                    logger.warning(f'YouTube server error (500). Retry in {wait_seconds} seconds.')
+                    time.sleep(wait_seconds)
+                    return True
+                elif err.resp.status == 503:
+                    logger.warning(f'YouTube server error (503). Retry in {wait_seconds} seconds.')
+                    time.sleep(wait_seconds)
+                    return True
+                else:
+                    logger.error(err)
+                    time.sleep(wait_seconds)
+                    return True
+            except Exception as e:
+                logger.error(f"Unexpected error during channels info update. Only {i} were updated.\n{e}")
+                raise
+
+
+        logger.info(f"{channel_count} channels received an info update.")
+        quota_left = self._api_service.get_quota_left(self._api_key)
+        logger.info(f"Quota left: {quota_left}")
+        return channel_count
+
+    def _set_channels_to_update(self):
+        """Set a list of channels that have to have their info to be fully updated."""
+        cooldown_clause = "" if self._only_unupdated else "OR info_fully_updated_at < CURRENT_TIMESTAMP - %(cooldown)s"
+
+        query = f"""
+        SELECT youtube_channel_id
+        FROM youtube_channel 
+        WHERE 
+            info_accessible = TRUE 
+            AND (
+                info_fully_updated_at IS NULL
+                {cooldown_clause}
+            )
+        ORDER BY 
+            info_fully_updated_at ASC NULLS FIRST,
+            channel_info_last_updated ASC,
+            youtube_channel_id;
+        """
+        values = {}
+        if not self._only_unupdated:
+            values['cooldown'] = self._cooldown_period
+
+        with self._connection.cursor() as cur:
+            cur.execute(query, values)
+            rows = cur.fetchall()
+
+        self._channels = [row[0] for row in rows]
+
+    def _prepare_request(self):
+        self._api_key = self._api_service.get_api_key(threshold=1, delay=False, purpose=PrepareAPI.CHANNELS)
+        self._channel_id = self._channels.pop(0)
+
+    def _request(self):
+        youtube = build('youtube', 'v3', developerKey=self._api_key)
+        self._response = youtube.channels().list(
+            part='snippet,statistics',
+            id=self._channel_id,
+        ).execute()
+
+    def _verify_response(self):
+        # verify there is a channel
+        if "items" not in self._response:
+            logging.warning(f"Channel request for {self._channel_id} got no matches")
+            self._self_set_channel_info_unaccessible()
+            raise VerificationError
+
+        # verify channels id
+        if self._response["items"][0]["id"] != self._channel_id:
+            logging.error("Received info for the wrong channel in the response")
+            raise Exception(f'Channel id mismatch: asking for {self._channel_id}, got:\n{self._response}')
+
+        # verify there is more than 1 channel
+        if len(self._response["items"]) > 1:
+            logging.warning(f"Channel request for {self._channel_id} got multiple items.\n"
+                            f"The first one will be used, others ignored. Data: \n{self._response}")
+
+    def _self_set_channel_info_unaccessible(self):
+        query = """
+        UPDATE youtube_channel
+        SET info_accessible = FALSE
+        WHERE youtube_channel_id = %(channel_id)s;
+        """
+        values = {"channel_id": self._channel_id}
+        with self._connection.cursor() as cur:
+            cur.execute(query, values)
+            self._connection.commit()
+        logging.warning(f"Set info_accessible = FALSE for {self._channel_id}.")
+
+
+    def _save(self):
+        self._update_datetime_now()
+        try:
+            self._save_youtube_channel()
+            self._save_youtube_channel_stats()
+        except DatabaseError as e:
+            self._connection.rollback()
+            logger.error(f"A DB error occurred while saving channel info: {e} \nTransaction rolled back. ")
+            logger.error(traceback.format_exc())
+            time.sleep(60)
+        except Exception as e:
+            self._connection.rollback()
+            logger.error(f"An error occurred while saving channel info: {e} \nTransaction rolled back. ")
+            logger.error(traceback.format_exc())
+            raise
+        else:
+            self._connection.commit()
+            logger.info("Changes committed. (Channels request)")
+
+
+    def _save_youtube_channel(self):
+        """Save fuller channel info to the 'youtube_channel' table. """
+
+        query = """
+        UPDATE youtube_channel
+        SET 
+            title = %(title)s,
+            description = %(description)s,
+            custom_url = %(custom_url)s,
+            published_at = %(published_at)s,
+            thumbnail_default = %(thumbnail_default)s,
+            info_fully_updated_at = %(info_fully_updated_at)s
+        WHERE youtube_channel_id = %(youtube_channel_id)s;
+        """
+
+        values = {
+            'title': Helper.normalize(self._response["items"][0]["snippet"]["title"]),
+            'description': Helper.normalize(self._response["items"][0]["snippet"]["description"]),
+            'custom_url': self._response["items"][0]["snippet"]["customUrl"],
+            'published_at': self._response["items"][0]["snippet"]["publishedAt"],
+            'thumbnail_default': self._response["items"][0]["snippet"]["thumbnails"]["medium"]["url"],
+            'info_fully_updated_at': self._datetime_now,
+            'youtube_channel_id': self._response["items"][0]["id"],
+        }
+
+        with self._connection.cursor() as cur:
+            cur.execute(query, values)
+
+    def _save_youtube_channel_stats(self):
+        """Save channel stats to the 'youtube_channel_stats' table. """
+
+        query = """
+        INSERT INTO youtube_channel_stats ( 
+            youtube_channel_id,
+            view_count,
+            subscriber_count,
+            video_count,
+            gathered_at
+        )
+        VALUES (
+            %(youtube_channel_id)s,
+            %(view_count)s,
+            %(subscriber_count)s,
+            %(video_count)s,
+            %(gathered_at)s
+        );
+        """
+
+        values = {
+            'youtube_channel_id': self._response["items"][0]["id"],
+            'view_count': self._response["items"][0]["statistics"]["viewCount"],
+            'subscriber_count': self._response["items"][0]["statistics"]["subscriberCount"],
+            'video_count': self._response["items"][0]["statistics"]["videoCount"],
+            'gathered_at': self._datetime_now,
+        }
+
+        with self._connection.cursor() as cur:
+            cur.execute(query, values)
+
+    def _update_datetime_now(self):
+        self._datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
