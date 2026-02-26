@@ -17,7 +17,7 @@ from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
-from vtc_exceptions import NoQuotaError
+from vtc_exceptions import NoQuotaError, VerificationError
 
 # create the logger
 logger = logging.getLogger(__name__)
