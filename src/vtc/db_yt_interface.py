@@ -1647,7 +1647,6 @@ class Channels:
         self._only_unupdated = only_unupdated
         # data for saving
 
-    # todo: add 60 second pauses on http errors as in playlist request
     def update_channels_info(self, channel_count:int=1, delay_sec:float=0) -> int:
 
         self._set_channels_to_update()
