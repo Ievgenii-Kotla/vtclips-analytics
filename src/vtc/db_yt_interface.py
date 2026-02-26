@@ -99,7 +99,7 @@ class PrepareAPI:
         - available quota points
         - quota points that are reserved
         - purpose of the key
-        - coefficient (limits percentage wise the amount of quota points that can be used)
+        - coefficient (limits percentage wise the quantity of quota points that can be used)
         General:
         - last reset time
         - last update time
@@ -143,7 +143,7 @@ class PrepareAPI:
         Parameters:
             threshold (int): quota price of the action (cuts off keys with not enough quota)
             delay (bool): delay on/off
-            random_key (bool): give random key on/off. Off - give key with the least amount of quota
+            random_key (bool): give random key on/off. Off - give key with the least quota points
             purpose (str): selects keys that are dedicated for this purpose
         """
 
@@ -912,6 +912,7 @@ ORDER BY s1.searched_at;
 
     def save_youtube_channel(self):
         """ Save new information to the 'youtube_channel' table. """
+
         youtube_channel_query = """
         INSERT INTO youtube_channel (
             youtube_channel_id,
@@ -1098,7 +1099,6 @@ ORDER BY s1.searched_at;
             self.save_search_yt()
             self.save_keyword_search_yt()
             self.save_search_yt_youtube_video()
-
         except Exception as e:
             traceback.print_exc()
             self.connection.rollback()
