@@ -1768,7 +1768,6 @@ class Channels:
             self._connection.commit()
         logging.warning(f"Set info_accessible = FALSE for {self._channel_id}.")
 
-
     def _save(self):
         self._update_datetime_now()
         try:
@@ -1787,7 +1786,6 @@ class Channels:
         else:
             self._connection.commit()
             logger.info("Changes committed. (Channels request)")
-
 
     def _save_youtube_channel(self):
         """Save fuller channel info to the 'youtube_channel' table. """
