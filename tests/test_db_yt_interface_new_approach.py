@@ -795,3 +795,193 @@ class TestPlaylistItems(unittest.TestCase):
 
         self.assertEqual(1, len(rows))
         self.assertEqual((1, 1), rows[0])
+
+class TestChannelsSave(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = db_helpers.connect_to_test_db()
+        with cls.conn.cursor() as cur:
+            cur.execute("SET TIME ZONE UTC")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
+
+    def setUp(self):
+        db_helpers.truncate_all(self.conn)
+        db_helpers.insert_youtube_channel(self.conn, title="Nerrev_default", youtube_channel_id="UCUY4NGgaom5tDxhe4b1YX0g")
+        self.channels_instance = db_yt_interface.Channels(
+            connection=self.conn,
+            api_service=db_yt_interface.PrepareAPI(filepath='../state/test_api_quota_state.json'),
+            cooldown_period=datetime.timedelta(days=0))
+        # set up the test data
+        self.channels_instance._datetime_now = db_helpers.DEFAULT_TIME
+        self.channels_instance._response = {
+            "kind": "youtube#channelListResponse",
+            "etag": "VxQX18gaJyCDJXoYUzxGkvdW7dw",
+            "pageInfo": {
+                "totalResults": 1,
+                "resultsPerPage": 5
+            },
+            "items": [
+                {
+                    "kind": "youtube#channel",
+                    "etag": "9MiczvWNjXDqRV9Wdjh9taIxE4g",
+                    "id": "UCUY4NGgaom5tDxhe4b1YX0g",
+                    "snippet": {
+                        "title": "Nerrev",
+                        "description": "I LOVE KRONII\nHello",
+                        "customUrl": "@nerrev",
+                        "publishedAt": "2021-08-22T20:51:08.287011Z",
+                        "thumbnails": {
+                            "default": {
+                                "url": "https://yt3.ggpht.com/M_QeXObUy0EF5VsNqxVs8NIRw8ZgqDdPxBUlOcQpcm5u4O6uqorUoTINtSjT73uTmNFOjHB9=s88-c-k-c0x00ffffff-no-rj",
+                                "width": 88,
+                                "height": 88
+                            },
+                            "medium": {
+                                "url": "https://yt3.ggpht.com/M_QeXObUy0EF5VsNqxVs8NIRw8ZgqDdPxBUlOcQpcm5u4O6uqorUoTINtSjT73uTmNFOjHB9=s240-c-k-c0x00ffffff-no-rj",
+                                "width": 240,
+                                "height": 240
+                            },
+                            "high": {
+                                "url": "https://yt3.ggpht.com/M_QeXObUy0EF5VsNqxVs8NIRw8ZgqDdPxBUlOcQpcm5u4O6uqorUoTINtSjT73uTmNFOjHB9=s800-c-k-c0x00ffffff-no-rj",
+                                "width": 800,
+                                "height": 800
+                            }
+                        },
+                        "localized": {
+                            "title": "Nerrev",
+                            "description": "I LOVE KRONII\nHello , I'm new to this\nBut I love Ouro Kronii so much I start doing what I'm doing\nMy goal is to show the world how amazing Ouro Kronii is!\nI upload Kronii clips almost every day, please do consider to subscribe so you won't miss the new uploads!\nAny kind of support is very much appreciated, thank you!\n"
+                        }
+                    },
+                    "statistics": {
+                        "viewCount": "91885782",
+                        "subscriberCount": "95500",
+                        "hiddenSubscriberCount": False,
+                        "videoCount": "1634"
+                    }
+                }
+            ]
+        }
+
+    def test__save_youtube_channel(self):
+        self.channels_instance._save_youtube_channel()
+        self.conn.commit()
+
+        with self.conn.cursor() as cur:
+            cur.execute("""
+            SELECT 
+                youtube_channel_id, 
+                title, 
+                description, 
+                custom_url, 
+                published_at, 
+                thumbnail_default, 
+                info_fully_updated_at 
+            FROM youtube_channel
+            """)
+            rows = cur.fetchall()
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual(
+            (
+                "UCUY4NGgaom5tDxhe4b1YX0g",
+                "Nerrev",
+                "I LOVE KRONII\nHello",
+                "@nerrev",
+                datetime.datetime(2021, 8, 22, 20, 51, 8, 287011, tzinfo=datetime.timezone.utc),
+                "https://yt3.ggpht.com/M_QeXObUy0EF5VsNqxVs8NIRw8ZgqDdPxBUlOcQpcm5u4O6uqorUoTINtSjT73uTmNFOjHB9=s240-c-k-c0x00ffffff-no-rj",
+                db_helpers.DEFAULT_TIME
+            ),
+            rows[0]
+        )
+
+    def test__save_youtube_channel_stats(self):
+        self.channels_instance._save_youtube_channel_stats()
+        self.conn.commit()
+
+        with self.conn.cursor() as cur:
+            cur.execute("""
+            SELECT 
+                youtube_channel_id,
+                view_count, 
+                subscriber_count,
+                video_count,
+                gathered_at
+            FROM youtube_channel_stats
+            """)
+            rows = cur.fetchall()
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual(
+            (
+                "UCUY4NGgaom5tDxhe4b1YX0g",
+                91885782,
+                95500,
+                1634,
+                db_helpers.DEFAULT_TIME
+            ),
+            rows[0]
+        )
+
+class TestChannelsSelectChannels(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.conn = db_helpers.connect_to_test_db()
+        with cls.conn.cursor() as cur:
+            cur.execute("SET TIME ZONE UTC")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
+
+    def setUp(self):
+        db_helpers.truncate_all(self.conn)
+        db_helpers.insert_youtube_channel(
+            self.conn,
+            title="never_updated",
+            youtube_channel_id="id1",
+        )
+        db_helpers.insert_youtube_channel(
+            self.conn,
+            title="updated",
+            youtube_channel_id="id2",
+            info_fully_updated_at=db_helpers.DEFAULT_TIME_NEW,
+        )
+        self.conn.commit()
+
+    def test__set_channels_to_update_only_unupdated(self):
+        self.channels_instance = db_yt_interface.Channels(
+            connection=self.conn,
+            api_service=db_yt_interface.PrepareAPI(filepath='../state/test_api_quota_state.json'),
+            only_unupdated=True,
+            cooldown_period=datetime.timedelta(days=0)
+        )
+        self.channels_instance._set_channels_to_update()
+
+        self.assertEqual(1, len(self.channels_instance._channels), "Wrong number of selected channels")
+        self.assertEqual("id1",
+                         self.channels_instance._channels[0],
+                         "Wrong channel id selected for the update.")
+
+
+
+    def test__set_channels_to_update_all(self):
+        self.channels_instance = db_yt_interface.Channels(
+            connection=self.conn,
+            api_service=db_yt_interface.PrepareAPI(filepath='../state/test_api_quota_state.json'),
+            only_unupdated=False,
+            cooldown_period=datetime.timedelta(days=0)
+        )
+        self.channels_instance._set_channels_to_update()
+
+        self.assertEqual(2, len(self.channels_instance._channels), "Wrong number of selected channels")
+        self.assertIn("id1",
+                      self.channels_instance._channels,
+                      "Id should be selected for the update, but is not")
+        self.assertIn("id2",
+                      self.channels_instance._channels,
+                      "Id should be selected for the update, but is not")
+
+
