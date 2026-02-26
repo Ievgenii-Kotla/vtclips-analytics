@@ -49,6 +49,15 @@ def request_playlist_items(connection,
         if not playlist_items.get_new_playlist_items(delay_sec=0.5):
             break
 
+def update_channels_info(connection,
+                         channel_count:int=10000,
+                         delay_sec:float=0.5,
+                         only_unupdated:bool=True,):
+    """Update full channel info for channels"""
+
+    channels = db_yt_interface.Channels(connection, only_unupdated=only_unupdated)
+    channels.update_channels_info(channel_count=channel_count, delay_sec=delay_sec)
+
 def map_talents_videos(connection):
     """Continuously fetch and save data available through the 'playlist_items' endpoint of YT API"""
 
@@ -79,6 +88,7 @@ def main():
             (search, {'priority': (99,), 'cooldown_factory': period_since_quarter_start, 'newer_first': True}),
             (request_playlist_items, {'only_talents': True, 'cooldown_factory': lambda: datetime.timedelta(days=1)}),
             (request_playlist_items, {'only_talents': False, 'cooldown_factory': period_since_month_start}),
+            (update_channels_info, {}),
         ]
         tasks_daily = [
             (data_prep.DBCalculations.map_keywords_all, {}),
