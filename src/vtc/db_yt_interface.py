@@ -1693,10 +1693,10 @@ class Channels:
                 logger.error(f"Unexpected error during channels info update. Only {i} were updated.\n{e}")
                 raise
 
-
         logger.info(f"{channel_count} channels received an info update.")
-        quota_left = self._api_service.get_quota_left(self._api_key)
-        logger.info(f"Quota left: {quota_left}")
+        if self._api_key:
+            quota_left = self._api_service.get_quota_left(self._api_key)
+            logger.info(f"Quota left for current key: {quota_left}")
         return channel_count
 
     def _set_channels_to_update(self):
