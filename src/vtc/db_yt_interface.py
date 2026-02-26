@@ -1708,7 +1708,7 @@ class Channels:
         FROM youtube_channel 
         WHERE 
             info_accessible IS TRUE 
-            AND is_other IS FALSE
+            AND (is_other IS FALSE OR is_other IS NULL)
             AND (
                 info_fully_updated_at IS NULL
                 {cooldown_clause}
