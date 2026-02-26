@@ -37,6 +37,7 @@ class PrepareAPI:
     SEARCH = 'search'
     PLAYLIST_ITEMS = 'playlist_items'
     VIDEO_LIST = 'video_list'
+    CHANNELS = 'channels'
 
     @staticmethod
     def current_time_utc():
