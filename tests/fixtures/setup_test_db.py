@@ -768,54 +768,66 @@ def _populate_all_for_search_interval(cursor):
         query = """
         INSERT INTO keyword (
         keyword_word,
-        priority
+        priority,
+        date_since_relevant
         )
         VALUES (
         %(keyword_word)s,
-        %(priority)s
+        %(priority)s,
+        %(date_since_relevant)s
         )
         RETURNING keyword_id;
         """
         dataset = [
             {
                 'keyword_word': 'keyword_1',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2026-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_2',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_3',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_4',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_5',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_6',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_7',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_8',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_9',
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
             {
                 'keyword_word': 'keyword_10',  # no searches
-                'priority': 1
+                'priority': 1,
+                'date_since_relevant':'2000-02-24 16:16:22.025474+02'
             },
         ]
         ids = []
