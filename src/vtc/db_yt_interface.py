@@ -923,7 +923,8 @@ ORDER BY s1.searched_at;
             playlist_id
         )
         VALUES %s
-        ON CONFLICT (youtube_channel_id) DO NOTHING
+        ON CONFLICT (youtube_channel_id) DO UPDATE SET
+            is_other = FALSE
         RETURNING youtube_channel_id;
         """
 
