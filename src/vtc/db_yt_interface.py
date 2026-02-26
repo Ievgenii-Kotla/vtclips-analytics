@@ -1743,7 +1743,7 @@ class Channels:
     def _verify_response(self):
         # verify there is a channel
         if "items" not in self._response:
-            logging.warning(f"Channel request for {self._channel_id} got no matches")
+            logging.warning(f"Channel request for {self._channel_id} got no matches on YT")
             self._self_set_channel_info_unaccessible()
             raise VerificationError
 
@@ -1777,6 +1777,7 @@ class Channels:
         except DatabaseError as e:
             self._connection.rollback()
             logger.error(f"A DB error occurred while saving channel info: {e} \nTransaction rolled back. ")
+            logger.error(f"Channel id: {self._channel_id}")
             logger.error(traceback.format_exc())
             time.sleep(60)
         except Exception as e:
