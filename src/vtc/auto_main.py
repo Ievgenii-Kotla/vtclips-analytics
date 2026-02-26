@@ -50,7 +50,7 @@ def request_playlist_items(connection,
             break
 
 def update_channels_info(connection,
-                         channel_count:int=10000,
+                         channel_count:int=1000,
                          delay_sec:float=0.5,
                          only_unupdated:bool=True,):
     """Update full channel info for channels"""
