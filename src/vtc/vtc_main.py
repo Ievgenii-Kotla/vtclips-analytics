@@ -8,7 +8,7 @@ import os
 
 import psycopg2
 
-import db_yt_interface, vtc_logging
+from src.vtc import db_yt_interface, vtc_logging
 
 
 def search_yt_by_keyword(connection, args: dict):
