@@ -9,6 +9,8 @@ import datetime
 import os
 
 DEFAULT_TIME = datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+DEFAULT_TIME_NEW = datetime.datetime(2026, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+DEFAULT_TIME_OLD = datetime.datetime(2000, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
 def connect_to_test_db():
     database_name = os.environ.get("TEST_DATABASE_URL").split("/")[-1]
@@ -160,11 +162,13 @@ def insert_keyword(conn,
                    keyword_word='keyword',
                    priority=1000,
                    usage_enabled=True,
+                   date_since_relevant=DEFAULT_TIME_OLD,
                    **kwargs
                    ):
     table_name = 'keyword'
     data = {
         "keyword_word": keyword_word,
+        "date_since_relevant": date_since_relevant,
         "priority": priority,
         "usage_enabled": usage_enabled
     }
