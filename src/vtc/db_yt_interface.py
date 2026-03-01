@@ -938,6 +938,16 @@ ORDER BY s1.searched_at;
             ]
             for item in self.response["items"]
         ]
+
+        # de-duplicate
+        seen = set()
+        unique = []
+        for i in self.youtube_channel_values:
+            if i[0] not in seen:
+                seen.add(i[0])
+                unique.append(i)
+        self.youtube_channel_values = unique
+
         self.new_yt_channel_ids = execute_values(
             self.cursor,
             youtube_channel_query,
