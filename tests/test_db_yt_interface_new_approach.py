@@ -533,7 +533,7 @@ class TestSearchYTByKeywordMisc(unittest.TestCase):
     @patch('src.vtc.db_yt_interface.PrepareAPI.change_quota')
     @patch('src.vtc.db_yt_interface.PrepareAPI.get_api_key')
     @patch('src.vtc.db_yt_interface.build')
-    def test_filter_response_1_relevant_tag(
+    def test_filter_response_0_relevant_tag(
             self, mock_build, mock_get_api_key, mock_change_quota, mock_get_quota_left):
 
         fake_response_data = {
