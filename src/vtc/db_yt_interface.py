@@ -692,6 +692,15 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         quota_left = self.api_service.get_quota_left(api_key)
         logger.info(f"Quota left for filtering: {quota_left}")
 
+        # Add full description to the corresponding video in self.response
+        full_descriptions = {video["id"]: Helper.normalize(video["snippet"]["description"])
+                             for video in new_response_data["items"]}
+        for video in self.response["items"]:
+            if video["id"]["videoId"] in full_descriptions:
+                video["snippet"]["full_description"] = full_descriptions[video["id"]["videoId"]]
+            else:
+                video["snippet"]["full_description"] = None
+
         # Check if there are 50 videos and if they all are published at the same time.
         #  (to avoid infinite sub-searches bug)
         if (len(self.response["items"]) == 50
@@ -967,7 +976,8 @@ ORDER BY s1.searched_at;
         live_broadcast_content,
         updated_at,
         added_at,
-        title_normalized
+        title_normalized,
+        description_normalized
     )
     VALUES %s
     ON CONFLICT (youtube_video_id) DO NOTHING
@@ -982,7 +992,8 @@ ORDER BY s1.searched_at;
                 item["snippet"]["liveBroadcastContent"],
                 self.datetime_now,
                 self.datetime_now,
-                Helper.normalize(item['snippet']['title'])
+                Helper.normalize(item['snippet']['title']),
+                item['snippet']['full_description'],
             ]
             for item in self.response["items"]
         ]
@@ -991,7 +1002,7 @@ ORDER BY s1.searched_at;
             youtube_video_query,
             self.youtube_video_values,
             template=(
-                "(%s, %s, %s, %s, %s, %s, %s, %s)"
+                "(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
             ),
             fetch=True
         )
