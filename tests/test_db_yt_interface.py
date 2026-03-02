@@ -280,7 +280,8 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
                 },
                 "channelTitle": "Dvlprm",
                 "liveBroadcastContent": "none",
-                "publishTime": "2024-08-08T22:46:14Z"
+                "publishTime": "2024-08-08T22:46:14Z",
+                "full_description": "this key-value pair is added separately in the code"
               }
             },
             {
@@ -314,7 +315,8 @@ class TestSearchYTByKeywordSave(unittest.TestCase):
                 },
                 "channelTitle": "Whatopia",
                 "liveBroadcastContent": "none",
-                "publishTime": "2024-08-08T17:06:06Z"
+                "publishTime": "2024-08-08T17:06:06Z",
+                "full_description": "this key-value pair is added separately in the code" 
               }
             }
           ]
@@ -431,7 +433,7 @@ SELECT * FROM youtube_video;
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
                 None,
                 "Kronii Laughing so Hard at Her Own Flower Building in Minecraft [Kaela/Kronii]",
-                None
+                'this key-value pair is added separately in the code'
             ),
             (
                 "IwhkBhUH0lc",  # youtube_video_id
@@ -459,7 +461,7 @@ SELECT * FROM youtube_video;
                 datetime.datetime(2024, 12, 20, 0, 0, 0, tzinfo=datetime.timezone.utc),  # added_at
                 None,
                 "Ame and Ina Can't Stop Teasing Kronii~ (Hololive)",
-                None
+                'this key-value pair is added separately in the code'
             )
         ]
         self.assertEqual(expected, actual)
