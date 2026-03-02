@@ -656,7 +656,13 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         self.talents_ids = tuple(ids)
 
     def filter_response(self):
-        """ Filter out planned and active livestreams. """
+        """
+        Filter out planned and active livestreams.
+        Verify videos being related to the search query.
+        Fetch and add full description to the response
+            (to avoid video-talent categorizing happening before full description update).
+        Handle potential infinite sub-search issue.
+        """
 
         # Filter out planned and active livestreams
         original_qty = len(self.response["items"])
