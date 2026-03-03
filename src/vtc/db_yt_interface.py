@@ -1828,7 +1828,7 @@ class Channels:
             values = {
                 'title': Helper.normalize(channel["snippet"]["title"]),
                 'description': Helper.normalize(channel["snippet"]["description"]),
-                'custom_url': channel["snippet"]["customUrl"],
+                'custom_url': channel["snippet"].get("customUrl"),
                 'published_at': channel["snippet"]["publishedAt"],
                 'thumbnail_default': channel["snippet"]["thumbnails"]["medium"]["url"],
                 'info_fully_updated_at': self._datetime_now,
