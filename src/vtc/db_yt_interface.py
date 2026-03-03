@@ -1771,16 +1771,21 @@ class Channels:
         ).execute()
 
     def _verify_response(self):
+        # verify it is a proper response
+        if "kind" not in self._response or self._response.get("kind", False) != "youtube#channelListResponse":
+            raise VerificationError(f"The response is faulty, mangled or has other issues. Response:\n{self._response}")
+
         # verify there is at least a channel
         if "items" not in self._response:
             logging.warning(f"Channel request for ids {self._id_batch} got no matches on YT")
-            raise VerificationError
+            raise VerificationError(f"No channels present in the response. Response:\n{self._response}"
+                                    f"Ids in the request:\n{self._id_batch}")
 
         # verify there are no unexpected ids in the response
         for channel in self._response["items"]:
             if channel["id"] not in self._id_batch:
                 raise VerificationError(f'Received a channel id {channel["id"]} that was not in the request.\n'
-                                        f'{self._id_batch}')
+                                        f'Ids in the request:\n{self._id_batch}')
 
     def _save_youtube_channel_info_inaccessible(self):
         query = """
