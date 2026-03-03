@@ -1799,7 +1799,7 @@ class Channels:
             for value in inaccessible_ids:
                 cur.execute(query, {"channel_id": value})
         if len(inaccessible_ids) > 0:
-            logging.info(f"Set info_accessible to FALSE for {len(inaccessible_ids)} channels. Their ids:\n"
+            logger.info(f"Set info_accessible to FALSE for {len(inaccessible_ids)} channels. Their ids:\n"
                          f"{inaccessible_ids}")
 
     def _save(self):
