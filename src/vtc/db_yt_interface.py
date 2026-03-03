@@ -1719,7 +1719,8 @@ class Channels:
                     time.sleep(wait_seconds)
                     return True
             except Exception as e:
-                logger.error(f"Unexpected error during channels info update. Only {i} were updated.\n{e}")
+                logger.error(f"Unexpected error during channels info update. Only {i} were updated.\n{e}\n"
+                             f"Ids in the request: {self._channel_ids}")
                 raise
 
         logger.info(f"{channel_count} channels received an info update.")
@@ -1773,8 +1774,8 @@ class Channels:
         # verify there are no unexpected ids in the response
         for channel in self._response["items"]:
             if channel["id"] not in self._id_batch:
-                raise Exception(f'Received a channel id {channel["id"]} that was not in the request.\n'
-                                f'{self._id_batch}')
+                raise VerificationError(f'Received a channel id {channel["id"]} that was not in the request.\n'
+                                        f'{self._id_batch}')
 
     def _save_youtube_channel_info_inaccessible(self):
         query = """
@@ -1787,7 +1788,9 @@ class Channels:
         with self._connection.cursor() as cur:
             for value in inaccessible_ids:
                 cur.execute(query, {"channel_id": value})
-        logging.warning(f"Set info_accessible to FALSE for {len(inaccessible_ids)} channels.")
+        if len(inaccessible_ids) > 0:
+            logging.info(f"Set info_accessible to FALSE for {len(inaccessible_ids)} channels. Their ids:\n"
+                         f"{inaccessible_ids}")
 
     def _save(self):
         self._update_datetime_now()
