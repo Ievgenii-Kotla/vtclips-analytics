@@ -1669,18 +1669,19 @@ class Channels:
         self._response: dict | None = None
         self._datetime_now: datetime.datetime | None = None
         # data for choosing a channel
-        self._channels: list[str] | None = None
-        self._channel_id: str | None = None
+        self._channel_ids: list[str] | None = None
         self._cooldown_period = cooldown_period
         self._only_unupdated = only_unupdated
         # data for saving
+        self._id_batch: list[str] | None = None
+        self._id_batch_str: str | None = None
 
     def update_channels_info(self, channel_count:int=1, delay_sec:float=0) -> int:
         """Find channels that need info update and update it."""
 
         self._set_channels_to_update()
-        logger.info(f"{len(self._channels)} are queued for an info update.")
-        channel_count = min(channel_count, len(self._channels))
+        logger.info(f"{len(self._channel_ids)} are queued for an info update.")
+        channel_count = min(channel_count, len(self._channel_ids))
         wait_seconds = 60
 
         for i in range(channel_count):
@@ -1754,57 +1755,49 @@ class Channels:
             cur.execute(query, values)
             rows = cur.fetchall()
 
-        self._channels = [row[0] for row in rows]
+        self._channel_ids = [row[0] for row in rows]
 
     def _prepare_request(self):
         self._api_key = self._api_service.get_api_key(threshold=1, delay=False, purpose=PrepareAPI.CHANNELS)
-        self._channel_id = self._channels.pop(0)
+        self._id_batch, self._channel_ids = self._channel_ids[:50], self._channel_ids[50:]
+        self._id_batch_str = ','.join(self._id_batch)
 
     def _request(self):
         youtube = build('youtube', 'v3', developerKey=self._api_key)
         self._response = youtube.channels().list(
             part='snippet,statistics',
-            id=self._channel_id,
+            id=self._id_batch_str,
         ).execute()
 
     def _verify_response(self):
-        # verify there is a channel
-        if "items" not in self._response:
-            logging.warning(f"Channel request for {self._channel_id} got no matches on YT")
-            self._self_set_channel_info_unaccessible()
-            raise VerificationError
+        # verify there are no unexpected ids in the response
+        for channel in self._response["items"]:
+            if channel["id"] not in self._id_batch:
+                raise Exception(f'Received a channel id {channel["id"]} that was not in the request.\n'
+                                f'{self._id_batch}')
 
-        # verify channels id
-        if self._response["items"][0]["id"] != self._channel_id:
-            logging.error("Received info for the wrong channel in the response")
-            raise Exception(f'Channel id mismatch: asking for {self._channel_id}, got:\n{self._response}')
-
-        # verify there is more than 1 channel
-        if len(self._response["items"]) > 1:
-            logging.warning(f"Channel request for {self._channel_id} got multiple items.\n"
-                            f"The first one will be used, others ignored. Data: \n{self._response}")
-
-    def _self_set_channel_info_unaccessible(self):
+    def _save_youtube_channel_info_inaccessible(self):
         query = """
         UPDATE youtube_channel
         SET info_accessible = FALSE
         WHERE youtube_channel_id = %(channel_id)s;
         """
-        values = {"channel_id": self._channel_id}
+        response_ids = [channel["id"] for channel in self._response["items"]]
+        inaccessible_ids =  [id_ for id_ in self._id_batch if id_ not in response_ids]
         with self._connection.cursor() as cur:
-            cur.execute(query, values)
-            self._connection.commit()
-        logging.warning(f"Set info_accessible = FALSE for {self._channel_id}.")
+            for value in inaccessible_ids:
+                cur.execute(query, {"channel_id": value})
+        logging.warning(f"Set info_accessible to FALSE for {len(inaccessible_ids)} channels.")
 
     def _save(self):
         self._update_datetime_now()
         try:
+            self._save_youtube_channel_info_inaccessible()
             self._save_youtube_channel()
             self._save_youtube_channel_stats()
         except DatabaseError as e:
             self._connection.rollback()
             logger.error(f"A DB error occurred while saving channel info: {e} \nTransaction rolled back. ")
-            logger.error(f"Channel id: {self._channel_id}")
             logger.error(traceback.format_exc())
             time.sleep(60)
         except Exception as e:
@@ -1814,7 +1807,8 @@ class Channels:
             raise
         else:
             self._connection.commit()
-            logger.info("Changes committed. (Channels request)")
+            logger.info(f"Changes committed. (Channels request)\n"
+                        f"Info updated for {len(self._response['items'])} channels.")
 
     def _save_youtube_channel(self):
         """Save fuller channel info to the 'youtube_channel' table. """
@@ -1830,19 +1824,18 @@ class Channels:
             info_fully_updated_at = %(info_fully_updated_at)s
         WHERE youtube_channel_id = %(youtube_channel_id)s;
         """
-
-        values = {
-            'title': Helper.normalize(self._response["items"][0]["snippet"]["title"]),
-            'description': Helper.normalize(self._response["items"][0]["snippet"]["description"]),
-            'custom_url': self._response["items"][0]["snippet"]["customUrl"],
-            'published_at': self._response["items"][0]["snippet"]["publishedAt"],
-            'thumbnail_default': self._response["items"][0]["snippet"]["thumbnails"]["medium"]["url"],
-            'info_fully_updated_at': self._datetime_now,
-            'youtube_channel_id': self._response["items"][0]["id"],
-        }
-
-        with self._connection.cursor() as cur:
-            cur.execute(query, values)
+        for channel in self._response["items"]:
+            values = {
+                'title': Helper.normalize(channel["snippet"]["title"]),
+                'description': Helper.normalize(channel["snippet"]["description"]),
+                'custom_url': channel["snippet"]["customUrl"],
+                'published_at': channel["snippet"]["publishedAt"],
+                'thumbnail_default': channel["snippet"]["thumbnails"]["medium"]["url"],
+                'info_fully_updated_at': self._datetime_now,
+                'youtube_channel_id': channel["id"],
+            }
+            with self._connection.cursor() as cur:
+                cur.execute(query, values)
 
     def _save_youtube_channel_stats(self):
         """Save channel stats to the 'youtube_channel_stats' table. """
@@ -1863,17 +1856,16 @@ class Channels:
             %(gathered_at)s
         );
         """
-
-        values = {
-            'youtube_channel_id': self._response["items"][0]["id"],
-            'view_count': self._response["items"][0]["statistics"]["viewCount"],
-            'subscriber_count': self._response["items"][0]["statistics"]["subscriberCount"],
-            'video_count': self._response["items"][0]["statistics"]["videoCount"],
-            'gathered_at': self._datetime_now,
-        }
-
-        with self._connection.cursor() as cur:
-            cur.execute(query, values)
+        for channel in self._response["items"]:
+            values = {
+                'youtube_channel_id': channel["id"],
+                'view_count': channel["statistics"]["viewCount"],
+                'subscriber_count': channel["statistics"]["subscriberCount"],
+                'video_count': channel["statistics"]["videoCount"],
+                'gathered_at': self._datetime_now,
+            }
+            with self._connection.cursor() as cur:
+                cur.execute(query, values)
 
     def _update_datetime_now(self):
         self._datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)

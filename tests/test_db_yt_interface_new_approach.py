@@ -993,14 +993,14 @@ class TestChannelsSave(unittest.TestCase):
 
         with self.conn.cursor() as cur:
             cur.execute("""
-            SELECT 
-                youtube_channel_id, 
-                title, 
-                description, 
-                custom_url, 
-                published_at, 
-                thumbnail_default, 
-                info_fully_updated_at 
+            SELECT
+                youtube_channel_id,
+                title,
+                description,
+                custom_url,
+                published_at,
+                thumbnail_default,
+                info_fully_updated_at
             FROM youtube_channel
             """)
             rows = cur.fetchall()
@@ -1025,9 +1025,9 @@ class TestChannelsSave(unittest.TestCase):
 
         with self.conn.cursor() as cur:
             cur.execute("""
-            SELECT 
+            SELECT
                 youtube_channel_id,
-                view_count, 
+                view_count,
                 subscriber_count,
                 video_count,
                 gathered_at
@@ -1046,6 +1046,7 @@ class TestChannelsSave(unittest.TestCase):
             ),
             rows[0]
         )
+
 
 class TestChannelsSelectChannels(unittest.TestCase):
     @classmethod
@@ -1082,12 +1083,10 @@ class TestChannelsSelectChannels(unittest.TestCase):
         )
         self.channels_instance._set_channels_to_update()
 
-        self.assertEqual(1, len(self.channels_instance._channels), "Wrong number of selected channels")
+        self.assertEqual(1, len(self.channels_instance._channel_ids), "Wrong number of selected channels")
         self.assertEqual("id1",
-                         self.channels_instance._channels[0],
+                         self.channels_instance._channel_ids[0],
                          "Wrong channel id selected for the update.")
-
-
 
     def test__set_channels_to_update_all(self):
         self.channels_instance = db_yt_interface.Channels(
@@ -1098,12 +1097,12 @@ class TestChannelsSelectChannels(unittest.TestCase):
         )
         self.channels_instance._set_channels_to_update()
 
-        self.assertEqual(2, len(self.channels_instance._channels), "Wrong number of selected channels")
+        self.assertEqual(2, len(self.channels_instance._channel_ids), "Wrong number of selected channels")
         self.assertIn("id1",
-                      self.channels_instance._channels,
+                      self.channels_instance._channel_ids,
                       "Id should be selected for the update, but is not")
         self.assertIn("id2",
-                      self.channels_instance._channels,
+                      self.channels_instance._channel_ids,
                       "Id should be selected for the update, but is not")
 
 
