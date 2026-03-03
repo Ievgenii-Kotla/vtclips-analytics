@@ -1771,6 +1771,11 @@ class Channels:
         ).execute()
 
     def _verify_response(self):
+        # verify there is at least a channel
+        if "items" not in self._response:
+            logging.warning(f"Channel request for ids {self._id_batch} got no matches on YT")
+            raise VerificationError
+
         # verify there are no unexpected ids in the response
         for channel in self._response["items"]:
             if channel["id"] not in self._id_batch:
