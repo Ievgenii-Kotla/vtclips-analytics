@@ -930,17 +930,22 @@ ORDER BY s1.searched_at;
         """ Save new information to the 'youtube_channel' table. """
 
         youtube_channel_query = """
-        INSERT INTO youtube_channel (
-            youtube_channel_id,
-            channel_info_last_updated,
-            title,
-            added_at,
-            playlist_id
+        WITH upsert AS (
+            INSERT INTO youtube_channel (
+                youtube_channel_id,
+                channel_info_last_updated,
+                title,
+                added_at,
+                playlist_id
+            )
+            VALUES %s
+            ON CONFLICT (youtube_channel_id) DO UPDATE SET
+                is_other = FALSE
+            RETURNING youtube_channel_id, xmax
         )
-        VALUES %s
-        ON CONFLICT (youtube_channel_id) DO UPDATE SET
-            is_other = FALSE
-        RETURNING youtube_channel_id;
+        SELECT youtube_channel_id
+        FROM upsert
+        WHERE xmax = 0;
         """
 
         self.youtube_channel_values = [
