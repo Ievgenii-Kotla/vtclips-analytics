@@ -17,7 +17,7 @@ from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values
 
-from vtc_exceptions import NoQuotaError, VerificationError
+from vtc_exceptions import NoQuotaError, VerificationError, EmptyQueueError
 
 # create the logger
 logger = logging.getLogger(__name__)
@@ -1673,8 +1673,9 @@ class Channels:
         self._api_key: str | None = None
         self._response: dict | None = None
         self._datetime_now: datetime.datetime | None = None
-        # data for choosing a channel
         self._channel_ids: list[str] | None = None
+        self._channels_processed_count: int = 0
+        # data for choosing a channel
         self._cooldown_period = cooldown_period
         self._only_unupdated = only_unupdated
         # data for saving
@@ -1689,7 +1690,7 @@ class Channels:
         channel_count = min(channel_count, len(self._channel_ids))
         wait_seconds = 60
 
-        for i in range(channel_count):
+        for i in range(0, channel_count, 50):
             time.sleep(delay_sec)
             try:
                 self._prepare_request()
@@ -1697,11 +1698,14 @@ class Channels:
                 self._api_service.change_quota(self._api_key, -1)
                 self._verify_response()
                 self._save()
+                self._channels_processed_count += len(self._id_batch)
             except VerificationError:
-                continue
+                logger.error("Skipping the current batch of ids.")
+                break
             except NoQuotaError:
-                logger.info(f"{i} channels received an info update.\n")
                 raise
+            except EmptyQueueError:
+                logger.info(f"No more channels in the queue.")
             except HttpError as err:
                 if err.resp.status == 403:
                     api_key_id = self._api_service.get_api_key_id(api_key=self._api_key)
@@ -1710,25 +1714,21 @@ class Channels:
                                  f'API key: {api_key_id}. '
                                  f'Quota left: {quota_left}')
                     self._api_service.temporary_disable_key(api_key_id)
-                    return True
                 elif err.resp.status == 500:
                     logger.warning(f'YouTube server error (500). Retry in {wait_seconds} seconds.')
                     time.sleep(wait_seconds)
-                    return True
                 elif err.resp.status == 503:
                     logger.warning(f'YouTube server error (503). Retry in {wait_seconds} seconds.')
                     time.sleep(wait_seconds)
-                    return True
                 else:
                     logger.error(err)
                     time.sleep(wait_seconds)
-                    return True
             except Exception as e:
-                logger.error(f"Unexpected error during channels info update. Only {i} were updated.\n{e}\n"
+                logger.error(f"Unexpected error during channels info update.\n{e}\n"
                              f"Ids in the request: {self._channel_ids}")
                 raise
 
-        logger.info(f"{channel_count} channels received an info update.")
+        logger.info(f"{self._channels_processed_count} channels received an info update.")
         if self._api_key:
             quota_left = self._api_service.get_quota_left(self._api_key)
             logger.info(f"Quota left for current key: {quota_left}")
