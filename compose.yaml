@@ -42,6 +42,7 @@ services:
 
   postgres-db:
     image: postgres:17.6-trixie
+    shm_size: 640mb
     container_name: postgres-db
     restart: unless-stopped
     env_file:
