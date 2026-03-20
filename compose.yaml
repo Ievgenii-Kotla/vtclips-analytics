@@ -36,7 +36,6 @@ services:
       - ./state:/app/state
     depends_on:
       - postgres-db
-      - migrate-db
     networks:
       - backend
 
