@@ -137,6 +137,7 @@ def tab_2025(conn):
         active_clippers_monthly(conn),
         mentions_one_talent_monthly(conn, talent_id=talent_id),
         mentions_one_talent_total(conn, talent_id=talent_id),
+        mentions_one_talent_dedicated_total(conn, talent_id=talent_id),
     ]
     tab_data = {
         "charts": charts,
@@ -629,6 +630,150 @@ def mentions_one_talent_total(conn, talent_id=1):
             "series": series,
             "titleText": f"Channels that made the most videos related to {talent_name}",
             "titleSubText": f"All-time"
+        }
+    }
+    return chart_data
+
+def mentions_one_talent_dedicated_total(conn, talent_id=1):
+    TOP_N = 15
+    MENTIONS_THRESHOLD = 10
+    RATIO_THRESHOLD = 0.5
+    query = """
+    WITH data_window AS (
+        SELECT date_trunc('month', (debut_datetime - interval '1 month')) AS data_start
+        FROM talent
+        WHERE talent_id = %(talent_id)s
+    ),
+    total_mentions AS (
+        SELECT 
+            d_channel_id,
+            SUM(talent_mentions_monthly) AS total_mentions
+        FROM chart_group_talent_mentions_monthly
+        WHERE 
+            talent_id = %(talent_id)s
+            AND year_month < date_trunc('month', CURRENT_DATE)
+            AND year_month >= (SELECT data_start FROM data_window)
+        GROUP BY d_channel_id
+        HAVING SUM(talent_mentions_monthly) >= %(mentions_threshold)s
+        ORDER BY total_mentions DESC
+
+    ),
+    total_videos AS (
+        SELECT 
+            tv.d_channel_id, 
+            SUM(total_videos_monthly) AS total_videos
+        FROM (
+            SELECT DISTINCT d_channel_id, year_month, total_videos_monthly
+            FROM chart_group_talent_mentions_monthly c
+            JOIN total_mentions t USING (d_channel_id)
+            WHERE 
+                year_month < date_trunc('month', CURRENT_DATE)
+                AND year_month >= (SELECT data_start FROM data_window)
+        ) tv
+        GROUP BY d_channel_id
+        ORDER BY total_videos
+    ),
+    main_data AS (
+        SELECT 
+            tm.d_channel_id,
+            tm.total_mentions,
+            tv.total_videos,
+            tm.total_mentions::numeric / NULLIF(tv.total_videos, 0) AS ratio,
+            RANK() OVER (ORDER BY total_mentions DESC, tm.total_mentions::numeric / NULLIF(tv.total_videos, 0) DESC) AS d_channel_rank
+        FROM total_mentions tm
+        JOIN total_videos tv USING (d_channel_id)
+        WHERE tm.total_mentions::numeric / NULLIF(tv.total_videos, 0) > %(ratio_threshold)s
+        ORDER BY total_mentions DESC, ratio DESC
+        LIMIT %(top_n)s
+    )
+    SELECT
+        c.d_channel_title,
+        md.total_mentions,
+        md.total_videos,
+        md.ratio,
+        md.d_channel_rank,
+        c.talent_name,
+        c.talent_color
+    FROM main_data md
+    LEFT JOIN LATERAL ( 
+        SELECT 
+            d_channel_title,
+            talent_name, 
+            talent_color 
+        FROM chart_group_talent_mentions_monthly
+        WHERE 
+            talent_id = %(talent_id)s
+            AND d_channel_id = md.d_channel_id
+        LIMIT 1
+    ) c ON true;
+    """
+    values = {
+        "top_n": TOP_N,
+        "talent_id": talent_id,
+        "mentions_threshold": MENTIONS_THRESHOLD,
+        "ratio_threshold": RATIO_THRESHOLD,
+    }
+    with conn.cursor() as cur:
+        cur.execute(query, values)
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+    df = pd.DataFrame(rows, columns=columns)
+    talent_name = df["talent_name"].iloc[0]
+    del df["talent_name"]
+    talent_color = f'#{df["talent_color"].iloc[0]}'
+    del df["talent_color"]
+
+    df = df.sort_values(["total_mentions", "ratio"], ascending=True)
+    categories = df["d_channel_title"].to_list()
+    mentions = df["total_mentions"].to_list()
+    other_videos = [a - b for a, b in
+                    zip(df["total_videos"].to_list(), df["total_mentions"].to_list(), strict=True)]
+    series = [
+        {
+            "name": series["name"],
+            "type": "bar",
+            "stack": "total",
+            "label": {
+                "show": series["show_label"],
+                "position": "insideLeft",
+                "formatter": "{b}",
+                "color": "#fff",
+                "textBorderColor": "#333",
+                "textBorderWidth": 2
+            },
+            "barWidth": "80%",
+            "data": series["data"],
+            "itemStyle": {
+                "color": series["color"],
+            }
+        }
+        for series in (
+            {
+                "name": "Mentions",
+                "color": talent_color,
+                "data":mentions,
+                "show_label": True,
+            },
+            {
+                "name": "Other videos",
+                "color": "#4A4A4A",
+                "data": other_videos,
+                "show_label": False,
+            }
+        )
+    ]
+    y_axis = categories
+
+    chart_data = {
+        "id": 9,
+        "title": "mentions one talent dedicated total",
+        "builder": "countMentionsOneTalentPerDedicatedDChannel",
+        "data": {
+            "yLabels": y_axis,
+            "series": series,
+            "titleText": f"Channels that have most of their videos related to {talent_name}",
+            "titleSubText": f"Must have at least {MENTIONS_THRESHOLD} mentions related to {talent_name}, "
+                            f"and at least {int(RATIO_THRESHOLD*100)}% of their videos should mention {talent_name}",
         }
     }
     return chart_data
