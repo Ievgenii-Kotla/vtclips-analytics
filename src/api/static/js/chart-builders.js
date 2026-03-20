@@ -408,4 +408,23 @@ export const chartBuilders = {
     },
     "series": chartData.series
   }),
+  mentionsOneTalentMonthlyTopByTotal: (chartData) => ({
+    ...defaults,
+    "title": chartData.titleInfo,
+    "tooltip": {
+      "trigger": "axis",
+      "axisPointer": {
+        "type": "shadow"
+      }
+    },
+    "legend": {
+      "type": "scroll",
+      "top": "bottom",
+      "show": false
+    },
+    "grid": chartData.grid,
+    "xAxis": chartData.x_axis,
+    "yAxis": chartData.y_axis,
+    "series": chartData.series
+  }),
 };
