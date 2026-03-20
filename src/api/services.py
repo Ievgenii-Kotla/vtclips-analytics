@@ -136,6 +136,7 @@ def tab_2025(conn):
         all_clips_daily(conn),
         active_clippers_monthly(conn),
         mentions_one_talent_monthly(conn, talent_id=talent_id),
+        mentions_one_talent_total(conn, talent_id=talent_id),
     ]
     tab_data = {
         "charts": charts,
@@ -574,3 +575,60 @@ def mentions_one_talent_monthly(conn, talent_id=1):
     return chart_data
 
 def mentions_one_talent_total(conn, talent_id=1):
+    TOP_N = 15
+    query = """
+    SELECT 
+        d_channel_title, 
+        SUM(talent_mentions_monthly) AS total_mentions,
+        MIN(talent_name) AS talent_name,
+        MIN(talent_color) AS talent_color
+    FROM chart_group_talent_mentions_monthly c
+    WHERE talent_id = %(talent_id)s
+    GROUP BY d_channel_id, d_channel_title
+    ORDER BY total_mentions DESC
+    LIMIT %(top_n)s;
+    """
+    with conn.cursor() as cur:
+        cur.execute(query, {"top_n": TOP_N, "talent_id": talent_id})
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+    df = pd.DataFrame(rows, columns=columns)
+    talent_name = df["talent_name"].iloc[0]
+    del df["talent_name"]
+    talent_color = f'#{df["talent_color"].iloc[0]}'
+    print(talent_color)
+    del df["talent_color"]
+
+    df = df.sort_values("total_mentions", ascending=True)
+    categories = df["d_channel_title"].to_list()
+    mentions = df["total_mentions"].to_list()
+    series = [{
+            "type": "bar",
+            "label": {
+                "show": True,
+                "position": "insideLeft",
+                "formatter": "{b}",
+                "color": "#fff",
+                "textBorderColor": "#333",
+                "textBorderWidth": 2
+            },
+            "barWidth": "80%",
+            "data": mentions,
+            "itemStyle": {
+                "color": talent_color,
+            }
+    }]
+    y_axis = categories
+
+    chart_data = {
+        "id": 8,
+        "title": "mentions one talent total",
+        "builder": "countMentionsOneTalentPerDChannel",
+        "data": {
+            "yLabels": y_axis,
+            "series": series,
+            "titleText": f"Channels that made the most videos related to {talent_name}",
+            "titleSubText": f"All-time"
+        }
+    }
+    return chart_data

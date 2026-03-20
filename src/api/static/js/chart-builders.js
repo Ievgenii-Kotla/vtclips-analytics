@@ -342,4 +342,37 @@ export const chartBuilders = {
     ],
     "series": chartData.series
   }),
+  countMentionsOneTalentPerDChannel: (chartData) => ({
+    ...defaults,
+    "title": {
+      "text": chartData.titleText,
+      "subtext": chartData.titleSubText
+    },
+    "tooltip": {
+      "trigger": "axis",
+      "axisPointer": {
+        "type": "shadow"
+      }
+    },
+    "legend": {
+      "type": "scroll"
+    },
+    "grid": {
+      "top": "70",
+      "left": "40",
+      "right": "20",
+      "bottom": "50",
+      "containLabel": true
+    },
+    "xAxis": {
+        "type": "value",
+    },
+    "yAxis": {
+        "type": "category",
+        "axisLabel": {"show": false},
+        "axisTick": {"show": false},
+        "data": chartData.yLabels
+    },
+    "series": chartData.series
+  }),
 };
