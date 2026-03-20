@@ -131,9 +131,11 @@ def overview(conn):
     return tab_data
 
 def tab_2025(conn):
+    talent_id = 6
     charts = [
         all_clips_daily(conn),
         active_clippers_monthly(conn),
+        mentions_one_talent_monthly(conn, talent_id=talent_id),
     ]
     tab_data = {
         "charts": charts,
@@ -483,3 +485,92 @@ def cum_count_dvideos_per_talent_daily(conn):
     }
 
     return chart_data
+
+def mentions_one_talent_monthly(conn, talent_id=1):
+    TOP_N = 5
+    query = """
+    WITH top_rank AS (
+        SELECT 
+            d_channel_id, d_channel_rank
+        FROM (
+            SELECT 
+                d_channel_id,
+                RANK() OVER (ORDER BY SUM(talent_mentions_monthly) DESC) AS d_channel_rank
+            FROM chart_group_talent_mentions_monthly
+            WHERE talent_id = %(talent_id)s
+            GROUP BY d_channel_id
+        ) ranked
+        WHERE d_channel_rank <= %(top_n)s
+    ),
+    data_window AS (
+        SELECT date_trunc('month', (debut_datetime - interval '1 month')) AS data_start
+        FROM talent
+        WHERE talent_id = %(talent_id)s
+    )
+    SELECT 
+        tm.talent_name,
+        CASE WHEN t.d_channel_id IS NULL THEN 'OTHER' ELSE tm.d_channel_title END AS d_channel_title,
+        t.d_channel_rank,
+        tm.year_month,
+        SUM(tm.talent_mentions_monthly) AS talent_mentions_monthly
+    FROM chart_group_talent_mentions_monthly AS tm
+    LEFT JOIN top_rank t USING (d_channel_id)
+    WHERE 
+        tm.talent_id = %(talent_id)s
+        AND year_month < date_trunc('month', CURRENT_DATE)
+        AND year_month >= (SELECT data_start FROM data_window)
+    GROUP BY 
+        tm.talent_id,
+        tm.talent_name,
+        t.d_channel_id,
+        CASE WHEN t.d_channel_id IS NULL THEN 'OTHER' ELSE tm.d_channel_title END,
+        t.d_channel_rank,
+        tm.year_month
+    ORDER BY year_month, t.d_channel_rank NULLS LAST;
+    """
+    with conn.cursor() as cur:
+        cur.execute(query, {"top_n": TOP_N, "talent_id": talent_id})
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+    df = pd.DataFrame(rows, columns=columns)
+
+    order = df.sort_values("d_channel_rank")["d_channel_title"].unique()
+    df["d_channel_title"] = pd.Categorical(df["d_channel_title"], categories=order, ordered=True)
+
+    talent_name = df["talent_name"].iloc[0]
+    del df["talent_name"]
+
+    wide = df.pivot(index="year_month", columns="d_channel_title", values="talent_mentions_monthly")
+    all_dates = pd.date_range(df["year_month"].min(), df["year_month"].max(), freq="MS").date
+    wide = wide.reindex(all_dates)
+    wide = wide.replace([np.nan, np.inf, -np.inf], None)
+
+    series = [
+        {
+            "name": d_channel_title,
+            "type": "bar",
+            "stack": "total",
+            "barWidth": "80%",
+            "data": wide[d_channel_title].tolist(),
+            "itemStyle": {
+                "color": "#4A4A4A" if d_channel_title == "OTHER" else None
+            },
+        }
+        for d_channel_title in wide.columns
+    ]
+    x_axis = [d.isoformat() for d in wide.index.tolist()]
+
+    chart_data = {
+        "id": 7,
+        "title": "mentions one talent monthly",
+        "builder": "countDVideosAboutTalentPerDChannel",
+        "data": {
+            "xLabels": x_axis,
+            "series": series,
+            "titleText": f"Monthly count of videos related to {talent_name}",
+            "titleSubText": f"{TOP_N} biggest all-time contributors highlighted"
+        }
+    }
+    return chart_data
+
+def mentions_one_talent_total(conn, talent_id=1):

@@ -304,4 +304,42 @@ export const chartBuilders = {
     ],
     "series": chartData.series
   }),
+    countDVideosAboutTalentPerDChannel: (chartData) => ({
+    ...defaults,
+    "title": {
+      "text": chartData.titleText,
+      "subtext": chartData.titleSubText
+    },
+    "tooltip": {
+      "trigger": "axis",
+      "axisPointer": {
+        "type": "shadow"
+      }
+    },
+    "legend": {
+      "type": "scroll"
+    },
+    "grid": {
+      "top": "70",
+      "left": "40",
+      "right": "20",
+      "bottom": "50",
+      "containLabel": true
+    },
+    "xAxis": [
+      {
+        "type": "category",
+        "data": chartData.xLabels,
+        "axisTick": {
+          "alignWithLabel": true
+        }
+      }
+    ],
+    "yAxis": [
+      {
+        "type": "value"
+      }
+    ],
+    "series": chartData.series
+  }),
 };
