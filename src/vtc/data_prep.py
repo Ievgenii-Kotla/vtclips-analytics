@@ -612,7 +612,7 @@ class DBCharts:
                 date_trunc('month', yv.published_at)::date AS published_at_month, 
                 COUNT(*) AS videos_num, 
                 t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name,
-                t.dark_color AS color,
+                t.neutral_color AS color,
                 t.talent_id AS order_id
             FROM youtube_video yv
             JOIN youtube_channel_talent yct USING (youtube_channel_id)
@@ -696,7 +696,7 @@ class DBCharts:
                     COUNT(*) AS vid_count, 
                     t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name,
                     t.debut_datetime AS debut_datetime,
-                    t.dark_color AS color,
+                    t.neutral_color AS color,
                     yv.published_at::date AS pub_date
                 FROM youtube_video yv
                 JOIN youtube_channel_talent yct USING (youtube_channel_id)
@@ -726,7 +726,7 @@ class DBCharts:
                     COUNT(*) AS vid_count, 
                     t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name,
                     t.debut_datetime AS debut_datetime,
-                    t.dark_color AS color,
+                    t.neutral_color AS color,
                     yv.published_at::date AS pub_date
                 FROM youtube_video yv
                 JOIN talent_youtube_video tyv USING (youtube_video_id)
