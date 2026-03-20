@@ -524,6 +524,7 @@ class DBCharts:
         DBCharts.refresh_videos_group_share_monthly(connection)
         DBCharts.refresh_cum_count_svideos_per_talent_daily(connection)
         DBCharts.refresh_cum_count_dvideos_per_talent_daily(connection)
+        DBCharts.refresh_chart_group_talent_mentions_monthly(connection)
 
 
     @staticmethod
@@ -741,5 +742,84 @@ class DBCharts:
                 color,
                 pub_date
             FROM prep;
+        """
+        DBCharts.refresh_table(connection, table_name, query)
+
+    @staticmethod
+    def refresh_chart_group_talent_mentions_monthly(connection: psycopg2_connection):
+        table_name = "chart_group_talent_mentions_monthly"
+        query = """
+        TRUNCATE TABLE chart_group_talent_mentions_monthly;
+        
+        WITH video_count AS (
+            SELECT 
+                youtube_channel_id, 
+                date_trunc('month', published_at)::date AS year_month,
+                COUNT(youtube_video_id) AS video_count_per_channel_per_month
+            FROM youtube_video
+            GROUP BY 
+                youtube_channel_id,
+                date_trunc('month', published_at)::date
+        ),
+        mention_count AS (
+            SELECT 
+                tyv.talent_id,
+                yv.youtube_channel_id,
+                date_trunc('month', yv.published_at)::date AS year_month,
+                COUNT(tyv.youtube_video_id) AS mention_count_per_talent_per_channel_per_month
+            FROM youtube_video yv
+            JOIN talent_youtube_video tyv ON yv.youtube_video_id = tyv.youtube_video_id
+            GROUP BY
+                tyv.talent_id,
+                yv.youtube_channel_id,
+                date_trunc('month', yv.published_at)::date
+        ),
+        prep AS (
+            SELECT 
+                t.talent_id,
+                t.first_name_eng || COALESCE(' ' || t.last_name_eng, '') AS talent_name, 
+                t.neutral_color AS talent_color, 
+                yc.youtube_channel_id AS d_channel_id, 
+                yc.title AS d_channel_title,
+                yc.thumbnail_default AS d_channel_icon_url,
+                vc.year_month,
+                mc.mention_count_per_talent_per_channel_per_month AS talent_mentions_monthly,
+                vc.video_count_per_channel_per_month AS total_videos_monthly
+            FROM video_count AS vc
+            LEFT JOIN mention_count AS mc ON 
+                vc.youtube_channel_id = mc.youtube_channel_id 
+                AND vc.year_month = mc.year_month
+            LEFT JOIN youtube_channel AS yc ON 
+                yc.youtube_channel_id = vc.youtube_channel_id
+            LEFT JOIN talent AS t ON
+                t.talent_id = mc.talent_id
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM youtube_channel_talent yct
+                WHERE yct.youtube_channel_id = vc.youtube_channel_id
+            )
+        )
+        INSERT INTO chart_group_talent_mentions_monthly (
+            talent_id,
+            talent_name, 
+            talent_color, 
+            d_channel_id, 
+            d_channel_title, 
+            d_channel_icon_url,
+            year_month,
+            talent_mentions_monthly,
+            total_videos_monthly
+        )
+        SELECT 
+            talent_id,
+            talent_name,
+            talent_color,
+            d_channel_id, 
+            d_channel_title, 
+            d_channel_icon_url,
+            year_month,
+            talent_mentions_monthly,
+            total_videos_monthly
+        FROM prep;
         """
         DBCharts.refresh_table(connection, table_name, query)
