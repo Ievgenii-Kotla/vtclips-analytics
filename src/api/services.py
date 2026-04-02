@@ -13,45 +13,6 @@ templates = Jinja2Templates(directory="src/api/templates")
 BASE_DIR = Path(__file__).resolve().parent
 CHART_TEMPLATE_DIR = BASE_DIR / "static" / "chart_templates"
 
-def mutate_fuwamoco_colors(colors):
-    """Replace fuwamoco related hex-value colors with ECharts friendly gradient of the two colors"""
-
-    fuwawa_key = [k for k in colors.keys() if "fuwawa" in k.lower()]
-    mococo_key = [k for k in colors.keys() if "mococo" in k.lower()]
-    if fuwawa_key and mococo_key:
-        fuwawa_color = colors[fuwawa_key[0]]
-        mococo_color = colors[mococo_key[0]]
-
-        color = {
-            "color": {
-                "type": "linear",
-                "x": 0,
-                "y": 0,
-                "x2": 1,
-                "y2": 0,
-                "colorStops": [
-                    { "offset": 0, "color": fuwawa_color},
-                    { "offset": 0.30, "color": fuwawa_color},
-                    { "offset": 0.70, "color": mococo_color},
-                    { "offset": 1, "color": mococo_color}
-                ],
-                "global": False
-            }
-        }
-        colors["FUWAMOCO"] = color["color"]
-        del colors[mococo_key[0]]
-        del colors[fuwawa_key[0]]
-    return colors
-
-def mutate_fuwamoco_wide(wide):
-    """Remove 'mococo' column and rename fuwawa column"""
-
-    fuwawa_key = [k for k in wide.columns if "fuwawa" in k.lower()]
-    mococo_key = [k for k in wide.columns if "mococo" in k.lower()]
-    wide = wide.rename(columns={fuwawa_key[0]: "FUWAMOCO"})
-    del wide[mococo_key[0]]
-    return wide
-
 def summary(conn=None):
     with conn.cursor() as cur:
         cur.execute("""
@@ -95,22 +56,6 @@ def status():
     INFO:\n {info_log}
     """
     )
-def jinja(request: Request):
-    contex = {
-        "navigation": [
-            {"href": "/home", "caption": "Home"},
-            {"href": "/about", "caption": "About"},
-        ],
-        "a_variable": "value from a_variable in jinja template",
-        "request": request,
-
-    }
-    return templates.TemplateResponse("home.html", contex)
-
-
-def daisy(request: Request):
-    return templates.TemplateResponse("daisy.html", {"request": request})
-
 
 def charts(request: Request):
     return templates.TemplateResponse("charts.html", {"request": request})
@@ -1078,3 +1023,52 @@ def mentions_one_talent_monthly_top_by_lately(conn, talent_id=1):
     }
 
     return chart_data
+def _mutate_fuwamoco_colors(colors):
+    """Replace fuwamoco related hex-value colors with ECharts friendly gradient of the two colors"""
+
+    fuwawa_key = [k for k in colors.keys() if "fuwawa" in k.lower()]
+    mococo_key = [k for k in colors.keys() if "mococo" in k.lower()]
+    if fuwawa_key and mococo_key:
+        fuwawa_color = colors[fuwawa_key[0]]
+        mococo_color = colors[mococo_key[0]]
+
+        color = {
+            "color": {
+                "type": "linear",
+                "x": 0,
+                "y": 0,
+                "x2": 1,
+                "y2": 0,
+                "colorStops": [
+                    { "offset": 0, "color": fuwawa_color},
+                    { "offset": 0.30, "color": fuwawa_color},
+                    { "offset": 0.70, "color": mococo_color},
+                    { "offset": 1, "color": mococo_color}
+                ],
+                "global": False
+            }
+        }
+        colors["FUWAMOCO"] = color["color"]
+        del colors[mococo_key[0]]
+        del colors[fuwawa_key[0]]
+    return colors
+
+def _mutate_fuwamoco_wide(wide):
+    """Remove 'mococo' column and rename fuwawa column"""
+
+    fuwawa_key = [k for k in wide.columns if "fuwawa" in k.lower()]
+    mococo_key = [k for k in wide.columns if "mococo" in k.lower()]
+    wide = wide.rename(columns={fuwawa_key[0]: "FUWAMOCO"})
+    del wide[mococo_key[0]]
+    return wide
+
+def _name_to_id(conn, talent_name:str):
+    with conn.cursor() as cur:
+        cur.execute("SELECT talent_id FROM talent WHERE first_name_eng ILIKE %(talent_name)s;",
+                    {"talent_name": talent_name})
+        row = cur.fetchone()
+        if row:
+            talent_id = row[0]
+        else:
+            talent_id = 5
+    return talent_id
