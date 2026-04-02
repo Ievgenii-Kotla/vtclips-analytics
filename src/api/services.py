@@ -259,8 +259,8 @@ def videos_per_talent_monthly(conn):
     wide = df.pivot(index="published_at_month", columns="talent_name", values="videos_num")
     wide = wide.replace([np.nan, np.inf, -np.inf], None)
 
-    colors = mutate_fuwamoco_colors(colors)
-    wide = mutate_fuwamoco_wide(wide)
+    colors = _mutate_fuwamoco_colors(colors)
+    wide = _mutate_fuwamoco_wide(wide)
 
     series = [
         {
@@ -368,8 +368,8 @@ def cum_count_svideos_per_talent_daily(conn):
     wide = wide.reindex(all_dates).ffill()
     wide = wide.replace([np.nan, np.inf, -np.inf], None)
 
-    colors = mutate_fuwamoco_colors(colors)
-    wide = mutate_fuwamoco_wide(wide)
+    colors = _mutate_fuwamoco_colors(colors)
+    wide = _mutate_fuwamoco_wide(wide)
 
     series = [
         {
@@ -430,12 +430,12 @@ def cum_count_dvideos_per_talent_daily(conn):
         .to_dict()
     )
     wide = df.pivot(index="pub_date", columns="talent_name", values="cum_sum")
-    all_dates = pd.date_range(df["pub_date"].min(), df["pub_date"].max(), freq="D").date
-    wide = wide.reindex(all_dates).ffill()
+    all_year_month = pd.date_range(df["pub_date"].min(), df["pub_date"].max(), freq="MS").date
+    wide = wide.reindex(all_year_month).ffill()
     wide = wide.replace([np.nan, np.inf, -np.inf], None)
 
-    colors = mutate_fuwamoco_colors(colors)
-    wide = mutate_fuwamoco_wide(wide)
+    colors = _mutate_fuwamoco_colors(colors)
+    wide = _mutate_fuwamoco_wide(wide)
 
     series = [
         {
