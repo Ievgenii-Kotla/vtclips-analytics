@@ -964,6 +964,8 @@ def mentions_one_talent_monthly_top_by_lately(conn, talent_id=1):
         cur.execute(query, values)
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
+    if not rows:
+        return [], []
 
     df = pd.DataFrame(rows, columns=columns)
     talent_name = df["talent_name"].iloc[0]
