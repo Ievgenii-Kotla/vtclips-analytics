@@ -75,27 +75,70 @@ def overview(conn):
     tab_data = {"charts": charts}
     return tab_data
 
-def tab_2025(conn):
-    talent_id = 6
-    charts = [
-        all_clips_daily(conn),
-        active_clippers_monthly(conn),
+def talent_tab(conn, talent_name:str):
+    if talent_name is None:
+        talent_name = 'Calliope'
+    selector_options = talent_selector(conn)  # add the option changing when accessing the page with a direct link
+    charts, channel_ids = talent_charts(conn, talent_name)
+    links_info = talent_dchannel_info(conn, channel_ids)
+
+    tab_data = {
+        "charts": charts,
+        "selector": selector_options,
+        "linksInfo": links_info
+    }
+    return tab_data
+
+def talent_charts_and_links(conn, talent_name:str):
+    charts, channel_ids = talent_charts(conn, talent_name)
+    links_info = talent_dchannel_info(conn, channel_ids)
+    data = {
+        "charts": charts,
+        "linksInfo": links_info
+    }
+    return data
+
+def talent_selector(conn):
+    """Return information needed to build the talent selector."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT first_name_eng FROM talent WHERE talent_id != 21 ORDER BY debut_datetime;")
+        names = [name[0] for name in cur.fetchall()]
+    selector = {
+        "options": [{"value": name, "label": f"{name}"} for name in names]
+    }
+    return selector
+
+def talent_charts(conn, talent_name: str = "Calliope"):
+    """Return information needed to build the charts."""
+    talent_id = _name_to_id(conn, talent_name)
+
+    charts_and_ids = [
         mentions_one_talent_monthly(conn, talent_id=talent_id),
         mentions_one_talent_total(conn, talent_id=talent_id),
         mentions_one_talent_dedicated_total(conn, talent_id=talent_id),
         mentions_one_talent_monthly_top_by_total(conn, talent_id=talent_id),
         mentions_one_talent_monthly_top_by_lately(conn, talent_id=talent_id),
     ]
-    tab_data = {
-        "charts": charts,
-        "selector": {
-            "options": [
-                "kronii",
-                "bob"
-            ]
-        }
-    }
-    return tab_data
+    charts, channel_ids = zip(*charts_and_ids)
+    channel_ids = list(set().union(*channel_ids))
+    print(f"type charts: {type(charts)}, type channel_ids: {type(channel_ids)}")
+    for t in channel_ids:
+        print(f"each channel_id type: {type(t)}")
+    for t in channel_ids:
+        print(f"each channel_id type: {type(t)}")
+    return charts, channel_ids
+
+def talent_dchannel_info(conn, ids):
+    query = """
+    SELECT title, 'https://www.youtube.com/channel/' || youtube_channel_id, thumbnail_default
+    FROM youtube_channel
+    WHERE youtube_channel_id = ANY(%(ids)s);
+    """
+    with conn.cursor() as cur:
+        cur.execute(query, {"ids": ids})
+        rows = cur.fetchall()
+    rows = sorted(rows, key=lambda r: r[0])
+    return rows
 
 def tab_3(conn):
     charts = [
@@ -459,6 +502,7 @@ def mentions_one_talent_monthly(conn, talent_id=1):
     SELECT 
         tm.talent_name,
         CASE WHEN t.d_channel_id IS NULL THEN 'OTHER' ELSE tm.d_channel_title END AS d_channel_title,
+        t.d_channel_id,
         t.d_channel_rank,
         tm.year_month,
         SUM(tm.talent_mentions_monthly) AS talent_mentions_monthly
@@ -482,6 +526,8 @@ def mentions_one_talent_monthly(conn, talent_id=1):
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
     df = pd.DataFrame(rows, columns=columns)
+
+    channel_ids = df['d_channel_id'].tolist()
 
     order = df.sort_values("d_channel_rank")["d_channel_title"].unique()
     df["d_channel_title"] = pd.Categorical(df["d_channel_title"], categories=order, ordered=True)
@@ -520,13 +566,14 @@ def mentions_one_talent_monthly(conn, talent_id=1):
             "titleSubText": f"{TOP_N} biggest all-time contributors highlighted"
         }
     }
-    return chart_data
+    return chart_data, channel_ids
 
 def mentions_one_talent_total(conn, talent_id=1):
     TOP_N = 15
     query = """
     SELECT 
         d_channel_title, 
+        d_channel_id,
         SUM(talent_mentions_monthly) AS total_mentions,
         MIN(talent_name) AS talent_name,
         MIN(talent_color) AS talent_color
@@ -546,6 +593,8 @@ def mentions_one_talent_total(conn, talent_id=1):
     talent_color = f'#{df["talent_color"].iloc[0]}'
     print(talent_color)
     del df["talent_color"]
+    channel_ids = df['d_channel_id'].tolist()
+    del df["d_channel_id"]
 
     df = df.sort_values("total_mentions", ascending=True)
     categories = df["d_channel_title"].to_list()
@@ -579,7 +628,7 @@ def mentions_one_talent_total(conn, talent_id=1):
             "titleSubText": f"All-time"
         }
     }
-    return chart_data
+    return chart_data, channel_ids
 
 def mentions_one_talent_dedicated_total(conn, talent_id=1):
     TOP_N = 15
@@ -635,6 +684,7 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
     )
     SELECT
         c.d_channel_title,
+        md.d_channel_id,
         md.total_mentions,
         md.total_videos,
         md.ratio,
@@ -669,6 +719,8 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
     del df["talent_name"]
     talent_color = f'#{df["talent_color"].iloc[0]}'
     del df["talent_color"]
+    channel_ids = df['d_channel_id'].tolist()
+    del df["d_channel_id"]
 
     df = df.sort_values(["total_mentions", "ratio"], ascending=True)
     categories = df["d_channel_title"].to_list()
@@ -723,7 +775,7 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
                             f"and at least {int(RATIO_THRESHOLD*100)}% of their videos should mention {talent_name}",
         }
     }
-    return chart_data
+    return chart_data, channel_ids
 
 def mentions_one_talent_monthly_top_by_total(conn, talent_id=1):
     TOP_N = 5
@@ -771,6 +823,8 @@ def mentions_one_talent_monthly_top_by_total(conn, talent_id=1):
     del df["x_axis_start"]
     x_axis_end = f'{df["x_axis_end"].iloc[0]}'
     del df["x_axis_end"]
+    channel_ids = df['d_channel_id'].tolist()
+    del df["d_channel_id"]
 
     order = df.sort_values("total_mentions", ascending=False)["d_channel_title"].unique()
     df["d_channel_title"] = pd.Categorical(df["d_channel_title"], categories=order, ordered=True)
@@ -872,7 +926,7 @@ def mentions_one_talent_monthly_top_by_total(conn, talent_id=1):
         }
     }
 
-    return chart_data
+    return chart_data, channel_ids
 
 def mentions_one_talent_monthly_top_by_lately(conn, talent_id=1):
     TOP_N = 5
@@ -920,6 +974,8 @@ def mentions_one_talent_monthly_top_by_lately(conn, talent_id=1):
     del df["x_axis_start"]
     x_axis_end = f'{df["x_axis_end"].iloc[0]}'
     del df["x_axis_end"]
+    channel_ids = df['d_channel_id'].tolist()
+    del df["d_channel_id"]
 
     order = df.sort_values("total_mentions", ascending=False)["d_channel_title"].unique()
     df["d_channel_title"] = pd.Categorical(df["d_channel_title"], categories=order, ordered=True)
@@ -1022,7 +1078,9 @@ def mentions_one_talent_monthly_top_by_lately(conn, talent_id=1):
         }
     }
 
-    return chart_data
+    return chart_data, channel_ids
+
+
 def _mutate_fuwamoco_colors(colors):
     """Replace fuwamoco related hex-value colors with ECharts friendly gradient of the two colors"""
 
