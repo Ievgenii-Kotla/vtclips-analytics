@@ -40,9 +40,9 @@ def tab_2(name: str | None = None, conn=Depends(get_connection)):
 def talent_charts(talent_name: str, conn=Depends(get_connection)):
     return svc.talent_charts(conn, talent_name)
 
-@router.get("api/tab/who-clips-my-oshi", response_class=JSONResponse)
-def who_clips_my_oshi(conn=Depends(get_connection)):
-    return svc.who_clips_my_oshi(conn)
+@router.get("/api/talent_charts_and_links/{talent_name}", response_class=JSONResponse)
+def talent_charts(talent_name: str, conn=Depends(get_connection)):
+    return svc.talent_charts_and_links(conn, talent_name)
 
 @router.get("/api/tab/misc", response_class=JSONResponse)
 def miscellaneous(conn=Depends(get_connection)):
