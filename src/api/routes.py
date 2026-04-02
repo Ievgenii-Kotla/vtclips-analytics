@@ -14,9 +14,6 @@ router = APIRouter()
 def root(request: Request):
     return svc.main(request)
 
-@router.get("/summary")
-def summary(conn=Depends(get_connection)):
-    return svc.summary(conn)
 
 @router.get("/status")
 def status():
@@ -26,22 +23,10 @@ def status():
 def test():
     return "OK"
 
-@router.get("/jinja")
-def jinja(request: Request):
-    html = svc.jinja(request)
-    return html
-
-@router.get("/daisy")
-def daisy(request: Request):
-    return svc.daisy(request)
 
 @router.get("/api/header-info")
 def header_info():
     return "399 999 clips in the database"
-
-@router.get("/sample_chart", response_class=JSONResponse)
-def sample_chart(conn=Depends(get_connection)):
-    return [svc.sample_chart(), ]
 
 @router.get("/api/tab/overview", response_class=JSONResponse)
 def overview(conn=Depends(get_connection)):
