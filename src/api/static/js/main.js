@@ -55,6 +55,7 @@ let currentFetchController = null; // used to cancel slow fetches
 function setActiveTab(buttonEl) {
   const buttons = tabsWrapper.querySelectorAll('[data-tab]');
   buttons.forEach(b => b.classList.toggle('tab-active', b === buttonEl));
+  currentTab = buttonEl.getAttribute('data-tab');
 }
 
 // skeleton generator: create N skeleton card placeholders
@@ -137,17 +138,13 @@ async function renderCards(cardsData) {
   }
 }
 
-// utility: make a short delay (ms)
 function tick(ms=0){ return new Promise(r => setTimeout(r, ms)); }
 
-// escape HTML minimal
 function escapeHtml(s='') {
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-// fetch cards for a tab and render; simple abort logic to handle rapid tab clicks
-async function loadTab(tabId) {
-  // cancel previous fetch (simple fast-click protection)
+async function loadTab(tabId, talentName) {
   if (currentFetchController) {
     try { currentFetchController.abort(); } catch(e){}
   }
@@ -158,23 +155,37 @@ async function loadTab(tabId) {
   clearCharts();
   showSkeletons(2);
   try {
-    const res = await fetch('/api/tab/' + encodeURIComponent(tabId), {signal, cache: 'no-cache'});
+    const url = talentName == null
+      ? `/api/tab/${encodeURIComponent(tabId)}`
+      : `/api/tab/${encodeURIComponent(tabId)}?name=${encodeURIComponent(talentName)}`;
+    const res = await fetch(url, {signal, cache: 'no-cache'});
     if (!res.ok) throw new Error('tab fetch failed');
     const tabData = await res.json();
     const cardsData = tabData.charts;
+    const linksInfo = tabData.linksInfo;
 
     if (tabData?.selector?.options?.length > 0) {
       document.getElementById('controls-area').innerHTML = `
-        <select class="select select-bordered" id="mySelect">
-          ${tabData.selector.options.map(opt => `<option>${opt}</option>`).join("\n")}
+        <select class="select select-bordered" id="talent-selector">
+          ${tabData.selector.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("")}
         </select>
       `;
+      const selector = document.getElementById('talent-selector');
+      window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
+      selector.value = talentName;
+      if (selector.value === '') {
+        talentName = 'Calliope';
+        selector.value = talentName;
+        window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
+      }
     }
-    // expected: array of objects { id, title, chartOption }
+
     await renderCards(cardsData);
+    if (tabData?.linksInfo) {
+      await renderLinks(linksInfo);
+    }
   } catch (err) {
     if (err.name === 'AbortError') {
-      // fetch was aborted due to a new tab click -- silently ignore
       return;
     }
     console.error('Load tab failed:', err);
@@ -182,26 +193,56 @@ async function loadTab(tabId) {
   } finally {
     currentFetchController = null;
   }
+
 }
 
-// attach tab click handlers
+function renderLinks(linksInfo) {
+  const html = linksInfo.map(([channelTitle, channelURL, iconUrl]) => `
+    <a href="${channelURL}" class="flex items-center gap-3 p-2 hover:bg-base-200 transition-colors" target="_blank" rel="noopener">
+      <img src="${iconUrl}" referrerpolicy="no-referrer" class="w-10 h-10 rounded-full object-cover" />
+      <span class="text-sm font-medium">${channelTitle}</span>
+    </a>
+  `).join("");
+
+  const container = document.getElementById('channel-links');
+  container.innerHTML = `
+    <div class="card bg-base-200/40 border border-base-200 shadow-sm flex flex-col divide-y-2 divide-base-content/10">
+      <div class="p-2 text-sm font-semibold text-base-content/60">Channel links (opens in a new tab)</div>
+      ${html}
+    </div> 
+    `;
+}
+
+function parsePath(pathname, search) {
+  const tabId = pathname.slice(1).split('/');
+  const params = new URLSearchParams(search);
+  return {
+    tabId: tabId,
+    talentName: params.get('name') || 'Calliope',
+    params: params
+  }
+}
+
+// tab click listener
 tabsWrapper.addEventListener('click', (ev) => {
   const btn = ev.target.closest('[data-tab]');
   if (!btn) return;
   const tabId = btn.getAttribute('data-tab');
   if (!tabId || tabId === currentTab) return;
   currentTab = tabId;
-  window.history.pushState({}, '', '/' + tabId);
+  const query = tabId === 'talent' ? '?name=Calliope' : '';
+  window.history.pushState({}, '', `/${encodeURIComponent(tabId)}${query}`);
   setActiveTab(btn);
-  loadTab(tabId);
+  loadTab(tabId, 'Calliope');
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const tabId = window.location.pathname.slice(1) || 'overview';
+// direct URL listener
+document.addEventListener('DOMContentLoaded', async () => {
+  const {tabId, talentName, params} = parsePath(window.location.pathname, window.location.search)
   const btn = tabsWrapper.querySelector(`[data-tab="${tabId}"]`);
   if (btn) {
     setActiveTab(btn);
-    loadTab(tabId);
+    await loadTab(tabId, talentName);
   } else {
     window.history.replaceState({}, '', '/overview');
     const defaultBtn = tabsWrapper.querySelector(`[data-tab="overview"]`);
@@ -210,19 +251,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Toggle logic
+// theme toggle listener
 document.getElementById("theme-toggle").addEventListener("change", (e) => {
+  const {tabId, talentName, params} = parsePath(window.location.pathname, window.location.search)
   const theme = e.target.checked ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("theme", theme);
-  window.__dashboard.loadTab(currentTab);
+  window.__dashboard.loadTab(tabId, talentName);
 });
 
+// history navigation listener
 window.addEventListener('popstate', () => {
-  const tabId = window.location.pathname.slice(1);
+  const {tabId, talentName, params} = parsePath(window.location.pathname, window.location.search)
   const btn = tabsWrapper.querySelector(`[data-tab="${tabId}"]`);
   setActiveTab(btn)
-  loadTab(tabId);
+  loadTab(tabId, talentName);
+});
+
+// selector listener
+document.getElementById('controls-area').addEventListener('change', async (event) => {
+  if (event.target.id === 'talent-selector') {
+    const selectedValue = event.target.value;
+    const res = await fetch('/api/talent_charts_and_links/' + selectedValue, {cache: 'no-cache'});
+    window.history.pushState({}, '', `/talent?name=${encodeURIComponent(selectedValue)}`);
+    const data = await res.json();
+    renderCards(data.charts);
+    renderLinks(data.linksInfo);
+    console.log('User selected:', selectedValue);
+  }
 });
 
 // expose some functions for debug in console (optional)

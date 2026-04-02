@@ -32,23 +32,19 @@ def header_info():
 def overview(conn=Depends(get_connection)):
     return svc.overview(conn)
 
-@router.get("/api/tab/2025", response_class=JSONResponse)
-def tab_2(conn=Depends(get_connection)):
-    return svc.tab_2025(conn)
+@router.get("/api/tab/talent", response_class=JSONResponse)
+def tab_2(name: str | None = None, conn=Depends(get_connection)):
+    return svc.talent_tab(conn, name)
 
-@router.get("/api/tab/tab3")
-def tab_3(conn=Depends(get_connection)):
-    result = svc.tab_3(conn)
-    return Response(
-        content=json.dumps(result),
-        media_type="application/json"
-    )
+@router.get("/api/talent_charts/{talent_name}", response_class=JSONResponse)
+def talent_charts(talent_name: str, conn=Depends(get_connection)):
+    return svc.talent_charts(conn, talent_name)
 
 @router.get("api/tab/who-clips-my-oshi", response_class=JSONResponse)
 def who_clips_my_oshi(conn=Depends(get_connection)):
     return svc.who_clips_my_oshi(conn)
 
-@router.get("api/tab/misc", response_class=JSONResponse)
+@router.get("/api/tab/misc", response_class=JSONResponse)
 def miscellaneous(conn=Depends(get_connection)):
     return svc.miscellaneous(conn)
 
