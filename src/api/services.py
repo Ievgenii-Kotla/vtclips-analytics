@@ -140,6 +140,12 @@ def talent_dchannel_info(conn, ids):
     rows = sorted(rows, key=lambda r: r[0])
     return rows
 
+def header_info(conn):
+    with conn.cursor() as cur:
+        cur.execute("SELECT COUNT(DISTINCT youtube_video_id) FROM talent_youtube_video;")
+        num = cur.fetchone()[0]
+    return f"HoloEn related videos:\n {num:,}".replace(",", "\u00a0")
+
 def tab_3(conn):
     charts = [
         videos_per_talent_monthly(conn),

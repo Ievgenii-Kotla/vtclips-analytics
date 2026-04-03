@@ -23,10 +23,9 @@ def status():
 def test():
     return "OK"
 
-
-@router.get("/api/header-info")
-def header_info():
-    return "399 999 clips in the database"
+@router.get("/api/header-info", response_class=PlainTextResponse)
+def header_info(conn=Depends(get_connection)):
+    return svc.header_info(conn)
 
 @router.get("/api/tab/overview", response_class=JSONResponse)
 def overview(conn=Depends(get_connection)):
