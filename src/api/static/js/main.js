@@ -61,18 +61,25 @@ function setActiveTab(buttonEl) {
 
 // skeleton generator: create N skeleton card placeholders
 function showSkeletons(count = 3) {
+  linksArea.innerHTML = '';
   cardsArea.innerHTML = '';
   for (let i=0;i<count;i++) {
-    const sk = document.createElement('article');
-    sk.className = 'card p-4 animate-fade fade-enter';
-    sk.innerHTML = `
-      <div class="flex justify-between items-center mb-3">
-        <div class="h-4 w-40 rounded skeleton"></div>
-        <div class="h-4 w-20 rounded skeleton"></div>
+    const cardEl = document.createElement('article');
+    cardEl.className = 'card bg-base-200/40 border border-base-200 p-4 shadow-sm transition-opacity fade';
+    cardEl.style.opacity = '0';
+    cardEl.innerHTML = `
+      <div class="relative">
+        <div class="w-full" style="height:512px;"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="h-10 w-10 rounded-full skeleton"></div>
+          Loading...
+        </div>
       </div>
-      <div class="h-64 rounded-lg skeleton"></div>
     `;
-    cardsArea.appendChild(sk);
+    cardsArea.appendChild(cardEl);
+    requestAnimationFrame(() => {
+      cardEl.style.opacity = '1';
+    });
   }
 }
 
