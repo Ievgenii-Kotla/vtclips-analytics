@@ -48,6 +48,7 @@ loadHeader();
 // === Tabs + cards logic ===
 const tabsWrapper = document.getElementById('tabs-wrapper');
 const cardsArea = document.getElementById('cards-area');
+const linksArea = document.getElementById('links-area');
 let currentTab = 'overview';
 let currentFetchController = null; // used to cancel slow fetches
 
@@ -204,7 +205,7 @@ function renderLinks(linksInfo) {
     </a>
   `).join("");
 
-  const container = document.getElementById('channel-links');
+  const container = document.getElementById('links-area');
   container.innerHTML = `
     <div class="card bg-base-200/40 border border-base-200 shadow-sm flex flex-col divide-y-2 divide-base-content/10">
       <div class="p-2 text-sm font-semibold text-base-content/60">Channel links (opens in a new tab)</div>
