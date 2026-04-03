@@ -61,6 +61,7 @@ function setActiveTab(buttonEl) {
 
 // skeleton generator: create N skeleton card placeholders
 function showSkeletons(count = 3) {
+  clearCharts()
   linksArea.innerHTML = '';
   cardsArea.innerHTML = '';
   for (let i=0;i<count;i++) {
@@ -160,7 +161,6 @@ async function loadTab(tabId, talentName) {
   const signal = currentFetchController.signal;
 
   document.getElementById('controls-area').innerHTML = '';
-  clearCharts();
   showSkeletons(2);
   try {
     const url = talentName == null
