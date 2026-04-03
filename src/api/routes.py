@@ -35,6 +35,10 @@ def overview(conn=Depends(get_connection)):
 def tab_2(name: str | None = None, conn=Depends(get_connection)):
     return svc.talent_tab(conn, name)
 
+@router.get("/api/talent_selector", response_class=JSONResponse)
+def talent_selector(conn=Depends(get_connection)):
+    return svc.talent_selector(conn)
+
 @router.get("/api/talent_charts/{talent_name}", response_class=JSONResponse)
 def talent_charts(talent_name: str, conn=Depends(get_connection)):
     return svc.talent_charts(conn, talent_name)

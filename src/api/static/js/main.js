@@ -163,6 +163,23 @@ async function loadTab(tabId, talentName) {
   document.getElementById('controls-area').innerHTML = '';
   showSkeletons(2);
   try {
+    if (tabId === 'talent') {
+      const res1 = await fetch('/api/talent_selector', {signal, cache: 'no-cache'});
+      if (!res1.ok) throw new Error('selector fetch failed');
+      const selectorData = await res1.json()
+      document.getElementById('controls-area').innerHTML = `
+        <select class="select select-bordered" id="talent-selector">
+          ${selectorData.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("")}
+        </select>
+      `;
+      const selector = document.getElementById('talent-selector');
+      if (selector.value === '') {
+        talentName = 'Calliope';
+      }
+      selector.value = talentName;
+      window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
+    }
+    showSkeletons(2);
     const url = talentName == null
       ? `/api/tab/${encodeURIComponent(tabId)}`
       : `/api/tab/${encodeURIComponent(tabId)}?name=${encodeURIComponent(talentName)}`;
@@ -171,22 +188,6 @@ async function loadTab(tabId, talentName) {
     const tabData = await res.json();
     const cardsData = tabData.charts;
     const linksInfo = tabData.linksInfo;
-
-    if (tabData?.selector?.options?.length > 0) {
-      document.getElementById('controls-area').innerHTML = `
-        <select class="select select-bordered" id="talent-selector">
-          ${tabData.selector.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("")}
-        </select>
-      `;
-      const selector = document.getElementById('talent-selector');
-      window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
-      selector.value = talentName;
-      if (selector.value === '') {
-        talentName = 'Calliope';
-        selector.value = talentName;
-        window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
-      }
-    }
 
     await renderCards(cardsData);
     if (tabData?.linksInfo) {
