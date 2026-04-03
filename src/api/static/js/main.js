@@ -280,6 +280,7 @@ window.addEventListener('popstate', () => {
 document.getElementById('controls-area').addEventListener('change', async (event) => {
   if (event.target.id === 'talent-selector') {
     const selectedValue = event.target.value;
+    showSkeletons(2);
     const res = await fetch('/api/talent_charts_and_links/' + selectedValue, {cache: 'no-cache'});
     window.history.pushState({}, '', `/talent?name=${encodeURIComponent(selectedValue)}`);
     const data = await res.json();
