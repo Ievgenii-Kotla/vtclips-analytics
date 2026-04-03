@@ -223,7 +223,7 @@ function renderLinks(linksInfo) {
 }
 
 function parsePath(pathname, search) {
-  const tabId = pathname.slice(1).split('/');
+  const tabId = pathname.slice(1).split('/')[0];
   const params = new URLSearchParams(search);
   return {
     tabId: tabId,
@@ -238,7 +238,6 @@ tabsWrapper.addEventListener('click', (ev) => {
   if (!btn) return;
   const tabId = btn.getAttribute('data-tab');
   if (!tabId || tabId === currentTab) return;
-  currentTab = tabId;
   const query = tabId === 'talent' ? '?name=Calliope' : '';
   window.history.pushState({}, '', `/${encodeURIComponent(tabId)}${query}`);
   setActiveTab(btn);
