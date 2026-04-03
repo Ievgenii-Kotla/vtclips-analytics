@@ -1782,7 +1782,7 @@ class Channels:
 
         # verify there is at least a channel
         if "items" not in self._response:
-            logging.warning(f"Channel request for ids {self._id_batch} got no matches on YT")
+            logger.warning(f"Channel request for ids {self._id_batch} got no matches on YT")
             raise VerificationError(f"No channels present in the response. Response:\n{self._response}"
                                     f"Ids in the request:\n{self._id_batch}")
 
