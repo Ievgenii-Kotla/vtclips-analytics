@@ -137,7 +137,7 @@ def talent_dchannel_info(conn, ids):
     with conn.cursor() as cur:
         cur.execute(query, {"ids": ids})
         rows = cur.fetchall()
-    rows = sorted(rows, key=lambda r: r[0])
+    rows = sorted(rows, key=lambda r: r[0].lstrip())
     return rows
 
 def header_info(conn):
