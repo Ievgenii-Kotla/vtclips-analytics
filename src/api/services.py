@@ -121,11 +121,6 @@ def talent_charts(conn, talent_name: str = "Calliope"):
     ]
     charts, channel_ids = zip(*charts_and_ids)
     channel_ids = list(set().union(*channel_ids))
-    print(f"type charts: {type(charts)}, type channel_ids: {type(channel_ids)}")
-    for t in channel_ids:
-        print(f"each channel_id type: {type(t)}")
-    for t in channel_ids:
-        print(f"each channel_id type: {type(t)}")
     return charts, channel_ids
 
 def talent_dchannel_info(conn, ids):
@@ -597,7 +592,6 @@ def mentions_one_talent_total(conn, talent_id=1):
     talent_name = df["talent_name"].iloc[0]
     del df["talent_name"]
     talent_color = f'#{df["talent_color"].iloc[0]}'
-    print(talent_color)
     del df["talent_color"]
     channel_ids = df['d_channel_id'].tolist()
     del df["d_channel_id"]
