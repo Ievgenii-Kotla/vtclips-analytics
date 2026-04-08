@@ -71,9 +71,9 @@ function showSkeletons(count = 3) {
     cardEl.innerHTML = `
       <div class="relative">
         <div class="w-full" style="height:512px;"></div>
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div class="h-10 w-10 rounded-full skeleton"></div>
-          Loading...
+        <div class="flex flex-col absolute inset-0 items-center justify-center">
+          <span class="loading loading-dots loading-xl mr-2"></span>
+          This might take a few seconds...
         </div>
       </div>
     `;
