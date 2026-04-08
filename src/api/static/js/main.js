@@ -2,13 +2,15 @@ import { chartBuilders } from './chart-builders.js';
 
 const charts = {};
 
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    Object.values(charts).forEach(c => c && c.resize && c.resize());
-  }, 100);
-});
+function parsePath(pathname, search) {
+  const tabId = pathname.slice(1).split('/')[0];
+  const params = new URLSearchParams(search);
+  return {
+    tabId: tabId,
+    talentName: params.get('name') || 'Calliope',
+    params: params
+  }
+}
 
 function clearCharts() {
   Object.values(charts).forEach(chart => {
@@ -23,7 +25,32 @@ const ENDPOINTS = {
   cards: '/api/tab/overview'  // GET -> [ { id, title, chartOption } , ... ]
 };
 
-// === Header info fetch ===
+function tick(ms=0){ return new Promise(r => setTimeout(r, ms)); }
+
+function escapeHtml(s='') {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function renderLinks(linksInfo) {
+  const html = linksInfo.map(([channelTitle, channelURL, iconUrl]) => `
+    <a href="${channelURL}" class="flex items-center gap-3 p-2 hover:bg-base-200 transition-colors" target="_blank" rel="noopener">
+      <img src="${iconUrl}" referrerpolicy="no-referrer" class="w-10 h-10 rounded-full object-cover" />
+      <span class="text-sm font-medium">${channelTitle}</span>
+    </a>
+  `).join("");
+  const container = document.getElementById('links-area');
+  container.innerHTML = `
+    <div class="card bg-base-200/40 border border-base-200 shadow-sm flex flex-col divide-y-2 divide-base-content/10">
+      <div class="p-2 text-sm font-semibold text-base-content/60">Channel links (opens in a new tab)</div>
+      ${html}
+    </div> 
+    `;
+}
+
 const headerEl = document.getElementById('header-info');
 async function loadHeader() {
   try {
@@ -45,21 +72,18 @@ async function loadHeader() {
 }
 loadHeader();
 
-// === Tabs + cards logic ===
 const tabsWrapper = document.getElementById('tabs-wrapper');
 const cardsArea = document.getElementById('cards-area');
 const linksArea = document.getElementById('links-area');
 let currentTab = 'overview';
 let currentFetchController = null; // used to cancel slow fetches
 
-// helper: clear active tab classes
 function setActiveTab(buttonEl) {
   const buttons = tabsWrapper.querySelectorAll('[data-tab]');
   buttons.forEach(b => b.classList.toggle('tab-active', b === buttonEl));
   currentTab = buttonEl.getAttribute('data-tab');
 }
 
-// skeleton generator: create N skeleton card placeholders
 function showSkeletons(count = 3) {
   clearCharts()
   linksArea.innerHTML = '';
@@ -84,8 +108,6 @@ function showSkeletons(count = 3) {
   }
 }
 
-// render cards from server response
-// expected cardsData: [ {id, title, chartOption}, ... ]
 async function renderCards(cardsData) {
   cardsArea.innerHTML = '';
   for (const card of cardsData) {
@@ -101,20 +123,14 @@ async function renderCards(cardsData) {
       </div>
     `;
     cardsArea.appendChild(cardEl);
-
-    // small enter animation
     requestAnimationFrame(() => {
       cardEl.style.opacity = '1';
     });
 
-    // initialize chart from provided option object (server-side)
-    // server may return full echarts option in card.chartOption
     try {
-      // wait a tick so DOM paints loader
       await tick(10);
       const chartDiv = document.getElementById(`chart-${card.id}`);
       if (!chartDiv) continue;
-      // initialize echarts
       let chart;
       if (localStorage.getItem("theme") === "dark") {
         chart = echarts.init(chartDiv, 'dark');
@@ -124,33 +140,23 @@ async function renderCards(cardsData) {
       }
       charts[card.id] = chart;
       const chartOption = chartBuilders[card.builder](card.data)
-      // chartOption should be provided by server (so server controls chart content)
       if (chartOption) {
         chart.setOption(chartOption);
       } else if (card.chartConfigEndpoint) {
-        // optional: server provided endpoint to fetch config per-chart
         const cfgRes = await fetch(card.chartConfigEndpoint);
         const cfg = await cfgRes.json();
         chart.setOption(cfg);
       } else {
-        // no config: show empty state
         chart.showLoading();
         chart.hideLoading();
       }
     } catch (e) {
       console.warn('Chart init failed for card.id ', card.id, e);
     } finally {
-      // hide loader overlay
       const loader = document.getElementById(`loader-${card.id}`);
       if (loader) loader.style.display = 'none';
     }
   }
-}
-
-function tick(ms=0){ return new Promise(r => setTimeout(r, ms)); }
-
-function escapeHtml(s='') {
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 async function loadTab(tabId, talentName) {
@@ -203,33 +209,6 @@ async function loadTab(tabId, talentName) {
     currentFetchController = null;
   }
 
-}
-
-function renderLinks(linksInfo) {
-  const html = linksInfo.map(([channelTitle, channelURL, iconUrl]) => `
-    <a href="${channelURL}" class="flex items-center gap-3 p-2 hover:bg-base-200 transition-colors" target="_blank" rel="noopener">
-      <img src="${iconUrl}" referrerpolicy="no-referrer" class="w-10 h-10 rounded-full object-cover" />
-      <span class="text-sm font-medium">${channelTitle}</span>
-    </a>
-  `).join("");
-
-  const container = document.getElementById('links-area');
-  container.innerHTML = `
-    <div class="card bg-base-200/40 border border-base-200 shadow-sm flex flex-col divide-y-2 divide-base-content/10">
-      <div class="p-2 text-sm font-semibold text-base-content/60">Channel links (opens in a new tab)</div>
-      ${html}
-    </div> 
-    `;
-}
-
-function parsePath(pathname, search) {
-  const tabId = pathname.slice(1).split('/')[0];
-  const params = new URLSearchParams(search);
-  return {
-    tabId: tabId,
-    talentName: params.get('name') || 'Calliope',
-    params: params
-  }
 }
 
 // tab click listener
@@ -288,6 +267,15 @@ document.getElementById('controls-area').addEventListener('change', async (event
     renderLinks(data.linksInfo);
     console.log('User selected:', selectedValue);
   }
+});
+
+// resize listener
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    Object.values(charts).forEach(c => c && c.resize && c.resize());
+  }, 100);
 });
 
 // expose some functions for debug in console (optional)
