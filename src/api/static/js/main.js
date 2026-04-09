@@ -32,7 +32,8 @@ function escapeHtml(s='') {
 }
 
 function getCSSVar(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const color = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return `oklch(${color})`;
 }
 
 function renderLinks(linksInfo) {
@@ -44,7 +45,7 @@ function renderLinks(linksInfo) {
   `).join("");
   const container = document.getElementById('links-area');
   container.innerHTML = `
-    <div class="card bg-base-200/40 border border-base-200 shadow-sm flex flex-col divide-y-2 divide-base-content/10">
+    <div class="card bg-base-200 border border-base-200 shadow-sm flex flex-col divide-y-2 divide-base-content/10">
       <div class="p-2 text-sm font-semibold text-base-content/60">Channel links (opens in a new tab)</div>
       ${html}
     </div> 
@@ -90,7 +91,7 @@ function showSkeletons(count = 3) {
   cardsArea.innerHTML = '';
   for (let i=0;i<count;i++) {
     const cardEl = document.createElement('article');
-    cardEl.className = 'card bg-base-200/40 border border-base-200 p-4 shadow-sm transition-opacity fade';
+    cardEl.className = 'card bg-base-200 border border-base-200 p-4 shadow-sm transition-opacity fade';
     cardEl.style.opacity = '0';
     cardEl.innerHTML = `
       <div class="relative">
@@ -112,7 +113,7 @@ async function renderCards(cardsData) {
   cardsArea.innerHTML = '';
   for (const card of cardsData) {
     const cardEl = document.createElement('article');
-    cardEl.className = 'card bg-base-200/40 border border-base-200 p-4 shadow-sm transition-opacity fade';
+    cardEl.className = 'card bg-base-200 border border-base-200 p-2 shadow-sm';
     cardEl.style.opacity = '0';
     cardEl.innerHTML = `
       <div class="relative">
@@ -134,7 +135,7 @@ async function renderCards(cardsData) {
       let chart;
       if (localStorage.getItem("theme") === "dark") {
         chart = echarts.init(chartDiv, 'dark');
-        chart.setOption({ backgroundColor: '#1b2127' }, { notMerge: true });
+        chart.setOption({ backgroundColor: getCSSVar('--b2') }, { notMerge: true });
       } else {
         chart = echarts.init(chartDiv);
       }
@@ -278,6 +279,6 @@ window.addEventListener('resize', () => {
   }, 100);
 });
 
-// expose some functions for debug in console (optional)
+// expose some functions for debug in console
 window.__dashboard = { loadTab, loadHeader };
 })();
