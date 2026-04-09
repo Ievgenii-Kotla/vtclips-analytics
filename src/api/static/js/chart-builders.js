@@ -15,7 +15,9 @@ export const chartBuilders = {
   allVideosDaily: (chartData) => ({
     ...defaults,
     "title": {
-      "text": "Daily Video Uploads (HoloEn)"
+      "text": "Daily Video Uploads (HoloEn)",
+      "subtext": "Clips, animations, news, source videos, etc. related to talents",
+      "itemGap": 5
     },
     "tooltip": {
       "trigger": "axis",
@@ -34,7 +36,14 @@ export const chartBuilders = {
         "type": "category",
         "data": chartData.xLabels,
         "axisTick": {
-          "alignWithLabel": true
+          "show": true,
+          "alignWithLabel": true,
+          "interval": (index, value) => value.endsWith('-01-01'),
+        },
+        "axisLabel": {
+          "interval": (index, value) => value.endsWith('-01-01'),
+          "formatter": value => value.slice(0, 4),
+          "hideOverlap": true
         }
       }
     ],
@@ -47,9 +56,41 @@ export const chartBuilders = {
       {
         "name": "Videos",
         "type": "bar",
-        "data": chartData.series
+        "data": chartData.series,
+        "markLine": {
+          symbol: 'none',
+          lineStyle: {
+            color: '#888',
+            type: 'dashed',
+            width: 1
+          },
+          label: {
+            show:true,
+            position: 'insideEndTop',
+            distance: 0,
+            formatter: '{b}',
+            color: '#888',
+            fontWeight: 'normal',
+          },
+          "data": [
+            { "name": 'Myth debut ', "xAxis": '2020-09-12' },
+            { "name": 'IRyS debut ', "xAxis": '2021-07-11' },
+            { "name": 'Council debut ', "xAxis": '2021-08-23'},
+            { "name": 'Advent debut ', "xAxis": '2023-07-30' },
+            { "name": 'Justice debut ', "xAxis": '2024-06-21' }
+          ]
+        }
       }
-    ]
+    ],
+    "dataZoom": [
+      {
+        "type": "inside",
+        "xAxisIndex": 0,
+        "moveOnMouseMove": true,
+        "moveOnMouseWheel": false,
+        "minSpan": 1
+      }
+    ],
   }),
   activeClippersMonthly: (chartData) => ({
     ...defaults,
