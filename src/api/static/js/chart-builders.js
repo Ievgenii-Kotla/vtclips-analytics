@@ -99,12 +99,19 @@ export const chartBuilders = {
   activeClippersMonthly: (chartData) => ({
     ...defaults,
     "title": {
-      "text": "Active Channels Monthly"
+      "text": "Active channels per month · HoloEN",
+      "subtext": "Channels that posted videos related to HoloEN talents",
+      "itemGap": 5
     },
     "tooltip": {
       "trigger": "axis",
       "axisPointer": {
         "type": "shadow"
+      },
+      formatter: params => {
+        const date = params[0].name.slice(0, 7); // the x-axis value
+        const lines = params.map(p => `${p.marker} ${p.seriesName}: ${p.value}`);
+        return [date, ...lines].join('<br/>');
       }
     },
     "grid": {
@@ -118,7 +125,14 @@ export const chartBuilders = {
         "type": "category",
         "data": chartData.xLabels,
         "axisTick": {
-          "alignWithLabel": true
+          "show": true,
+          "alignWithLabel": true,
+          "interval": (index, value) => value.endsWith('-01-01'),
+        },
+        "axisLabel": {
+          "interval": (index, value) => value.endsWith('-01-01'),
+          "formatter": value => value.slice(0, 4),
+          "hideOverlap": true
         }
       }
     ],
@@ -131,7 +145,31 @@ export const chartBuilders = {
       {
         "name": "Channels",
         "type": "bar",
-        "data": chartData.series
+        "data": chartData.series,
+        "markLine": {
+          symbol: 'none',
+          lineStyle: {
+            color: '#888',
+            type: 'dashed',
+            width: 1
+          },
+          label: {
+            show:true,
+            position: 'insideEndTop',
+            distance: 0,
+            formatter: '{b}',
+            color: '#888',
+            fontWeight: 'normal',
+            fontSize: 14,
+          },
+          "data": [
+            { "name": 'Myth debut ', "xAxis": '2020-09-01' },
+            { "name": 'IRyS debut ', "xAxis": '2021-07-01' },
+            { "name": 'Council debut ', "xAxis": '2021-08-01'},
+            { "name": 'Advent debut ', "xAxis": '2023-07-01' },
+            { "name": 'Justice debut ', "xAxis": '2024-06-01' }
+          ]
+        }
       }
     ]
   }),
