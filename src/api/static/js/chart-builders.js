@@ -19,6 +19,7 @@ export const chartBuilders = {
       "subtext": "Clips, animations, news, source videos, etc. related to talents",
       "itemGap": 5
     },
+    animationThreshold: Infinity, // Force animation. Could be taxing.
     "tooltip": {
       "trigger": "axis",
       "axisPointer": {
