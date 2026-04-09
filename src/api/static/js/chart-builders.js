@@ -15,7 +15,7 @@ export const chartBuilders = {
   allVideosDaily: (chartData) => ({
     ...defaults,
     "title": {
-      "text": "Daily Video Uploads (HoloEn)",
+      "text": "Daily video uploads · HoloEN",
       "subtext": "Clips, animations, news, source videos, etc. related to talents",
       "itemGap": 5
     },
@@ -49,7 +49,9 @@ export const chartBuilders = {
     ],
     "yAxis": [
       {
-        "type": "value"
+        "type": "value",
+        "min": 0,
+        "max": Math.ceil(Math.max(...chartData.series) / 100) * 100
       }
     ],
     "series": [
@@ -71,6 +73,7 @@ export const chartBuilders = {
             formatter: '{b}',
             color: '#888',
             fontWeight: 'normal',
+            fontSize: 14,
           },
           "data": [
             { "name": 'Myth debut ', "xAxis": '2020-09-12' },
@@ -88,7 +91,8 @@ export const chartBuilders = {
         "xAxisIndex": 0,
         "moveOnMouseMove": true,
         "moveOnMouseWheel": false,
-        "minSpan": 1
+        "minSpan": 1,
+        "preventDefaultMouseMove": false,
       }
     ],
   }),
