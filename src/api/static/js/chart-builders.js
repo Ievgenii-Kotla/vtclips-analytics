@@ -325,23 +325,22 @@ export const chartBuilders = {
   }),
   cumCountSVideosPerTalentDaily: (chartData) => ({
     "title": {
-      "text": "Original Videos Per Talent Cumulative"
+      "text": "Cumulative source videos by talent",
+      "subtext": "Videos posted by the talent.",
+      "itemGap": 5
     },
     "tooltip": {
       "trigger": "axis",
-      "axisPointer": {
-        "type": "shadow"
-      },
         "position": function (point, params, dom, rect, size) {
         return ['0%', '-20%'];
       },
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
 
-        let result = 'Date (YYYY-MM-DD): ' + params[0].axisValueLabel + '<br/>';
+        let result = '' + params[0].axisValueLabel + '<br/>';
         params.forEach(item => {
           if (typeof item.value === 'number') {
-            result += '<div style="display:flex; justify-content:space-between; width:250px">'
+            result += '<div style="display:flex; justify-content:space-between; width:240px">'
               + '<span>' + item.marker + ' ' + item.seriesName + '</span>'
               + '<b style="margin-left:15px">' + item.value + '</b></div>';
           }
@@ -349,10 +348,29 @@ export const chartBuilders = {
         return result;
       }
     },
-    "legend": {},
+    "grid": {
+      "left": "3%",
+      "right": "4%",
+      "bottom": "8%",
+      "containLabel": true
+    },
+    "legend": {
+      "bottom": 10,
+      "type": "scroll"
+    },
     "xAxis": {
       "type": 'category',
-      "data": chartData.xLabels
+      "data": chartData.xLabels,
+      "axisTick": {
+        "show": true,
+        "alignWithLabel": true,
+        "interval": (index, value) => value.endsWith('-01-01'),
+      },
+      "axisLabel": {
+        "interval": (index, value) => value.endsWith('-01-01'),
+        "formatter": value => value.slice(0, 4),
+        "hideOverlap": true
+      }
     },
     "yAxis": {
       "type": 'value'
