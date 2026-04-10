@@ -177,7 +177,7 @@ export const chartBuilders = {
   videosPerTalentMonthly: (chartData) => ({
     ...defaults,
     "title": {
-      "text": "Videos Per Talent Monthly"
+      "text": "Video uploads by HoloEN talent"
     },
     "tooltip": {
       "trigger": "item",
@@ -187,14 +187,13 @@ export const chartBuilders = {
       "formatter": "{b}<br/>{a}: {c}"
     },
     "legend": {
-      "top": 30,
-      "type": "scroll"
+      "bottom": 10,
+      "type": "scroll",
     },
     "grid": {
-      "top": "70",
-      "left": "40",
-      "right": "20",
-      "bottom": "50",
+      "left": "3%",
+      "right": "4%",
+      "bottom": "8%",
       "containLabel": true
     },
     "xAxis": [
@@ -202,7 +201,14 @@ export const chartBuilders = {
         "type": "category",
         "data": chartData.xLabels,
         "axisTick": {
-          "alignWithLabel": true
+          "show": true,
+          "alignWithLabel": true,
+          "interval": (index, value) => value.endsWith('-01-01'),
+        },
+        "axisLabel": {
+          "interval": (index, value) => value.endsWith('-01-01'),
+          "formatter": value => value.slice(0, 4),
+          "hideOverlap": true
         }
       }
     ],
