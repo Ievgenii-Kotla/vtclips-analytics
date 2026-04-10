@@ -157,6 +157,7 @@ async function renderCards(cardsData) {
       const loader = document.getElementById(`loader-${card.id}`);
       if (loader) loader.style.display = 'none';
     }
+    window.chartWidth = Object.values(charts).find(c => c)?.getWidth() ?? 300;
   }
 }
 

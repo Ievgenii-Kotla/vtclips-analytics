@@ -320,11 +320,14 @@ def videos_group_share_monthly(conn):
                 "stack": "total",
                 "stackStrategy": 'all',
                 "barWidth": "80%",
-                "label": {
-                  "show": True
-                },
                 "emphasis": {
-                  "focus": "series"
+                  "focus": "none",
+                  "itemStyle": {
+                    "borderWidth": 2,
+                    "borderColor": '#ffffff',
+                    "shadowBlur": 15,
+                    "shadowColor": 'rgba(255,255,255,0.4)'
+                  }
                 },
                 "data": [
                     {

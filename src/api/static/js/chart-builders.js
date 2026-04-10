@@ -220,25 +220,32 @@ export const chartBuilders = {
     "series": chartData.series
   }),
   videosGroupShareMonthly: (chartData) => ({
-     "title": {
-      "text": "Monthly Video Share by Talent Group"
+    "title": {
+      "text": "Video uploads by HoloEN generation",
+      "subtext": "Share of total uploads · Each bar adds up to 100%",
+      "itemGap": 5
     },
     "tooltip": {
-      "trigger": "item",
+      "trigger": "axis",
       "axisPointer": {
         "type": "shadow"
       },
-      "formatter": "{b}<br/>{a}: {c} <br/> vids: {videos_num}"
+      formatter: params => {
+        const date = params[0].name.slice(0, 7); // the x-axis value
+        const lines = params
+          .filter(p => p.value !== null && p.value !== undefined)
+          .map(p => `${p.marker} ${p.seriesName}: ${p.value}%`)
+        return [date, ...lines].join('<br/>');
+      }
     },
     "legend": {
-      "top": 30,
+      "bottom": 10,
       "type": "scroll"
     },
     "grid": {
-      "top": "70",
-      "left": "40",
-      "right": "20",
-      "bottom": "50",
+      "left": "3%",
+      "right": "4%",
+      "bottom": "8%",
       "containLabel": true
     },
     "xAxis": [
@@ -246,7 +253,14 @@ export const chartBuilders = {
         "type": "category",
         "data": chartData.xLabels,
         "axisTick": {
-          "alignWithLabel": true
+          "show": true,
+          "alignWithLabel": true,
+          "interval": (index, value) => value.endsWith('-01-01'),
+        },
+        "axisLabel": {
+          "interval": (index, value) => value.endsWith('-01-01'),
+          "formatter": value => value.slice(0, 4),
+          "hideOverlap": true
         }
       }
     ],
@@ -255,7 +269,12 @@ export const chartBuilders = {
         "type": "value"
       }
     ],
-    "series": chartData.series
+    "series": chartData.series.map((s, index) => ({
+      ...s,
+      label: {
+        show: window.chartWidth > 600
+      }
+    }))
   }),
   clipsPerChannelDistribution: (chartData) => ({
     "title": {
