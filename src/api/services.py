@@ -449,20 +449,23 @@ def cum_count_dvideos_per_talent_daily(conn):
             "name": talent,
             "type": "line",
             "showSymbol": False,
+            "symbolSize": 8,
             "emphasis": {
                 "focus": "series",
                 "label": {
                     "show": True,
-                    "formatter": "{a}: {c}"
+                    "formatter": "{a}",
+                    "textStyle": {
+                      "color": '#fff',
+                      "fontSize": 12,
+                      "fontWeight": 'bold',
+                      "opacity": 1,
+                      "textBorderColor": '#000',
+                      "textBorderWidth": 2,
+                      "textShadowColor": '#000',
+                      "textShadowBlur": 3,
+                    }
                 }
-            },
-            "blur": {
-                "label": {
-                    "show": False
-                }
-            },
-            "label": {
-                "show": False
             },
             "data": wide[talent].tolist(),
             "itemStyle": {
