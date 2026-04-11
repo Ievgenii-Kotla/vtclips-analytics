@@ -511,6 +511,7 @@ def mentions_one_talent_monthly(conn, talent_id=1):
     )
     SELECT 
         tm.talent_name,
+        MIN(tm.talent_color) AS talent_color,
         CASE WHEN t.d_channel_id IS NULL THEN 'OTHER' ELSE tm.d_channel_title END AS d_channel_title,
         t.d_channel_id,
         t.d_channel_rank,
@@ -544,6 +545,8 @@ def mentions_one_talent_monthly(conn, talent_id=1):
 
     talent_name = df["talent_name"].iloc[0]
     del df["talent_name"]
+    talent_color = f'#{df["talent_color"].iloc[0]}'
+    del df["talent_color"]
 
     wide = df.pivot(index="year_month", columns="d_channel_title", values="talent_mentions_monthly")
     all_dates = pd.date_range(df["year_month"].min(), df["year_month"].max(), freq="MS").date
@@ -558,7 +561,7 @@ def mentions_one_talent_monthly(conn, talent_id=1):
             "barWidth": "80%",
             "data": wide[d_channel_title].tolist(),
             "itemStyle": {
-                "color": "#4A4A4A" if d_channel_title == "OTHER" else None
+                "color": _mix_colors('#808080', talent_color, 0.075) if d_channel_title == "OTHER" else None,
             },
         }
         for d_channel_title in wide.columns
@@ -572,7 +575,7 @@ def mentions_one_talent_monthly(conn, talent_id=1):
         "data": {
             "xLabels": x_axis,
             "series": series,
-            "titleText": f"Monthly count of videos related to {talent_name}",
+            "titleText": f"Video uploads related to {talent_name}",
             "titleSubText": f"{TOP_N} biggest all-time contributors highlighted"
         }
     }
