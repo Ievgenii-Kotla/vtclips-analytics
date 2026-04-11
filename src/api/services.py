@@ -1141,3 +1141,21 @@ def _name_to_id(conn, talent_name:str):
         else:
             talent_id = 5
     return talent_id
+
+
+def _mix_colors(color1: str, color2: str, t: float = 0.5) -> str:
+    """
+    Mix two hex colors.
+    t=0.0 returns color1, t=1.0 returns color2, t=0.5 returns midpoint.
+    """
+    color1 = color1.lstrip('#')
+    color2 = color2.lstrip('#')
+
+    r1, g1, b1 = int(color1[0:2], 16), int(color1[2:4], 16), int(color1[4:6], 16)
+    r2, g2, b2 = int(color2[0:2], 16), int(color2[2:4], 16), int(color2[4:6], 16)
+
+    r = round(r1 + (r2 - r1) * t)
+    g = round(g1 + (g2 - g1) * t)
+    b = round(b1 + (b2 - b1) * t)
+
+    return f'#{r:02x}{g:02x}{b:02x}'
