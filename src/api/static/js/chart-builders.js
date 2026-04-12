@@ -15,8 +15,8 @@ export const chartBuilders = {
   allVideosDaily: (chartData) => ({
     ...defaults,
     "title": {
-      "text": "Daily video uploads · HoloEN",
-      "subtext": "Clips, animations, news, source videos, etc. related to talents",
+      "text": "Video uploads related to HoloEN",
+      "subtext": "Clips, animations, news, source videos, etc.",
       "itemGap": 5
     },
     animationThreshold: Infinity, // Force animation. Could be taxing.
@@ -63,7 +63,7 @@ export const chartBuilders = {
         "markLine": {
           symbol: 'none',
           lineStyle: {
-            color: '#888',
+            color: '#808080',
             type: 'dashed',
             width: 1
           },
@@ -72,7 +72,7 @@ export const chartBuilders = {
             position: 'insideEndTop',
             distance: 0,
             formatter: '{b}',
-            color: '#888',
+            color: '#808080',
             fontWeight: 'normal',
             fontSize: 14,
           },
@@ -100,7 +100,7 @@ export const chartBuilders = {
   activeClippersMonthly: (chartData) => ({
     ...defaults,
     "title": {
-      "text": "Active channels per month · HoloEN",
+      "text": "Active channels each month · HoloEN",
       "subtext": "Channels that posted videos related to HoloEN talents",
       "itemGap": 5
     },
@@ -155,7 +155,7 @@ export const chartBuilders = {
         "markLine": {
           symbol: 'none',
           lineStyle: {
-            color: '#888',
+            color: '#808080',
             type: 'dashed',
             width: 1
           },
@@ -164,7 +164,7 @@ export const chartBuilders = {
             position: 'insideEndTop',
             distance: 0,
             formatter: '{b}',
-            color: '#888',
+            color: '#808080',
             fontWeight: 'normal',
             fontSize: 14,
           },
