@@ -1,3 +1,13 @@
+const formatDate = str => {
+  const parts = str.split('-');
+  if (parts.length === 3) {
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    return date.toLocaleString('en-GB', { month: 'long', day: 'numeric', year: 'numeric' });
+  } else {
+    const date = new Date(parts[0], parts[1] - 1);
+    return date.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+  }
+};
 const defaults = {
   "graphic": {
     "type": "text",
@@ -24,6 +34,16 @@ export const chartBuilders = {
       "trigger": "axis",
       "axisPointer": {
         "type": "shadow"
+      },
+      "confine": true,
+      "formatter": function(params) {
+        let result = '' + formatDate(params[0].axisValueLabel) + '<br/>';
+        params.forEach(item => {
+          result += '<div style="display:flex; justify-content:space-between;">'
+            + '<span>' + item.marker + ' ' + 'Channels: ' + '</span>'
+            + '<b style="margin-left:15px">' + item.value + '</b></div>';
+        });
+        return result;
       }
     },
     "grid": {
@@ -111,7 +131,7 @@ export const chartBuilders = {
       },
       "confine": true,
       "formatter": function(params) {
-        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        let result = '' + formatDate(params[0].axisValueLabel.slice(0, 7)) + '<br/>';
         params.forEach(item => {
           result += '<div style="display:flex; justify-content:space-between;">'
             + '<span>' + item.marker + ' ' + 'Channels: ' + '</span>'
@@ -190,7 +210,7 @@ export const chartBuilders = {
         "type": "shadow"
       },
       formatter: params => {
-        const date = params[0].name.slice(0, 7);
+        const date = formatDate(params[0].name.slice(0, 7));
         const lines = params
           .filter(p => p.value != null)
           .map(p => `<div style="display:flex; justify-content:space-between;">
@@ -245,7 +265,7 @@ export const chartBuilders = {
         "type": "shadow"
       },
       formatter: params => {
-        const date = params[0].name.slice(0, 7);
+        const date = formatDate(params[0].name.slice(0, 7));
         const lines = params
           .filter(p => p.value != null)
           .map(p => `<div style="display:flex; justify-content:space-between;">
@@ -354,7 +374,7 @@ export const chartBuilders = {
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
 
-        let result = '' + params[0].axisValueLabel + '<br/>';
+        let result = '' + formatDate(params[0].axisValueLabel) + '<br/>';
         params.forEach(item => {
           if (typeof item.value === 'number') {
             result += '<div style="display:flex; justify-content:space-between; width:240px">'
@@ -420,7 +440,7 @@ export const chartBuilders = {
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
 
-        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        let result = '' + formatDate(params[0].axisValueLabel.slice(0, 7)) + '<br/>';
         params.forEach(item => {
           if (typeof item.value === 'number') {
             result += '<div style="display:flex; justify-content:space-between; width:250px">'
@@ -483,7 +503,7 @@ export const chartBuilders = {
       },
       "confine": true,
       "formatter": function(params) {
-        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        let result = '' + formatDate(params[0].axisValueLabel.slice(0, 7)) + '<br/>';
         params.forEach(item => {
           if (typeof item.value === 'number') {
             result += '<div style="display:flex; justify-content:space-between;">'
@@ -541,7 +561,7 @@ export const chartBuilders = {
       },
       "confine": true,
       "formatter": function(params) {
-        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        let result = '' + params[0].axisValueLabel + '<br/>';
         params.forEach(item => {
           result += '<div style="display:flex; justify-content:space-between;">'
             + '<span>' + item.marker + ' ' + 'Videos: ' + '</span>'
@@ -614,7 +634,7 @@ export const chartBuilders = {
       },
       "confine": true,
       "formatter": function(params) {
-        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        let result = '' + formatDate(params[0].axisValueLabel.slice(0, 7)) + '<br/>';
         params.forEach(item => {
           result += '<div style="display:flex; justify-content:space-between;">'
             + '<span>' + item.marker + ' ' + 'Videos: ' + '</span>'
@@ -656,7 +676,7 @@ export const chartBuilders = {
       },
       "confine": true,
       "formatter": function(params) {
-        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        let result = '' + formatDate(params[0].axisValueLabel.slice(0, 7)) + '<br/>';
         params.forEach(item => {
           result += '<div style="display:flex; justify-content:space-between;">'
             + '<span>' + item.marker + ' ' + 'Videos: ' + '</span>'
