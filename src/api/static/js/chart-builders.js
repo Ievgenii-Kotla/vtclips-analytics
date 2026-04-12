@@ -368,16 +368,13 @@ export const chartBuilders = {
     },
     "tooltip": {
       "trigger": "axis",
-        "position": function (point, params, dom, rect, size) {
-        return ['0%', '-20%'];
-      },
+      "confine": true,
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
-
         let result = '' + formatDate(params[0].axisValueLabel) + '<br/>';
         params.forEach(item => {
           if (typeof item.value === 'number') {
-            result += '<div style="display:flex; justify-content:space-between; width:240px">'
+            result += '<div style="display:flex; justify-content:space-between;">'
               + '<span>' + item.marker + ' ' + item.seriesName + '</span>'
               + '<b style="margin-left:15px">' + item.value + '</b></div>';
           }
@@ -434,16 +431,13 @@ export const chartBuilders = {
       "axisPointer": {
         "type": "shadow"
       },
-        "position": function (point, params, dom, rect, size) {
-        return ['0%', '-20%'];
-      },
+      "confine": true,
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
-
         let result = '' + formatDate(params[0].axisValueLabel.slice(0, 7)) + '<br/>';
         params.forEach(item => {
           if (typeof item.value === 'number') {
-            result += '<div style="display:flex; justify-content:space-between; width:250px">'
+            result += '<div style="display:flex; justify-content:space-between;">'
               + '<span>' + item.marker + ' ' + item.seriesName + '</span>'
               + '<b style="margin-left:15px">' + item.value + '</b></div>';
           }
