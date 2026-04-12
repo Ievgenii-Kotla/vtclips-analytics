@@ -514,10 +514,12 @@ export const chartBuilders = {
     ...defaults,
     "title": {
       "text": chartData.titleText,
-      "subtext": chartData.titleSubText
+      "subtext": chartData.titleSubText,
+      "itemGap": 5
     },
     "tooltip": {
       "trigger": "axis",
+      "formatter": "{b}<br>Videos: <b>{c}</b>",
       "axisPointer": {
         "type": "shadow"
       }
@@ -526,10 +528,9 @@ export const chartBuilders = {
       "type": "scroll"
     },
     "grid": {
-      "top": "70",
-      "left": "40",
-      "right": "20",
-      "bottom": "50",
+      "left": "3%",
+      "right": "4%",
+      "bottom": "3%",
       "containLabel": true
     },
     "xAxis": {

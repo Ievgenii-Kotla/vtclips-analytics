@@ -616,10 +616,14 @@ def mentions_one_talent_total(conn, talent_id=1):
             "label": {
                 "show": True,
                 "position": "insideLeft",
+                "offset": [0, 2],
                 "formatter": "{b}",
+                "fontSize": 14,
                 "color": "#fff",
                 "textBorderColor": "#333",
-                "textBorderWidth": 2
+                "textBorderWidth": 2,
+                "textShadowColor": 'rgba(0,0,0,0.8)',
+                "textShadowBlur": 4,
             },
             "barWidth": "80%",
             "data": mentions,
@@ -636,8 +640,8 @@ def mentions_one_talent_total(conn, talent_id=1):
         "data": {
             "yLabels": y_axis,
             "series": series,
-            "titleText": f"Channels that made the most videos related to {talent_name}",
-            "titleSubText": f"All-time"
+            "titleText": f"Top contributors · {talent_name}",
+            "titleSubText": f"By number of related uploads · All time",
         }
     }
     return chart_data, channel_ids
