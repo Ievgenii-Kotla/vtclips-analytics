@@ -109,10 +109,15 @@ export const chartBuilders = {
       "axisPointer": {
         "type": "shadow"
       },
-      formatter: params => {
-        const date = params[0].name.slice(0, 7); // the x-axis value
-        const lines = params.map(p => `${p.marker} ${p.seriesName}: ${p.value}`);
-        return [date, ...lines].join('<br/>');
+      "confine": true,
+      "formatter": function(params) {
+        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        params.forEach(item => {
+          result += '<div style="display:flex; justify-content:space-between;">'
+            + '<span>' + item.marker + ' ' + 'Channels: ' + '</span>'
+            + '<b style="margin-left:15px">' + item.value + '</b></div>';
+        });
+        return result;
       }
     },
     "grid": {
@@ -180,11 +185,20 @@ export const chartBuilders = {
       "text": "Video uploads by HoloEN talent"
     },
     "tooltip": {
-      "trigger": "item",
+      "trigger": "axis",
       "axisPointer": {
         "type": "shadow"
       },
-      "formatter": "{b}<br/>{a}: {c}"
+      formatter: params => {
+        const date = params[0].name.slice(0, 7);
+        const lines = params
+          .filter(p => p.value != null)
+          .map(p => `<div style="display:flex; justify-content:space-between;">
+            <span>${p.marker} ${p.seriesName}:</span>
+            <b style="margin-left:15px">${p.value}</b></div>`)
+          .reverse();
+        return [date, ...lines].join('');
+      }
     },
     "legend": {
       "bottom": 10,
@@ -231,11 +245,14 @@ export const chartBuilders = {
         "type": "shadow"
       },
       formatter: params => {
-        const date = params[0].name.slice(0, 7); // the x-axis value
+        const date = params[0].name.slice(0, 7);
         const lines = params
-          .filter(p => p.value !== null && p.value !== undefined)
-          .map(p => `${p.marker} ${p.seriesName}: ${p.value}%`)
-        return [date, ...lines].join('<br/>');
+          .filter(p => p.value != null)
+          .map(p => `<div style="display:flex; justify-content:space-between;">
+            <span>${p.marker} ${p.seriesName}:</span>
+            <b style="margin-left:15px">${p.value}%</b></div>`)
+          .reverse();
+        return [date, ...lines].join('');
       }
     },
     "legend": {
@@ -519,9 +536,18 @@ export const chartBuilders = {
     },
     "tooltip": {
       "trigger": "axis",
-      "formatter": "{b}<br>Videos: <b>{c}</b>",
       "axisPointer": {
         "type": "shadow"
+      },
+      "confine": true,
+      "formatter": function(params) {
+        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        params.forEach(item => {
+          result += '<div style="display:flex; justify-content:space-between;">'
+            + '<span>' + item.marker + ' ' + 'Videos: ' + '</span>'
+            + '<b style="margin-left:15px">' + item.value + '</b></div>';
+        });
+        return result;
       }
     },
     "legend": {
