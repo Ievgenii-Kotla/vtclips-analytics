@@ -870,10 +870,11 @@ def mentions_one_talent_monthly_top_by_total(conn, talent_id=1):
 
     grid = [
         {
-            "top": f"{((70 // sub_charts_num) + 2 ) * i + 15}%",
-            "height": f"{50 // sub_charts_num}%",
-            "left": "4%",
+            "top": f"{((75 // sub_charts_num) + 2 ) * i + 14}%",
+            "height": f"{60 // sub_charts_num}%",
+            "left": "3%",
             "right": "4%",
+            "bottom": "3%"
         }
         for i in range(sub_charts_num)
     ]
@@ -882,9 +883,6 @@ def mentions_one_talent_monthly_top_by_total(conn, talent_id=1):
             "gridIndex": i,
             "type": "category",
             "data": x_axis_labels,
-            "axisLabel": {
-            "show": False
-            }
         }
         for i in range(sub_charts_num)
     ]
@@ -912,19 +910,17 @@ def mentions_one_talent_monthly_top_by_total(conn, talent_id=1):
     ]
     title = [
         {
-            "text": f"Clipping history related to {talent_name}",
-            "subtext":  f"{TOP_N} biggest all-time contributors. Note: each panel uses an independent y-axis scale"
+            "text": f"Upload history related to {talent_name}",
+            "subtext":  f"{TOP_N} all-time contributors. Y-axis scale varies per panel",
+            "itemGap": 4
         },
         *[
             {
                 "text": d_channel_title,
-                "top": f"{((70 // sub_charts_num) + 2) * i + 11}%",
+                "top": f"{((75 // sub_charts_num) + 2) * i + 10.5}%",
                 "left": "center",
                 "textStyle": {
                     "fontSize": 14,
-                    "textBorderColor": "#333",
-                    "textBorderWidth": 2,
-                    "fontWeight": "normal",
                 }
             }
             for i, d_channel_title in enumerate(wide.columns)

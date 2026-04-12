@@ -585,6 +585,16 @@ export const chartBuilders = {
       "trigger": "axis",
       "axisPointer": {
         "type": "shadow"
+      },
+      "confine": true,
+      "formatter": function(params) {
+        let result = '' + params[0].axisValueLabel.slice(0, 7) + '<br/>';
+        params.forEach(item => {
+          result += '<div style="display:flex; justify-content:space-between;">'
+            + '<span>' + item.marker + ' ' + 'Videos: ' + '</span>'
+            + '<b style="margin-left:15px">' + item.value + '</b></div>';
+        });
+        return result;
       }
     },
     "legend": {
@@ -593,7 +603,20 @@ export const chartBuilders = {
       "show": false
     },
     "grid": chartData.grid,
-    "xAxis": chartData.x_axis,
+    "xAxis": chartData.x_axis.map((d, index) => ({
+      ...d,
+      "axisTick": {
+        "show": true,
+        "alignWithLabel": true,
+        "interval": (index, value) => value.endsWith('-01-01'),
+      },
+      "axisLabel": {
+        "show": index === 4,
+        "interval": (index, value) => value.endsWith('-01-01'),
+        "formatter": value => value.slice(0, 4),
+        "hideOverlap": true
+      }
+    })),
     "yAxis": chartData.y_axis,
     "series": chartData.series
   }),
