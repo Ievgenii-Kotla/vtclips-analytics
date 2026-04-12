@@ -751,10 +751,14 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
             "label": {
                 "show": series["show_label"],
                 "position": "insideLeft",
+                "offset": [0, 2],
                 "formatter": "{b}",
+                "fontSize": 14,
                 "color": "#fff",
                 "textBorderColor": "#333",
-                "textBorderWidth": 2
+                "textBorderWidth": 2,
+                "textShadowColor": 'rgba(0,0,0,0.8)',
+                "textShadowBlur": 4,
             },
             "barWidth": "80%",
             "data": series["data"],
@@ -771,7 +775,7 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
             },
             {
                 "name": "Other videos",
-                "color": "#4A4A4A",
+                "color": _mix_colors('#808080', talent_color, 0.075),
                 "data": other_videos,
                 "show_label": False,
             }
@@ -786,9 +790,8 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
         "data": {
             "yLabels": y_axis,
             "series": series,
-            "titleText": f"Channels that have most of their videos related to {talent_name}",
-            "titleSubText": f"Must have at least {MENTIONS_THRESHOLD} mentions related to {talent_name}, "
-                            f"and at least {int(RATIO_THRESHOLD*100)}% of their videos should mention {talent_name}",
+            "titleText": f"Most dedicated · {talent_name}",
+            "titleSubText": f"By number of related uploads · {int(RATIO_THRESHOLD*100)}%+ related videos · Since debut",
         }
     }
     return chart_data, channel_ids

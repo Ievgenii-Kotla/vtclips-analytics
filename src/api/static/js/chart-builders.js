@@ -548,7 +548,8 @@ export const chartBuilders = {
     ...defaults,
     "title": {
       "text": chartData.titleText,
-      "subtext": chartData.titleSubText
+      "subtext": chartData.titleSubText,
+      "itemGap": 5
     },
     "tooltip": {
       "trigger": "axis",
@@ -557,13 +558,13 @@ export const chartBuilders = {
       }
     },
     "legend": {
-      "type": "scroll"
+      "type": "scroll",
+      "bottom": 10,
     },
     "grid": {
-      "top": "70",
-      "left": "40",
-      "right": "20",
-      "bottom": "50",
+      "left": "3%",
+      "right": "4%",
+      "bottom": "8%",
       "containLabel": true
     },
     "xAxis": {
