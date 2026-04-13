@@ -749,6 +749,7 @@ class DBCharts:
     def refresh_chart_group_talent_mentions_monthly(connection: psycopg2_connection):
         table_name = "chart_group_talent_mentions_monthly"
         query = """
+        DROP INDEX IF EXISTS idx_chart_group_talent_mentions_monthly_talent_id;
         TRUNCATE TABLE chart_group_talent_mentions_monthly;
         
         WITH video_count AS (
@@ -821,5 +822,8 @@ class DBCharts:
             talent_mentions_monthly,
             total_videos_monthly
         FROM prep;
+        
+        CREATE INDEX idx_chart_group_talent_mentions_monthly_talent_id 
+        ON chart_group_talent_mentions_monthly (talent_id);
         """
         DBCharts.refresh_table(connection, table_name, query)
