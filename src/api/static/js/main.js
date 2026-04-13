@@ -278,9 +278,9 @@ document.getElementById('controls-area').addEventListener('change', async (event
   if (event.target.id === 'talent-selector') {
     updateSelectorColor()
     const selectedValue = event.target.value;
+    window.history.pushState({}, '', `/talent?name=${encodeURIComponent(selectedValue)}`);
     showSkeletons(2);
     const res = await fetch('/api/talent_charts_and_links/' + selectedValue, {cache: 'no-cache'});
-    window.history.pushState({}, '', `/talent?name=${encodeURIComponent(selectedValue)}`);
     const data = await res.json();
     renderCards(data.charts);
     renderLinks(data.linksInfo);
