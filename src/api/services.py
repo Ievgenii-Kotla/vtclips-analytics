@@ -100,11 +100,21 @@ def talent_charts_and_links(conn, talent_name:str):
 
 def talent_selector(conn):
     """Return information needed to build the talent selector."""
+
+    query = """
+        SELECT 
+            first_name_eng, 
+            neutral_color AS color 
+        FROM talent 
+        WHERE talent_id != 21 
+        ORDER BY debut_datetime;
+    """
     with conn.cursor() as cur:
-        cur.execute("SELECT first_name_eng FROM talent WHERE talent_id != 21 ORDER BY debut_datetime;")
-        names = [name[0] for name in cur.fetchall()]
+        cur.execute(query)
+        rows = cur.fetchall()
+        print(rows)
     selector = {
-        "options": [{"value": name, "label": f"{name}"} for name in names]
+        "options": [{"value": row[0], "color": f"#{row[1]}", "label": f"{row[0]}"} for row in rows]
     }
     return selector
 

@@ -52,6 +52,20 @@ function renderLinks(linksInfo) {
     `;
 }
 
+function updateSelectorColor(){
+  const selector = document.getElementById('talent-selector');
+  const selectedOption = selector.options[selector.selectedIndex];
+  const color = selectedOption.dataset.color;
+
+  selector.style.borderColor = `${color}`;
+  selector.style.boxShadow = `0 0 0 2px ${color}40`;
+  selector.style.outlineColor = `${color}00`;
+
+  //selector.style.boxShadow = `0 0 8px 2px ${color}80`;  // Looks like asking to be clicked
+  //selector.style.color = color;  // overflows into dropdown
+  //selector.style.backgroundColor = `${color}20`;  // overflows into dropdown
+}
+
 const headerEl = document.getElementById('header-info');
 async function loadHeader() {
   try {
@@ -176,8 +190,9 @@ async function loadTab(tabId, talentName) {
       if (!res1.ok) throw new Error('selector fetch failed');
       const selectorData = await res1.json()
       document.getElementById('controls-area').innerHTML = `
-        <select class="select select-bordered" id="talent-selector">
-          ${selectorData.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("")}
+        <select class="select select-bordered w-full" id="talent-selector">
+          ${selectorData.options.map(opt => `
+            <option value="${opt.value}" data-color="${opt.color}">${opt.label}</option>`).join("")}
         </select>
       `;
       const selector = document.getElementById('talent-selector');
@@ -186,6 +201,7 @@ async function loadTab(tabId, talentName) {
       }
       selector.value = talentName;
       window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
+      updateSelectorColor();
     }
     showSkeletons(2);
     const url = talentName == null
@@ -260,6 +276,7 @@ window.addEventListener('popstate', () => {
 // selector listener
 document.getElementById('controls-area').addEventListener('change', async (event) => {
   if (event.target.id === 'talent-selector') {
+    updateSelectorColor()
     const selectedValue = event.target.value;
     showSkeletons(2);
     const res = await fetch('/api/talent_charts_and_links/' + selectedValue, {cache: 'no-cache'});
