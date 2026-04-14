@@ -190,7 +190,7 @@ async function loadTab(tabId, talentName) {
       if (!res1.ok) throw new Error('selector fetch failed');
       const selectorData = await res1.json()
       document.getElementById('controls-area').innerHTML = `
-        <select class="select select-bordered w-full" id="talent-selector">
+        <select class="select select-bordered w-full text-center text-lg font-semibold" style="padding-left: 2.4rem"  id="talent-selector">
           ${selectorData.options.map(opt => `
             <option value="${opt.value}" data-color="${opt.color}">${opt.label}</option>`).join("")}
         </select>

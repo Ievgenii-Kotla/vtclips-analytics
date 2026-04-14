@@ -114,7 +114,7 @@ def talent_selector(conn):
         rows = cur.fetchall()
         print(rows)
     selector = {
-        "options": [{"value": row[0], "color": f"#{row[1]}", "label": f"{row[0]}"} for row in rows]
+        "options": [{"value": row[0], "color": f"#{row[2]}", "label": f"{row[1]}"} for row in rows]
     }
     return selector
 
