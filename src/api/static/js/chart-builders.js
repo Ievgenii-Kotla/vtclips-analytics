@@ -14,7 +14,7 @@ const defaults = {
     "left": "right",
     "bottom": 0,
     "style": {
-      "text": "vtc.com",
+      "text": "holoclipstats.com",
       "fontSize": 10,
       "fill": "#999",
       "opacity": 0.2
