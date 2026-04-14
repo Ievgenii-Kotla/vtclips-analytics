@@ -104,6 +104,7 @@ def talent_selector(conn):
     query = """
         SELECT 
             first_name_eng, 
+            display_name,
             neutral_color AS color 
         FROM talent 
         WHERE talent_id != 21 
