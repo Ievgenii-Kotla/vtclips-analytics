@@ -6,61 +6,7 @@ import datetime as dt
 import psycopg2
 from psycopg2 import Error
 
-
-
-def pick_talent() -> str:
-    """Returns the first name of a talent"""
-    talent = 'Ouro'
-    return talent
-
-
-def pick_keyword(talent) -> str:
-    keyword = ''
-    return keyword
-    pass
-
-
-def pick_time_period(keyword) -> (dt.datetime, dt.datetime):
-    pass
-
-
-# Function to insert data into a table
-def insert_data(connection, data_to_insert):
-    try:
-        # Create a cursor object
-        cursor = connection.cursor()
-
-        # SQL statement for inserting data into the table
-        insert_query = """
-        INSERT INTO talent (first_name_eng, last_name_eng, group_name, debut_datetime, display_name)
-        SELECT %(name)s, %(sur)s, %(gen)s, %(debut)s, %(display_name)s
-        WHERE 
-        NOT EXISTS (
-        SELECT first_name_eng FROM talent WHERE first_name_eng = %(name)s
-        );
-        """
-
-        # Execute the SQL statement
-        cursor.executemany(insert_query, data_to_insert)
-
-        # Commit the transaction
-        connection.commit()
-
-        print("Data inserted successfully")
-        print(f"Inserted {cursor.rowcount} rows")
-    except (Exception, Error) as error:
-        print("Error while inserting data:", error)
-    finally:
-        # Close the cursor and connection
-        if connection:
-            cursor.close()
-            connection.close()
-            print("Connection closed")
-
-
-# Main function
 def main():
-    # TODO: Add a functionality that updates existing rows in case some new info is added
     data_to_insert = [
         {'name': 'Kiara', 'sur': 'Takanashi', 'gen': 'myth', 'debut': '2020-09-12 01:00:00+00', 'display_name': 'Takanashi Kiara'},
         {'name': 'Amelia', 'sur': 'Watson', 'gen': 'myth', 'debut': '2020-09-13 02:00:00+00', 'display_name': 'Amelia Watson'},
@@ -85,8 +31,24 @@ def main():
         {'name': 'HololiveEnglish', 'sur': None, 'gen': None, 'debut': '2020-09-07 00:00:00+00', 'display_name': 'Hololive English'},
     ]
     with psycopg2.connect(os.environ['DATABASE_URL']) as connection:
-        insert_data(connection, data_to_insert)
-
+        with connection.cursor() as cursor:
+            # add talents that are not already added
+            insert_query = """
+            INSERT INTO talent (first_name_eng, last_name_eng, group_name, debut_datetime, display_name)
+            SELECT %(name)s, %(sur)s, %(gen)s, %(debut)s, %(display_name)s
+            WHERE NOT EXISTS (
+                SELECT first_name_eng FROM talent WHERE first_name_eng = %(name)s
+            );
+            """
+            try:
+                cursor.executemany(insert_query, data_to_insert)
+                connection.commit()
+            except Exception as error:
+                connection.rollback()
+                print("Error while inserting data:", error)
+            else:
+                print("Data inserted successfully")
+                print(f"Inserted {cursor.rowcount} rows")
 
 if __name__ == "__main__":
     main()
