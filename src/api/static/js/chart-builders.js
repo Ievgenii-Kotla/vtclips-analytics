@@ -1,3 +1,4 @@
+const isTouch = navigator.maxTouchPoints > 0;
 const formatDate = str => {
   const parts = str.split('-');
   if (parts.length === 3) {
@@ -120,7 +121,7 @@ export const chartBuilders = {
   activeClippersMonthly: (chartData) => ({
     ...defaults,
     "title": {
-      "text": "Active channels each month · HoloEN",
+      "text": "Active channels related to HoloEN",
       "subtext": "Channels that posted videos related to HoloEN talents",
       "itemGap": 5
     },
@@ -251,7 +252,10 @@ export const chartBuilders = {
         "type": "value"
       }
     ],
-    "series": chartData.series
+    "series": chartData.series.map((s, index) => ({
+      ...s,
+      emphasis: { focus: isTouch ? 'none' : 'series' }
+    }))
   }),
   videosGroupShareMonthly: (chartData) => ({
     "title": {
@@ -309,7 +313,7 @@ export const chartBuilders = {
     "series": chartData.series.map((s, index) => ({
       ...s,
       label: {
-        show: window.chartWidth > 600
+        show: window.chartWidth > 800
       }
     }))
   }),
@@ -415,7 +419,8 @@ export const chartBuilders = {
         "xAxisIndex": 0,
         "moveOnMouseMove": true,
         "moveOnMouseWheel": false,
-        "minSpan": 1
+        "minSpan": 1,
+        "preventDefaultMouseMove": false,
       }
     ],
     "series": chartData.series
@@ -478,7 +483,8 @@ export const chartBuilders = {
         "xAxisIndex": 0,
         "moveOnMouseMove": true,
         "moveOnMouseWheel": false,
-        "minSpan": 1
+        "minSpan": 1,
+        "preventDefaultMouseMove": false,
       }
     ],
     "series": chartData.series
@@ -539,7 +545,10 @@ export const chartBuilders = {
         "type": "value"
       }
     ],
-    "series": chartData.series
+    "series": chartData.series.map((s, index) => ({
+      ...s,
+      "label": { "offset": isTouch ? [0, 0] : [0, 2] }
+    }))
   }),
   countMentionsOneTalentPerDChannel: (chartData) => ({
     ...defaults,

@@ -279,12 +279,9 @@ def videos_per_talent_monthly(conn):
             "name": talent,
             "type": "bar",
             "stack": "total",
-            "barWidth": "60%",
+            "barWidth": "80%",
             "label": {
                 "show": False
-            },
-            "emphasis": {
-                "focus": "series"
             },
             "data": wide[talent].tolist(),
             "itemStyle": {
@@ -627,7 +624,7 @@ def mentions_one_talent_total(conn, talent_id=1):
             "label": {
                 "show": True,
                 "position": "insideLeft",
-                "offset": [0, 2],
+                # "offset": [0, 2],
                 "formatter": "{b}",
                 "fontSize": 14,
                 "color": "#fff",
@@ -652,7 +649,7 @@ def mentions_one_talent_total(conn, talent_id=1):
             "yLabels": y_axis,
             "series": series,
             "titleText": f"Top contributors · {talent_name}",
-            "titleSubText": f"By number of related uploads · All time",
+            "titleSubText": f"By related uploads · All time",
         }
     }
     return chart_data, channel_ids
@@ -802,7 +799,7 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
             "yLabels": y_axis,
             "series": series,
             "titleText": f"Most dedicated · {talent_name}",
-            "titleSubText": f"By number of related uploads · {int(RATIO_THRESHOLD*100)}%+ related videos · Since debut",
+            "titleSubText": f"By related uploads · {int(RATIO_THRESHOLD*100)}%+ related videos · Since debut",
         }
     }
     return chart_data, channel_ids
