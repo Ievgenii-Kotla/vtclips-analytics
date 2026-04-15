@@ -799,7 +799,7 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
             "yLabels": y_axis,
             "series": series,
             "titleText": f"Most dedicated · {talent_name}",
-            "titleSubText": f"By related uploads · {int(RATIO_THRESHOLD*100)}%+ related videos · Since debut",
+            "titleSubText": f"By related uploads · {int(RATIO_THRESHOLD*100)}%+ related videos · Since talent's debut",
         }
     }
     return chart_data, channel_ids
@@ -919,7 +919,7 @@ def mentions_one_talent_monthly_top_by_total(conn, talent_id=1):
     title = [
         {
             "text": f"Upload history related to {talent_name}",
-            "subtext":  f"{TOP_N} all-time contributors. Y-axis scale varies per panel",
+            "subtext":  f"{TOP_N} top all-time contributors. Y-axis varies per panel",
             "itemGap": 4
         },
         *[
@@ -1068,7 +1068,7 @@ def mentions_one_talent_monthly_top_by_lately(conn, talent_id=1):
     title = [
         {
             "text": f"Upload history related to {talent_name}",
-            "subtext": f"{TOP_N} contributors in the last 3 month. Y-axis scale varies per panel",
+            "subtext": f"{TOP_N} top contributors in the last 3 month. Y-axis varies per panel",
             "itemGap": 4
         },
         *[
