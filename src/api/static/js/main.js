@@ -184,6 +184,9 @@ async function loadTab(tabId, talentName) {
 
   document.getElementById('controls-area').innerHTML = '';
   showSkeletons(2);
+  Object.values(charts).forEach(chart => chart.dispose());
+  Object.keys(charts).forEach(key => delete charts[key]);
+
   try {
     if (tabId === 'talent') {
       const res1 = await fetch('/api/talent_selector', {signal, cache: 'no-cache'});
