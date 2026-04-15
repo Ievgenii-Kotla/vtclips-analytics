@@ -206,6 +206,7 @@ keywords = {
         ['biboo', 'Bijou', 'n', 9, '', 'pure'],
         ['rissa', 'Nerissa', 'n', 9, '', 'pure'],
         ['liz', 'Elizabeth', 'n', 9, '', 'pure'],
+        ['erb', 'Elizabeth', 'n', 9, '', 'pure'],
         ['ceci', 'Cecilia', 'n', 9, '', 'pure'],
         ['cece', 'Cecilia', 'n', 9, '', 'pure'],
         ['fuwamoco', 'Fuwawa', 'n', 7, '', 'pure'],
