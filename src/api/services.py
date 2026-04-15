@@ -113,7 +113,6 @@ def talent_selector(conn):
     with conn.cursor() as cur:
         cur.execute(query)
         rows = cur.fetchall()
-        print(rows)
     selector = {
         "options": [{"value": row[0], "color": f"#{row[2]}", "label": f"{row[1]}"} for row in rows]
     }
@@ -124,6 +123,7 @@ def talent_charts(conn, talent_name: str = "Calliope"):
     talent_id = _name_to_id(conn, talent_name)
 
     charts_and_ids = [
+        svideos_single_talent_monthly(conn, talent_id=talent_id),
         mentions_one_talent_monthly(conn, talent_id=talent_id),
         mentions_one_talent_total(conn, talent_id=talent_id),
         mentions_one_talent_dedicated_total(conn, talent_id=talent_id),
@@ -1100,6 +1100,118 @@ def mentions_one_talent_monthly_top_by_lately(conn, talent_id=1):
 
     return chart_data, channel_ids
 
+def svideos_single_talent_monthly(conn, talent_id=1):
+    query = """
+        SELECT * 
+        FROM chart_videos_per_talent_monthly 
+        WHERE order_id = %(talent_id)s
+        ORDER BY published_at_month;
+    """
+    with conn.cursor() as cur:
+        cur.execute(query, {"talent_id": talent_id})
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+
+    df = pd.DataFrame(rows, columns=columns)
+    talent_name = df["talent_name"].iloc[0]
+    del df["talent_name"]
+    talent_color = f'#{df["color"].iloc[0]}'
+    del df["color"]
+
+    wide = df.pivot(index="published_at_month", columns="order_id", values="videos_num")
+    full_range = pd.date_range(
+        start=wide.index.min(),
+        end=date.today(),
+        freq="MS"
+    )
+    wide = wide.reindex(full_range)
+    wide = wide.replace([np.nan, np.inf, -np.inf], None)
+
+    series = [
+        {
+            "name": talent_name,
+            "type": "bar",
+            "label": {
+                "show": False
+            },
+            "data": wide[talent].tolist(),
+            "itemStyle": {
+                "color": talent_color
+            }
+        }
+        for talent in wide.columns
+    ]
+    x_axis = [d.isoformat() for d in wide.index.tolist()]
+
+    # regression all-time
+    y = wide[talent_id].fillna(0).to_numpy(dtype=float)
+    index = max([i if v else 0 for i, v in enumerate(y, start=1)])
+    # exclude the last two months of activity for graduated talents
+    if index < len(wide.index) - 1:
+        index -= 2
+    x = np.arange(index)
+    y = y[:index]
+
+    mask = ~np.isnan(y)
+    m, b = np.polyfit(x[mask], y[mask], 1)
+    y_pred = m * x + b
+    y_pred = [v if v >= 0 and np.isfinite(v) else None for v in y_pred]
+
+    regression_series_all = {
+        "name": f"{talent_name} (trend)",
+        "label": { "show": False },
+        "color": "#808080",
+        "type": "line",
+        "smooth": True,
+        "symbol": "none",
+        "data": y_pred,
+        "lineStyle": {
+            "type": "dashed",
+            "width": 1
+        },
+        "tooltip": {
+            "show": False
+        }
+    }
+    series.append(regression_series_all)
+
+    # regression lately
+    # x = x[-24:]
+    # y = y[-24:]
+    # mask = ~np.isnan(y)
+    # m, b = np.polyfit(x[mask], y[mask], 1)
+    # y_pred_lately = m * x + b
+    # y_pred_lately = [v if v >= 0 and np.isfinite(v) else None for v in y_pred_lately]
+    #
+    # regression_series_lately = {
+    #     "name": f"{talent_name} (trend)",
+    #     "label": { "show": False },
+    #     "color": "#808080",
+    #     "type": "line",
+    #     "smooth": True,
+    #     "symbol": "none",
+    #     "data": y_pred_lately,
+    #     "lineStyle": {
+    #         "type": "dashed",
+    #         "width": 2
+    #     },
+    #     "tooltip": {
+    #         "show": False
+    #     }
+    # }
+    # series.append(regression_series_lately)
+
+    chart_data = {
+        "id": 12,
+        "title": "source videos per single talent monthly",
+        "builder": "sVideosSingleTalentMonthly",
+        "data": {
+            "xLabels": x_axis,
+            "series": series,
+            "titleText": f"Video uploads by {talent_name}",
+        }
+    }
+    return chart_data, []
 
 def _mutate_fuwamoco_colors(colors):
     """Replace fuwamoco related hex-value colors with ECharts friendly gradient of the two colors"""

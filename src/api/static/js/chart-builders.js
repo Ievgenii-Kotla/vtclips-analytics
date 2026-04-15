@@ -711,4 +711,54 @@ export const chartBuilders = {
     "yAxis": chartData.y_axis,
     "series": chartData.series
   }),
+  sVideosSingleTalentMonthly: (chartData) => ({
+    ...defaults,
+    "title": {
+      "text": chartData.titleText,
+    },
+    "tooltip": {
+      "trigger": "axis",
+      "axisPointer": {
+        "type": "shadow"
+      },
+      formatter: params => {
+        const date = formatDate(params[0].name.slice(0, 7));
+        const lines = params
+          .filter(p => p.value != null)
+          .map(p => `<div style="display:flex; justify-content:space-between;">
+            <span>${p.marker} ${p.seriesName}:</span>
+            <b style="margin-left:15px">${p.value}</b></div>`)
+          .reverse();
+        return [date, ...lines].join('');
+      }
+    },
+    "grid": {
+      "left": "3%",
+      "right": "4%",
+      "bottom": "3%",
+      "containLabel": true
+    },
+    "xAxis": [
+      {
+        "type": "category",
+        "data": chartData.xLabels,
+        "axisTick": {
+          "show": true,
+          "alignWithLabel": true,
+          "interval": (index, value) => value.endsWith('-01-01'),
+        },
+        "axisLabel": {
+          "interval": (index, value) => value.endsWith('-01-01'),
+          "formatter": value => value.slice(0, 4),
+          "hideOverlap": true
+        }
+      }
+    ],
+    "yAxis": [
+      {
+        "type": "value"
+      }
+    ],
+    "series": chartData.series
+  }),
 };
