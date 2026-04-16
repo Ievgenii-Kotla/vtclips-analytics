@@ -146,6 +146,68 @@ def talent_dchannel_info(conn, ids):
     rows = sorted(rows, key=lambda r: r[0].lstrip())
     return rows
 
+def about():
+    data = """
+<div>
+  <p>
+    Data is presented for entertainment purposes only.<br>
+  </p>
+  <br>
+  <p>
+    Videos are categorized by who they are about by an algorithm that analyzes their title and description. This makes categorization not 100% accurate. That being said, the community is usually very diligent about linking source videos and talents and great effort was put into ensuring that the categorization is as accurate as possible. 
+  </p><br>
+</div>
+<div>
+  <p>
+    The data is processed in 4 main steps.
+  </p>
+  <p>
+    1. Find YouTube videos that have information in title or description that can point to a talent (VTuber) with high confidence. This includes:
+    <ul style="list-style: disc; padding-left: 40px;">
+      <li>links to a talent's YT channel</li> 
+      <li>links to a YT video published by a talent</li>
+    </ul>
+    All channels and videos that were found are marked for further processing.
+  </p>
+  <p><br>
+    2. Find all videos published by the marked channels.<br> 
+    This ensures that videos with low confidence are also processed. For example videos or shorts with no links, but with talent's name in the title.
+  </p>
+  <p><br>
+    3. Look through all videos published by the marked channels and count occurrences of keywords in each video.
+    <ul style="list-style: disc; padding-left: 40px;">
+      <li>Keywords include: channel ids, channel handles, video ids, first names, last names, middle names, nicknames that are used often.</li>
+      <li>Names in both English and Japanese are used, other languages are not supported.</li>
+      <li>Very short keywords (like 'cc', 'gg') and common words (like 'rose', '森') are not used since they give to many false positives. That being said only a small set of keywords that is related to talents is excluded. For example 'ame', 'liz', 'bae' are still used.</li>
+    </ul>
+  </p>	
+  <p><br>
+    4. A few filters are applied to the counted keywords:
+    <ul style="list-style: disc; padding-left: 40px;">
+      <li>Keyword-matches that repeat across many consecutive videos of the same channel are removed.<br>
+              This reduces false positives from channels that have a link or block of links that repeats across many videos.<br>
+              (video descriptions that mention only 1 talent are left untouched)</li>
+      <li>for each video-talent pair a score is calculated based on weights assigned to different keywords. For example, keywords in titles generally score higher, high confidence keywords like IDs also score higher. Video-talent pairs with low total score are removed.</li> 
+      <li>if a video has more than 3 talents mentioned: video-talent pairs with the score lower than the third pair are removed. If there are more than 3 video-talent pairs that are tied for the third place - they are also removed. To simplify: videos are matched with no more than 3 talents, in some cases no more than 5.</li>
+    </ul>
+  </p>
+  <p><br>
+    The data is processed bit by bit continuously over months, and is up to date at the time it is processed.<br> 
+    This means that the changes to a video or a channel are not tracked here, if they were made after processing. For example, a channel or a video that was deleted might still be in the data.<br>
+  </p>
+</div>
+<br>
+<div>
+  Data update schedule:<br>
+  <ul style="list-style: disc; padding-left: 40px;">
+    <li>Searching for links to talent's YT channel - every 2 days. (covers the majority of the data)<br></li>
+    <li>Searching for links to YT videos published by the talents - every 3 months.<br></li>
+    <li>Finding videos published by marked channels - every month.</li>
+  </ul>
+</div>
+    """
+    return data
+
 def header_info(conn):
     with conn.cursor() as cur:
         cur.execute("SELECT COUNT(DISTINCT youtube_video_id) FROM talent_youtube_video;")

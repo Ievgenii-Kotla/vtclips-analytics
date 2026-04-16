@@ -23,6 +23,10 @@ def status():
 def test():
     return "OK"
 
+@router.get("/api/about", response_class=HTMLResponse)
+def header_info():
+    return svc.about()
+
 @router.get("/api/header-info", response_class=PlainTextResponse)
 def header_info(conn=Depends(get_connection)):
     return svc.header_info(conn)

@@ -95,6 +95,11 @@ let currentFetchController = null; // used to cancel slow fetches
 
 function setActiveTab(buttonEl) {
   const buttons = tabsWrapper.querySelectorAll('[data-tab]');
+  if (!buttonEl) {
+    buttons.forEach(b => b.classList.remove('tab-active'));
+    currentTab = null;
+    return;
+  }
   buttons.forEach(b => b.classList.toggle('tab-active', b === buttonEl));
   currentTab = buttonEl.getAttribute('data-tab');
 }
@@ -182,12 +187,16 @@ async function loadTab(tabId, talentName) {
   currentFetchController = new AbortController();
   const signal = currentFetchController.signal;
 
-  document.getElementById('controls-area').innerHTML = '';
-  showSkeletons(2);
-  Object.values(charts).forEach(chart => chart.dispose());
-  Object.keys(charts).forEach(key => delete charts[key]);
-
+  clearTabContent();
   try {
+    if (tabId === 'about') {
+      const res = await fetch('/api/about', {signal, cache: 'no-cache'});
+      if (!res.ok) throw new Error('about_the_data fetch failed');
+      const data = await res.text();
+      document.getElementById('about-area').innerHTML = data;
+      return
+    }
+    showSkeletons(2);
     if (tabId === 'talent') {
       const res1 = await fetch('/api/talent_selector', {signal, cache: 'no-cache'});
       if (!res1.ok) throw new Error('selector fetch failed');
@@ -206,7 +215,7 @@ async function loadTab(tabId, talentName) {
       window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
       updateSelectorColor();
     }
-    showSkeletons(2);
+
     const url = talentName == null
       ? `/api/tab/${encodeURIComponent(tabId)}`
       : `/api/tab/${encodeURIComponent(tabId)}?name=${encodeURIComponent(talentName)}`;
@@ -247,8 +256,10 @@ tabsWrapper.addEventListener('click', (ev) => {
 // direct URL listener
 document.addEventListener('DOMContentLoaded', async () => {
   const {tabId, talentName, params} = parsePath(window.location.pathname, window.location.search)
+  const tabs = ["overview", "talent", "about", "contact"];
+  const isTab = tabs.includes(tabId);
   const btn = tabsWrapper.querySelector(`[data-tab="${tabId}"]`);
-  if (btn) {
+  if (isTab) {
     setActiveTab(btn);
     await loadTab(tabId, talentName);
   } else {
@@ -299,6 +310,16 @@ window.addEventListener('resize', () => {
     Object.values(charts).forEach(c => c && c.resize && c.resize());
   }, 100);
 });
+
+// 'about the data' link listener
+document.getElementById('about-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  setActiveTab();
+  clearTabContent();
+  loadTab('about');
+  window.history.pushState({}, '', `/about`);
+});
+
 
 // expose some functions for debug in console
 window.__dashboard = { loadTab, loadHeader };
