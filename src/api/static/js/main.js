@@ -1,4 +1,4 @@
-import { chartBuilders } from './chart-builders.js';
+import {chartBuilders} from './chart-builders.js';
 
 const charts = {};
 
@@ -13,22 +13,31 @@ function parsePath(pathname, search) {
 }
 
 function clearCharts() {
-  Object.values(charts).forEach(chart => {
-    if (chart) chart.dispose();  // frees memory, removes event listeners
-  });
-  Object.keys(charts).forEach(k => delete charts[k]);  // clear references
+  Object.values(charts).forEach(chart => { if (chart) chart.dispose();});
+  Object.keys(charts).forEach(k => delete charts[k]);
 }
 
-(function(){
-const ENDPOINTS = {
-  header: '/api/header-info',
-  cards: '/api/tab/overview'  // GET -> [ { id, title, chartOption } , ... ]
-};
+function clearTabContent() {
+  document.getElementById('controls-area').innerHTML = '';
+  clearCharts();
+  document.getElementById('cards-area').innerHTML = '';
+  document.getElementById('links-area').innerHTML = '';
+  document.getElementById('about-area').innerHTML = '';
+  document.getElementById('contact-area').innerHTML = '';
+}
 
-function tick(ms=0){ return new Promise(r => setTimeout(r, ms)); }
+(function () {
+  const ENDPOINTS = {
+    header: '/api/header-info',
+    cards: '/api/tab/overview'
+  };
 
-function escapeHtml(s='') {
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  function tick(ms = 0) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  function escapeHtml(s = '') {
+    return String(s).replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 function getCSSVar(name) {
@@ -60,10 +69,6 @@ function updateSelectorColor(){
   selector.style.borderColor = `${color}`;
   selector.style.boxShadow = `0 0 0 2px ${color}40`;
   selector.style.outlineColor = `${color}00`;
-
-  //selector.style.boxShadow = `0 0 8px 2px ${color}80`;  // Looks like asking to be clicked
-  //selector.style.color = color;  // overflows into dropdown
-  //selector.style.backgroundColor = `${color}20`;  // overflows into dropdown
 }
 
 const headerEl = document.getElementById('header-info');
