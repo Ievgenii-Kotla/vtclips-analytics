@@ -211,7 +211,7 @@ def about():
 def contact():
     data = """
 <style>
-  .cf { display: flex; flex-direction: column; gap: 1rem; max-width: 420px; }
+  .cf { display: flex; flex-direction: column; gap: 1rem; max-width: 420px; margin: 0 auto;}
   .cf label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.875rem; }
   .cf input, .cf textarea {
     font-family: inherit;
