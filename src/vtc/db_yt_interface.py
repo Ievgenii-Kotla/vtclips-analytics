@@ -940,7 +940,8 @@ ORDER BY s1.searched_at;
             )
             VALUES %s
             ON CONFLICT (youtube_channel_id) DO UPDATE SET
-                is_other = FALSE
+                is_other = FALSE,
+                info_accessible = TRUE
             RETURNING youtube_channel_id, xmax
         )
         SELECT youtube_channel_id
