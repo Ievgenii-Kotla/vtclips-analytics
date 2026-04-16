@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Immediately apply stored theme to avoid flash -->
   <script>
     (function(){
       try {
@@ -19,24 +18,11 @@
 
   <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
 
-  <!-- eCharts (preload to make charts appear faster) -->
   <script src="https://cdn.jsdelivr.net/npm/echarts@6/dist/echarts.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/theme/dark.js" defer></script>
 
   <title>V-Tuber Clips stats</title>
 
-  <style>
-    /* small helpers when not using full Tailwind build */
-    .fade { transition: opacity .25s ease, transform .25s ease; }
-    .fade-enter { opacity: 0; transform: translateY(6px); }
-    .fade-enter.fade-enter-active { opacity: 1; transform: translateY(0); }
-    .skeleton {
-      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.2s infinite;
-    }
-    @keyframes shimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }
-  </style>
 </head>
 <body class="bg-base-50 min-h-screen">
 
@@ -47,7 +33,6 @@
         Loading...
       </div>
 
-      <!-- Theme toggle -->
       <div class="flex items-center gap-2">
 
         <label class="flex cursor-pointer items-center gap-2">
@@ -65,9 +50,8 @@
           } else if (saved === "light") {
             toggle.checked = false;
           } else {
-            // no saved theme, fallback to system preference
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            toggle.checked = prefersDark;  // true if system prefers dark
+            toggle.checked = prefersDark;
           }
         </script>
 
@@ -78,7 +62,7 @@
       <div role="tablist" class="tabs tabs-boxed">
         <button class="tab" data-tab="overview">Overview</button>
         <button class="tab" data-tab="talent">Talent</button>
-        <button class="tab" data-tab="misc">misc</button>
+       <!--<button class="tab" data-tab="misc">misc</button>-->
       </div>
     </div>
 
