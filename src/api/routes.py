@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
-from starlette.responses import PlainTextResponse, JSONResponse
+from starlette.responses import PlainTextResponse, JSONResponse, HTMLResponse
 from fastapi.responses import Response
 import json
 
@@ -26,6 +26,10 @@ def test():
 @router.get("/api/about", response_class=HTMLResponse)
 def header_info():
     return svc.about()
+
+@router.get("/api/contact", response_class=HTMLResponse)
+def header_info():
+    return svc.contact()
 
 @router.get("/api/header-info", response_class=PlainTextResponse)
 def header_info(conn=Depends(get_connection)):

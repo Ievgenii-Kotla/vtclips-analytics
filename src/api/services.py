@@ -208,6 +208,47 @@ def about():
     """
     return data
 
+def contact():
+    data = """
+<style>
+  .cf { display: flex; flex-direction: column; gap: 1rem; max-width: 420px; }
+  .cf label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.875rem; }
+  .cf input, .cf textarea {
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    outline: none;
+  }
+  .cf input:focus, .cf textarea:focus { border-color: currentColor; }
+  .cf textarea { resize: vertical; min-height: 110px; }
+  .cf button {
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 6px;
+    background: currentColor;
+    cursor: pointer;
+    opacity: 0.9;
+  }
+  .cf button:hover { opacity: 0.7; }
+  .cf button span { color: var(--bg, #fff); mix-blend-mode: difference; }
+</style>
+
+<form class="cf" action="https://api.web3forms.com/submit" method="POST">
+  <input type="hidden" name="access_key" value="c8afeb80-cca5-44d8-a64e-67bc133c1d78">
+  <label>Name <input type="text" name="name" placeholder="Jane Smith" required></label>
+  <label>Email <input type="email" name="email" placeholder="jane@example.com" required></label>
+  <label>Message <textarea name="message" placeholder="Your message..." required></textarea></label>
+  <button type="submit"><span>Send</span></button>
+</form>
+    """
+    return data
+
 def header_info(conn):
     with conn.cursor() as cur:
         cur.execute("SELECT COUNT(DISTINCT youtube_video_id) FROM talent_youtube_video;")

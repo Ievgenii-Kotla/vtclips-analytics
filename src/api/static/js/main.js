@@ -196,6 +196,13 @@ async function loadTab(tabId, talentName) {
       document.getElementById('about-area').innerHTML = data;
       return
     }
+    if (tabId === 'contact') {
+      const res = await fetch('/api/contact', {signal, cache: 'no-cache'});
+      if (!res.ok) throw new Error('contact fetch failed');
+      const data = await res.text();
+      document.getElementById('contact-area').innerHTML = data;
+      return
+    }
     showSkeletons(2);
     if (tabId === 'talent') {
       const res1 = await fetch('/api/talent_selector', {signal, cache: 'no-cache'});
@@ -320,6 +327,14 @@ document.getElementById('about-link').addEventListener('click', (e) => {
   window.history.pushState({}, '', `/about`);
 });
 
+// 'message me' link listener
+document.getElementById('contact-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  setActiveTab();
+  clearTabContent();
+  loadTab('contact');
+  window.history.pushState({}, '', `/contact`);
+});
 
 // expose some functions for debug in console
 window.__dashboard = { loadTab, loadHeader };
