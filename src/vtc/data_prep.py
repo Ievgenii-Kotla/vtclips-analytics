@@ -549,7 +549,8 @@ class DBCharts:
                 INSERT INTO chart_all_clips_day (published_at_date, clips_num)
                 SELECT yv.published_at::date AS published_at_date, COUNT(*) AS clips_num
                 FROM youtube_video yv
-                         JOIN talent_youtube_video tyv USING (youtube_video_id)
+                JOIN talent_youtube_video tyv USING (youtube_video_id)
+                WHERE published_at::date < date_trunc('month', CURRENT_DATE)
                 GROUP BY published_at_date
                 ORDER BY published_at_date; \
                 """

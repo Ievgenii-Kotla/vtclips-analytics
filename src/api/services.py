@@ -1222,9 +1222,16 @@ def svideos_single_talent_monthly(conn, talent_id=1):
     del df["color"]
 
     wide = df.pivot(index="published_at_month", columns="order_id", values="videos_num")
+    # hide incomplete data of the current month
+    today = date.today()
+    if today.month > 1:
+        end_date = today.replace(month=today.month - 1, day=1)
+    else:
+        end_date = today.replace(year=today.year - 1, month=12, day=1)
+
     full_range = pd.date_range(
         start=wide.index.min(),
-        end=date.today(),
+        end=end_date,
         freq="MS"
     )
     wide = wide.reindex(full_range)
