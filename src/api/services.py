@@ -200,9 +200,9 @@ def about():
 <div>
   Data update schedule:<br>
   <ul style="list-style: disc; padding-left: 40px;">
-    <li>Searching for links to talent's YT channel - every 2 days. (covers the majority of the data)<br></li>
-    <li>Searching for links to YT videos published by the talents - every 3 months.<br></li>
-    <li>Finding videos published by marked channels - every month.</li>
+    <li>Searching for links to talent's YT channel - every 2 days. (~55% of the data data)<br></li>
+    <li>Finding videos published by marked channels - every month.(~45% of the data data)</li>
+    <li>Searching for links to YT videos published by the talents - every 3 months.(~5% of the data data)<br></li>
   </ul>
 </div>
     """
