@@ -10,6 +10,8 @@ class DBCalculations:
     @staticmethod
     def map_keywords_once(conn, batch_size=10000, verbose=True):
         """Map keyword-video pairs for a single batch of not fully mapped videos."""
+        # The table 'youtube_video_statuses' is populated automatically
+        # This is done by using a trigger function set up on the 'youtube_video' table in PostgreSQL
         query = """
             DROP INDEX IF EXISTS idx_temp_title_normalized;
             DROP INDEX IF EXISTS idx_temp_description_normalized;
