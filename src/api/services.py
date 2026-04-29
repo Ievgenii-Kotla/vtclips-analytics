@@ -1233,7 +1233,7 @@ def svideos_single_talent_monthly(conn, talent_id=1):
         start=wide.index.min(),
         end=end_date,
         freq="MS"
-    )
+    ).date
     wide = wide.reindex(full_range)
     wide = wide.replace([np.nan, np.inf, -np.inf], None)
 
