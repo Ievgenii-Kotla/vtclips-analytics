@@ -372,7 +372,9 @@ export const chartBuilders = {
     },
     "tooltip": {
       "trigger": "axis",
-      "confine": true,
+      "position": function (point, params, dom, rect, size) {
+        return ['0%', '-20%'];
+      },
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
         let result = '' + formatDate(params[0].axisValueLabel) + '<br/>';
@@ -436,7 +438,9 @@ export const chartBuilders = {
       "axisPointer": {
         "type": "shadow"
       },
-      "confine": true,
+      "position": function (point, params, dom, rect, size) {
+        return ['0%', '-20%'];
+      },
       "formatter": function(params) {
         params.sort((a, b) => b.value - a.value);
         let result = '' + formatDate(params[0].axisValueLabel.slice(0, 7)) + '<br/>';
