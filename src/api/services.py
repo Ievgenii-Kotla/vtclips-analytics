@@ -879,7 +879,7 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
         }
         for series in (
             {
-                "name": "Talent-related videos",
+                "name": f"Videos related to {talent_name}",
                 "color": talent_color,
                 "data":mentions,
                 "show_label": True,
