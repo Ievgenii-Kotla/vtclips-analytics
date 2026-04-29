@@ -223,6 +223,7 @@ async function loadTab(tabId, talentName) {
       if (selector.value === '') {
         talentName = 'Calliope';
       }
+      talentName = talentName.charAt(0).toUpperCase() + talentName.slice(1).toLowerCase();
       selector.value = talentName;
       window.history.replaceState({}, '', `/talent?name=${encodeURIComponent(talentName)}`);
       updateSelectorColor();
