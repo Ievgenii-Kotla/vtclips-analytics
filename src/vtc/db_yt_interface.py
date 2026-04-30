@@ -1931,9 +1931,26 @@ class Videos:
                 raise
             except ssl.SSLError as e:
                 retries += 1
-                logger.error(f"SSL error: {e}")
+                logger.info(f"SSL error: {e}")
                 if retries > 3:
+                    logger.warning(f"{retries} SSL errors in a row.")
                     raise
+            except HttpError as err:
+                retries += 1
+                if err.resp.status == 403:
+                    api_key_id = self.api_service.get_api_key_id(api_key=self.api_key)
+                    quota_left = self.api_service.get_quota_left(api_key=self.api_key)
+                    logger.error(f'Quota exceeded (prematurely). '
+                                 f'API key: {api_key_id}. '
+                                 f'Quota left: {quota_left}'
+                                 f'Error 403 : {err}')
+                    self.api_service.temporary_disable_key(api_key_id)
+                else:
+                    logger.error(err)
+                    if retries > 3:
+                        logger.warning(f"{retries} errors in a row. Moving to the next task.")
+                        raise
+                    time.sleep(60)
             finally:
                 self._api_service.change_quota(self._api_key, -1)
 
