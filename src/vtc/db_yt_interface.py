@@ -2000,7 +2000,8 @@ class Videos:
         values = [
             (
                 item["id"],
-                isodate.parse_duration(item["contentDetails"]["duration"]),
+                isodate.parse_duration(item["contentDetails"]["duration"]) \
+                    if item["contentDetails"].get("duration") else None,
                 Helper.parse_live_streaming_details(item, "actualStartTime"),
                 Helper.parse_live_streaming_details(item, "actualEndTime"),
                 Helper.parse_live_streaming_details(item, "scheduledStartTime"),
