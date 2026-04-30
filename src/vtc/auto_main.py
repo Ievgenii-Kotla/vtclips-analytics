@@ -58,6 +58,10 @@ def update_channels_info(connection,
     channels = db_yt_interface.Channels(connection, only_unupdated=only_unupdated)
     channels.update_channels_info(channel_count=channel_count, delay_sec=delay_sec)
 
+def update_full_videos_info(connection):
+    instance = db_yt_interface.Videos(connection)
+    instance.update_all_videos_info()
+
 def map_talents_videos(connection):
     """Continuously fetch and save data available through the 'playlist_items' endpoint of YT API"""
 
@@ -91,8 +95,9 @@ def main():
             (update_channels_info, {}),
         ]
         tasks_daily = [
-            (data_prep.DBCalculations.map_keywords_all, {}),
-            (map_talents_videos, {}),
+            #(data_prep.DBCalculations.map_keywords_all, {}),
+            #(map_talents_videos, {}),
+            (update_full_videos_info, {}),
             (data_prep.DBCharts.refresh_all_charts, {}),
         ]
 
@@ -121,6 +126,9 @@ def main():
                     logger.info(f"Running daily task '{task[0].__name__}' with args: \n{task[1]}")
                     try:
                         task[0](connection, **task[1])
+                    except NoQuotaError:
+                        connection.rollback()
+                        no_more_quotas += 1
                     except Exception as e:
                         connection.rollback()
                         logger.exception(f"Unexpected error occurred while running daily task {task}: {e} ")

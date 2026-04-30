@@ -12,10 +12,11 @@ import unicodedata
 import html
 from pathlib import Path
 import pandas as pd
+import isodate
 
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
-from psycopg2.extras import execute_values
+from psycopg2.extras import execute_values, execute_batch
 
 from vtc_exceptions import NoQuotaError, VerificationError, EmptyQueueError
 
@@ -28,6 +29,14 @@ class Helper:
         text = unicodedata.normalize('NFKC', text)
         text = html.unescape(text)
         return text
+
+    @staticmethod
+    def parse_live_streaming_details(item, key):
+        value = item.get("liveStreamingDetails", {}).get(key)
+        if value:
+            value = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return value
+
 
 class PrepareAPI:
     QUOTA_FILEPATH = Path(__file__).resolve().parents[2] / "state/api_quota_state.json"
@@ -1885,6 +1894,177 @@ class Channels:
             }
             with self._connection.cursor() as cur:
                 cur.execute(query, values)
+
+    def _update_datetime_now(self):
+        self._datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
+
+
+class Videos:
+    """Working with YT Data API 'videos' endpoint."""
+
+    def __init__(self,
+                 connection,
+                 api_service: PrepareAPI | None = None):
+
+        self._connection = connection
+        self._api_service = api_service or PrepareAPI()
+        self._api_key: str | None = None
+        self._response: dict | None = None
+        self._datetime_now: datetime.datetime | None = None
+        self._video_ids: list[str] | None = None
+
+    def update_all_videos_info(self):
+        counter = 0
+        while True:
+            try:
+                self.update_videos_info()
+                counter += 1
+            except EmptyQueueError:
+                logger.info(f"No more qualified videos that need info update. {counter} calls to YT API were made.")
+                raise
+            except NoQuotaError:
+                raise
+            finally:
+                self._api_service.change_quota(self._api_key, -1)
+
+    def update_videos_info(self):
+        self._get_video_ids()
+        self._update_datetime_now()
+        self._api_key = self._api_service.get_api_key(threshold=1, delay=False, purpose=PrepareAPI.VIDEO_LIST)
+        quota_left = self._api_service.get_quota_left(self._api_key)
+        if quota_left < 1000:
+            logger.info(f"{quota_left} quota points left for videos info update. Task ended.")
+            raise NoQuotaError
+        self._request_info()
+        self._save()
+
+    def _get_video_ids(self):
+        query = """
+            SELECT youtube_video_id
+            FROM youtube_video
+            WHERE info_fully_updated_at IS NULL
+                AND video_available IS NOT FALSE
+            LIMIT 50;
+        """
+        with self._connection.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+        self._video_ids = [row[0] for row in rows]
+        if not self._video_ids:
+            raise EmptyQueueError
+
+    def _request_info(self):
+        youtube = build('youtube', 'v3', developerKey=self._api_key)
+        self._response = youtube.videos().list(
+            part='liveStreamingDetails,statistics,contentDetails',
+            id=','.join(self._video_ids)
+        ).execute()
+        if not self._response["items"]:
+            logger.warning(f"Video_list response is empty. ids:\n{self._video_ids}\nResponse:\n{self._response}")
+
+    def _save(self):
+        try:
+            self._save_youtube_video()
+            self._save_youtube_video_stats()
+            self._save_youtube_video_not_available()
+        except DatabaseError as e:
+            self._connection.rollback()
+            logger.error(f"A DB error occurred while saving full video info info: {e} \nTransaction rolled back. ")
+            logger.error(traceback.format_exc())
+            time.sleep(60)
+        except Exception as e:
+            self._connection.rollback()
+            logger.error(f"An error occurred while saving full video info: {e} \nTransaction rolled back. ")
+            logger.error(traceback.format_exc())
+            raise
+        else:
+            self._connection.commit()
+            logger.info(f'Changes committed. Full video info updated for {len(self._response["items"])} videos. '
+                        f'{len(self._video_ids) - len(self._response["items"])} videos unavailable.')
+
+    def _save_youtube_video(self):
+        # Doesn't update fields that should exist already, like description, title
+        query = """
+            UPDATE youtube_video
+            SET 
+                duration = data.duration,
+                actual_start_time = data.actualStartTime, 
+                actual_end_time = data.actualEndTime, 
+                scheduled_start_time = data.scheduledStartTime,
+                info_fully_updated_at = data.info_fully_updated_at,
+                video_available = True
+            FROM (VALUES %s) AS data(video_id, duration, actualStartTime, actualEndTime, scheduledStartTime, info_fully_updated_at)
+            WHERE youtube_video.youtube_video_id = data.video_id;
+        """
+        values = [
+            (
+                item["id"],
+                isodate.parse_duration(item["contentDetails"]["duration"]),
+                Helper.parse_live_streaming_details(item, "actualStartTime"),
+                Helper.parse_live_streaming_details(item, "actualEndTime"),
+                Helper.parse_live_streaming_details(item, "scheduledStartTime"),
+                self._datetime_now
+            )
+            for item in self._response["items"]
+        ]
+        if not values:
+            return
+        with self._connection.cursor() as cur:
+            execute_values(cur, query, values,
+                           template="(%s, %s::interval, %s::timestamptz, %s::timestamptz, %s::timestamptz, %s::timestamptz)")
+
+    def _save_youtube_video_stats(self):
+        query = """
+            INSERT INTO youtube_video_stats (
+                youtube_video_id,
+                view_count,
+                like_count,
+                comment_count,
+                gathered_at
+            ) 
+            VALUES (
+                %(youtube_video_id)s,
+                %(view_count)s,
+                %(like_count)s,
+                %(comment_count)s,
+                %(gathered_at)s
+            )
+        """
+        values = [
+            {
+                'youtube_video_id': video["id"],
+                'view_count': video["statistics"]["viewCount"],
+                'like_count': video["statistics"].get("likeCount"),
+                'comment_count': video["statistics"].get("commentCount"),
+                'gathered_at': self._datetime_now,
+            }
+            for video in self._response["items"]
+        ]
+        if not values:
+            return
+        with self._connection.cursor() as cur:
+            execute_batch(cur, query, values)
+
+    def _save_youtube_video_not_available(self):
+        """Update availability flag for videos that are not available anymore."""
+        not_available_ids = set(self._video_ids) - set(item["id"] for item in self._response["items"])
+
+        query = """
+            UPDATE youtube_video
+            SET video_available = False
+            FROM (VALUES %s) AS data(video_id)
+            WHERE youtube_video.youtube_video_id = data.video_id;
+        """
+        values = [
+            (
+                video_id,
+            )
+            for video_id in not_available_ids
+        ]
+        if not values:
+            return
+        with self._connection.cursor() as cur:
+            execute_values(cur, query, values)
 
     def _update_datetime_now(self):
         self._datetime_now = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
