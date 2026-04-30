@@ -12,8 +12,11 @@ import unicodedata
 import html
 from pathlib import Path
 import pandas as pd
-import isodate
+import ssl
+import socket
+import httplib2
 
+import isodate
 from googleapiclient.discovery import build, HttpError
 from psycopg2 import errors, DatabaseError
 from psycopg2.extras import execute_values, execute_batch
@@ -1915,15 +1918,22 @@ class Videos:
 
     def update_all_videos_info(self):
         counter = 0
+        retries = 0
         while True:
             try:
                 self.update_videos_info()
+                retries = 0
                 counter += 1
             except EmptyQueueError:
                 logger.info(f"No more qualified videos that need info update. {counter} calls to YT API were made.")
                 raise
             except NoQuotaError:
                 raise
+            except ssl.SSLError as e:
+                retries += 1
+                logger.error(f"SSL error: {e}")
+                if retries > 3:
+                    raise
             finally:
                 self._api_service.change_quota(self._api_key, -1)
 
