@@ -2033,7 +2033,7 @@ class Videos:
         values = [
             {
                 'youtube_video_id': video["id"],
-                'view_count': video["statistics"]["viewCount"],
+                'view_count': video["statistics"].get("viewCount"),
                 'like_count': video["statistics"].get("likeCount"),
                 'comment_count': video["statistics"].get("commentCount"),
                 'gathered_at': self._datetime_now,
