@@ -1975,6 +1975,7 @@ class Videos:
         except Exception as e:
             self._connection.rollback()
             logger.error(f"An error occurred while saving full video info: {e} \nTransaction rolled back. ")
+            logger.error(f"video ids:\n{self._video_ids}\nResponse:\n{self._response}")
             logger.error(traceback.format_exc())
             raise
         else:
