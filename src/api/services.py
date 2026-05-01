@@ -1281,7 +1281,7 @@ def svideos_single_talent_monthly(conn, talent_id=1):
             "width": 1
         },
         "tooltip": {
-            "show": False
+            "show": True
         }
     }
     series.append(regression_series_all)
