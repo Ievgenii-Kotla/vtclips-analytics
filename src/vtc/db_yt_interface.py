@@ -1284,6 +1284,9 @@ class PlaylistItems:
                 logger.error(err)
                 time.sleep(wait_seconds)
                 return True
+        except httplib2.error.ServerNotFoundError as e:
+            logger.warning(f"Could not reach YT server (playlist items request). Retry in {wait_seconds} seconds.")
+            logger.info(f"{e}")
         except DatabaseError as err:
             logger.error(f'Database error. \n {err}')
             logger.error(traceback.format_exc())
@@ -1917,6 +1920,7 @@ class Videos:
         self._video_ids: list[str] | None = None
 
     def update_all_videos_info(self):
+        wait_seconds = 60
         counter = 0
         retries = 0
         while True:
@@ -1948,9 +1952,12 @@ class Videos:
                 else:
                     logger.error(err)
                     if retries > 3:
-                        logger.warning(f"{retries} errors in a row. Moving to the next task.")
+                        logger.error(f"{retries} errors in a row. Moving to the next task.")
                         raise
-                    time.sleep(60)
+                    time.sleep(wait_seconds)
+            except httplib2.error.ServerNotFoundError as e:
+                logger.warning(f"Could not reach YT server (video request). Retry in {wait_seconds} seconds.")
+                logger.info(f"{e}")
             finally:
                 self._api_service.change_quota(self._api_key, -1)
 
