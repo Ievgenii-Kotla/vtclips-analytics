@@ -1208,6 +1208,7 @@ def svideos_single_talent_monthly(conn, talent_id=1):
         SELECT * 
         FROM chart_videos_per_talent_monthly 
         WHERE order_id = %(talent_id)s
+            AND published_at_month < date_trunc('month', CURRENT_DATE)
         ORDER BY published_at_month;
     """
     with conn.cursor() as cur:
