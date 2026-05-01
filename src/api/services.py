@@ -1266,7 +1266,7 @@ def svideos_single_talent_monthly(conn, talent_id=1):
     mask = ~np.isnan(y)
     m, b = np.polyfit(x[mask], y[mask], 1)
     y_pred = m * x + b
-    y_pred = [v if v >= 0 and np.isfinite(v) else None for v in y_pred]
+    y_pred = [round(v, 1) if v >= 0 and np.isfinite(v) else None for v in y_pred]
 
     regression_series_all = {
         "name": f"{talent_name} (trend)",
