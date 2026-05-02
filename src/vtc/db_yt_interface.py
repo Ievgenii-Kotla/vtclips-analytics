@@ -1936,9 +1936,17 @@ class Videos:
             except ssl.SSLError as e:
                 retries += 1
                 logger.info(f"SSL error: {e}")
-                if retries > 3:
+                if retries > 5:
                     logger.warning(f"{retries} SSL errors in a row.")
                     raise
+            except OSError as e:
+                retries += 1
+                logger.warning("Network error.")
+                logger.info(f"{e}")
+                if retries > 5:
+                    logger.warning(f"{retries} errors in a row.")
+                    raise
+                time.sleep(60)
             except HttpError as err:
                 retries += 1
                 if err.resp.status == 403:
@@ -1951,7 +1959,7 @@ class Videos:
                     self.api_service.temporary_disable_key(api_key_id)
                 else:
                     logger.error(err)
-                    if retries > 3:
+                    if retries > 5:
                         logger.error(f"{retries} errors in a row. Moving to the next task.")
                         raise
                     time.sleep(wait_seconds)
