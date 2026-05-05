@@ -95,8 +95,8 @@ def main():
             (update_channels_info, {}),
         ]
         tasks_daily = [
-            #(data_prep.DBCalculations.map_keywords_all, {}),
-            #(map_talents_videos, {}),
+            (data_prep.DBCalculations.map_keywords_all, {}),
+            (map_talents_videos, {}),
             (update_full_videos_info, {}),
             (data_prep.DBCharts.refresh_all_charts, {}),
         ]
