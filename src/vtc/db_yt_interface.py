@@ -1017,7 +1017,7 @@ ORDER BY s1.searched_at;
                 self.datetime_now,
                 self.datetime_now,
                 Helper.normalize(item['snippet']['title']),
-                item['snippet']['full_description'],
+                item['snippet']['full_description'],  # not a part of YT API, created in the 'filter response' function
             ]
             for item in self.response["items"]
         ]
@@ -1332,7 +1332,7 @@ class PlaylistItems:
             OR next_page_token IS NOT NULL AND caught_up IS NOT TRUE
             OR requested_at < CURRENT_TIMESTAMP - %(cooldown)s 
          ORDER BY next_page_token NULLS LAST, -- in the middle of paging through a playlist
-            requested_at ASC NULLS FIRST, -- never requested first, then oldest
+            requested_at ASC NULLS FIRST, -- newer requested first, then oldest
             playlist_id -- for ordering consistency
         """
         values = {'channels': channels, 'cooldown': self.cooldown_period}
@@ -1629,7 +1629,7 @@ class PlaylistItems:
             logger.info(f'New keyword_talent pairs: {len(rows)}')
 
     def _do_stop_check(self):
-        """Check if the playlist items request should be stopped.
+        """Check if the playlist items request should be stopped for current playlist.
         Condition: current playlist_items_request has videos from another playlist_items_request."""
 
         query_reached_end = """
@@ -2002,7 +2002,8 @@ class Videos:
             id=','.join(self._video_ids)
         ).execute()
         if not self._response["items"]:
-            logger.warning(f"Video_list response is empty. ids:\n{self._video_ids}\nResponse:\n{self._response}")
+            logger.warning(f"Video_list response is empty.")
+            logger.info(f"ids:\n{self._video_ids}\nResponse:\n{self._response}")
 
     def _save(self):
         try:
