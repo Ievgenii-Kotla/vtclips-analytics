@@ -262,6 +262,7 @@ class MapTV:
             SELECT youtube_video_id
             FROM youtube_video_statuses
             WHERE algorithm1_classified_at IS NULL
+            ORDER BY youtube_video_id  -- persuade the PSQL 17 planner to use the partial index
             LIMIT 1;
         """
         with self.connection.cursor() as cursor:
