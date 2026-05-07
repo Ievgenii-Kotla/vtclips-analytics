@@ -433,17 +433,21 @@ class MapTV:
             return dataset
 
         self._cleanup_keyword_counts(cross_video=True)
-        cross_video = map_t_v(self.cleaned_dataset)
+        cleaned = map_t_v(self.cleaned_dataset)
+
         self._cleanup_keyword_counts(cross_video=False)
-        single_video = map_t_v(self.cleaned_dataset)
-        # When cross video keyword cleaning reduces mapped talents for target video by exactly one talent
-        #  - we keep the talent in the resulting talent_video_map
+        not_cleaned = map_t_v(self.cleaned_dataset)
+
+        # If the cleanup step reduces the score of a single talent only
+        #  - we keep the non_cleaned score and throw away the cleaned score
         #  This is a special case for clippers that clip mostly a single talent
-        if len(cross_video) == len(single_video) - 1:
-            self.dataset = single_video
+        difference = not_cleaned - cleaned
+        affected_talents = (difference["total_score"] != 0).sum()
+        if affected_talents ==  1:
+            self.dataset = not_cleaned
         else:
-            self.dataset = cross_video
-        # maybe a filter should be applied here to keep only talents with the highest total scores
+            self.dataset = cleaned
+
         cut_off_score = 2
         soft_talent_limit = 3
 
@@ -451,7 +455,7 @@ class MapTV:
         self.dataset = self.dataset.sort_values(by='total_score', ascending=False).reset_index(drop=True)
         if len(self.dataset) > soft_talent_limit:
             total_score_cutoff = self.dataset['total_score'].iloc[soft_talent_limit - 1]
-            # keep talents tied with soft_talent_limit place
+            # keep talents tied for soft_talent_limit place
             self.dataset = self.dataset[self.dataset['total_score'] >= total_score_cutoff]
             # remove tied talents if there are too many of them
             if len(self.dataset) > soft_talent_limit + 2:
