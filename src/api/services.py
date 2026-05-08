@@ -768,7 +768,7 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
     RATIO_THRESHOLD = 0.5
     query = """
     WITH data_window AS (
-        SELECT date_trunc('month', (debut_datetime - interval '1 month')) AS data_start
+        SELECT date_trunc('month', debut_datetime) AS data_start
         FROM talent
         WHERE talent_id = %(talent_id)s
     ),
@@ -906,8 +906,8 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
         "data": {
             "yLabels": y_axis,
             "series": series,
-            "titleText": f"Most dedicated · {talent_name}",
-            "titleSubText": f"By related uploads · {int(RATIO_THRESHOLD*100)}%+ related videos · Since talent's debut",
+            "titleText": f"Channels with most of their videos related to {talent_name}",
+            "titleSubText": f"Have {int(RATIO_THRESHOLD*100)}%+ of their videos related to the talent since talent's debut",
         }
     }
     return chart_data, channel_ids
