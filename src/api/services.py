@@ -907,7 +907,8 @@ def mentions_one_talent_dedicated_total(conn, talent_id=1):
             "yLabels": y_axis,
             "series": series,
             "titleText": f"Channels with most of their videos related to {talent_name}",
-            "titleSubText": f"Have {int(RATIO_THRESHOLD*100)}%+ of their videos related to the talent since talent's debut",
+            "titleSubText": f"Have {int(RATIO_THRESHOLD*100)}%+ of their videos related to the talent since talent's debut."
+                            f"Based on video titles and descriptions.",
         }
     }
     return chart_data, channel_ids
