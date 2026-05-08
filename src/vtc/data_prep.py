@@ -802,11 +802,13 @@ class DBCharts:
                 yc.youtube_channel_id = vc.youtube_channel_id
             LEFT JOIN talent AS t ON
                 t.talent_id = mc.talent_id
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM youtube_channel_talent yct
-                WHERE yct.youtube_channel_id = vc.youtube_channel_id
-            ) OR yc.is_other IS NOT TRUE
+            WHERE NOT (
+                EXISTS (
+                    SELECT 1
+                    FROM youtube_channel_talent yct
+                    WHERE yct.youtube_channel_id = vc.youtube_channel_id
+                ) OR yc.is_other IS TRUE
+            )
         )
         INSERT INTO chart_group_talent_mentions_monthly (
             talent_id,
