@@ -806,7 +806,7 @@ class DBCharts:
                 SELECT 1
                 FROM youtube_channel_talent yct
                 WHERE yct.youtube_channel_id = vc.youtube_channel_id
-            )
+            ) OR yc.is_other IS NOT TRUE
         )
         INSERT INTO chart_group_talent_mentions_monthly (
             talent_id,
