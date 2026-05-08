@@ -179,6 +179,11 @@ def about():
       <li>Keywords include: channel ids, channel handles, video ids, first names, last names, middle names, nicknames that are used often.</li>
       <li>Names in both English and Japanese are used.</li>
       <li>Very short keywords (like 'cc', 'gg') and common words (like 'rose', '森') are not used since they give to many false positives. That being said only a small set of keywords that is related to talents is excluded. For example 'ame', 'liz', 'bae' are still used.</li>
+      <li>Keywords that appear inside other words are ignored. Like 'ame' in 'came' or in 'america</li>
+      <li>Keywords are case insensitive.</li>
+      <li>Texts are normalized to replace fancy looking Latin characters with normal ones.</li>
+      <li>Collab names are not used, at least for now.</li>
+      <li>Keywords from Cyrillic languages are also not used, at least for now. They could add about 0.1% - 0.5% of videos per my estimation.</li>
     </ul>
   </p>	
   <p><br>
