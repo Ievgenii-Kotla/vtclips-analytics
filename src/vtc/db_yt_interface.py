@@ -728,6 +728,9 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
     def search(self):
         """ Conduct prepared search. """
 
+        # delay to avoid overloading the API
+        time.sleep(1)
+
         if self.api_key is None:
             logger.error("API key not found.")
         youtube = build('youtube', 'v3', developerKey=self.api_key)
