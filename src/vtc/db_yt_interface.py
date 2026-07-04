@@ -1933,7 +1933,7 @@ class Videos:
                 counter += 1
             except EmptyQueueError:
                 logger.info(f"No more qualified videos that need info update. {counter} calls to YT API were made.")
-                raise
+                break
             except NoQuotaError:
                 raise
             except ssl.SSLError as e:
