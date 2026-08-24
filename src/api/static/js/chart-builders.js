@@ -41,7 +41,7 @@ export const chartBuilders = {
         let result = '' + formatDate(params[0].axisValueLabel) + '<br/>';
         params.forEach(item => {
           result += '<div style="display:flex; justify-content:space-between;">'
-            + '<span>' + item.marker + ' ' + 'Channels: ' + '</span>'
+            + '<span>' + item.marker + ' ' + 'Videos: ' + '</span>'
             + '<b style="margin-left:15px">' + item.value + '</b></div>';
         });
         return result;
