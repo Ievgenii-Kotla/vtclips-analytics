@@ -74,5 +74,5 @@ As of 2026.08:
 - **Pattern-based filtering** — Analyzes neighboring videos from the same channel to detect repeated patterns, such as copy-pasted descriptions, and filter out unreliable matches.
 - **Precomputed data** — Classification results and user-facing chart data are stored or cached in advance instead of being recalculated for every request.
 - **PostgreSQL optimization** — Query performance was improved using PostgreSQL query plans, CTEs, views, appropriate indexes, and pg_trgm/GIN indexes.
-- **End-to-end production system** — Covers the full process from collecting and processing YouTube data to storing, serving, visualizing, and deploying it. Runs in Docker on a Linux VPS with PostgreSQL and nginx.
+- **End-to-end production system** — Covers the full process from collecting and processing YouTube data to storing, serving, visualizing, and deploying it. Runs in Docker on a Linux VPS with PostgreSQL and nginx. Automated SSL certificate renewal and database backups are handled by scheduled cron jobs.
 
