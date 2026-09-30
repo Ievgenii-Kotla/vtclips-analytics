@@ -62,7 +62,7 @@ As of 2026.08:
 - **6M+** videos and **50K** channels analyzed
 - **500K+** derivative videos found for **19** source channels over **6 years** of historical data
 - **98%+** estimated classification accuracy based on manual validation
-- **89%** of API quota is spent on the final **5%** of discovered data
+- **70%** of API quota is spent on the final **5%** of discovered data
 - **1M+** YouTube Data API requests
 - **15K+** keywords used for classification
 - **6+ month** live with no critical issues or manual intervention
