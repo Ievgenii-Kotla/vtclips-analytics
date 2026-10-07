@@ -258,7 +258,7 @@ def header_info(conn):
     with conn.cursor() as cur:
         cur.execute("SELECT COUNT(DISTINCT youtube_video_id) FROM talent_youtube_video;")
         num = cur.fetchone()[0]
-    return f"HoloEn related videos:\n {num:,}".replace(",", "\u00a0")
+    return f"Videos:\n {num:,}".replace(",", "\u00a0")
 
 def last_update():
     with open("collector_info/state/api_quota_state.json", "r") as file:
