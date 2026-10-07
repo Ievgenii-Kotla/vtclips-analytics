@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pandas.core.groupby.base import groupby_other_methods
 from starlette.responses import PlainTextResponse, JSONResponse
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 import pandas as pd
 import numpy as np
 
@@ -259,6 +259,32 @@ def header_info(conn):
         cur.execute("SELECT COUNT(DISTINCT youtube_video_id) FROM talent_youtube_video;")
         num = cur.fetchone()[0]
     return f"HoloEn related videos:\n {num:,}".replace(",", "\u00a0")
+
+def last_update():
+    with open("collector_info/state/api_quota_state.json", "r") as file:
+        data = json.load(file)
+
+    update_time: datetime = datetime.fromisoformat(data["last_update_at"])
+    update_time = update_time.astimezone(timezone.utc).replace(tzinfo=None)
+
+    if update_time is None:
+        return "Updated: ?"
+    else:
+        update_period: int = int(timedelta.total_seconds(datetime.now() - update_time))
+        if update_period < 1:
+            return "Updated: now"
+        units = [
+            (31536000, "year"),
+            (2592000, "month"),
+            (86400, "day"),
+            (3600, "hour"),
+            (60, "minute"),
+            (1, "second"),
+        ]
+        for unit_seconds, unit_name in units:
+            if update_period >= unit_seconds:
+                value = update_period // unit_seconds
+                return f"Updated: {value} {unit_name}{'s' if value != 1 else ''} ago"
 
 def tab_3(conn):
     charts = [

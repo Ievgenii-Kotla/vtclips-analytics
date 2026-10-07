@@ -29,6 +29,7 @@ function clearTabContent() {
 (function () {
   const ENDPOINTS = {
     header: '/api/header-info',
+    lastUpdate: '/api/last_update',
     cards: '/api/tab/overview'
   };
 
@@ -91,6 +92,27 @@ async function loadHeader() {
   }
 }
 loadHeader();
+
+const lastUpdateEl = document.getElementById('last-update-info');
+async function loadLastUpdateInfo() {
+  try {
+    const res = await fetch(ENDPOINTS.lastUpdate, {cache: 'no-cache'});
+    if (!res.ok) throw new Error('Last update info fetch failed');
+    const contentType = res.headers.get('content-type') || '';
+    let txt = '';
+    if (contentType.includes('application/json')) {
+      const json = await res.json();
+      txt = (json.text ?? JSON.stringify(json));
+    } else {
+      txt = await res.text();
+    }
+    lastUpdateEl.textContent = txt;
+  } catch (e) {
+    lastUpdateEl.textContent = e;
+    console.warn('Last update info load error', e);
+  }
+}
+loadLastUpdateInfo();
 
 const tabsWrapper = document.getElementById('tabs-wrapper');
 const cardsArea = document.getElementById('cards-area');

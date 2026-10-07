@@ -59,6 +59,10 @@ def talent_charts(talent_name: str, conn=Depends(get_connection)):
 def miscellaneous(conn=Depends(get_connection)):
     return svc.miscellaneous(conn)
 
+@router.get("/api/last_update", response_class=PlainTextResponse)
+def last_update():
+    return svc.last_update()
+
 @router.get("/{full_path:path}")
 async def serve_page(request: Request, full_path: str):
     return svc.main(request)
