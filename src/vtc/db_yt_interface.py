@@ -225,7 +225,7 @@ class PrepareAPI:
         quota_left = self.api_quotas[key]['available']
         return quota_left
 
-    def _reset_quotas(self, lower_boundary=98, upper_boundary=98):
+    def _reset_quotas(self, lower_boundary=95, upper_boundary=95):
         """ Reset the file that stores quota counters, and times of last reset and last update. """
         self.api_keys = self.load_api_keys()
         quotas = {
