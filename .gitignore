@@ -188,3 +188,6 @@ data/backups/*
 data/initial_data/*
 !data/initial_data/.gitkeep
 todo
+
+# nginxps
+.htpasswd
