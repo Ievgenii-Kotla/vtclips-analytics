@@ -729,7 +729,7 @@ WHERE LOWER(t.first_name_eng) = LOWER(%(name)s);
         """ Conduct prepared search. """
 
         # delay to avoid overloading the API
-        time.sleep(1)
+        time.sleep(20)
 
         if self.api_key is None:
             logger.error("API key not found.")
