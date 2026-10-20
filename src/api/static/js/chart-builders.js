@@ -745,4 +745,41 @@ export const chartBuilders = {
     ],
     "series": chartData.series
   }),
+  sVideosCategorized: (chartData) => ({
+    ...defaults,
+    "title": {
+      "text": chartData.titleText,
+      "subtext": chartData.titleSubText,
+      "left": 'center'
+    },
+    tooltip: {
+      trigger: 'item',
+      confine: true,
+      position: (point, params, dom, rect, size) => [
+        point[0] - size.contentSize[0] / 2,
+        point[1] + 15
+      ],
+      formatter: params =>
+      `${params.marker}${params.name}:&nbsp;&nbsp;&nbsp<b>${params.value}</b>
+      <hr style="margin: 4px 0">
+      Latest:<br/>
+      <div style="white-space: normal; overflow-wrap: anywhere;">
+      ${params.data.titles}
+      </div>`
+    },
+    "label": {
+      "formatter": params => `${params.percent.toFixed(1)}%`
+    },
+    "legend": {
+      "orient": 'horizontal',
+      "type": "scroll"
+    },
+    "grid": {
+      "left": "3%",
+      "right": "4%",
+      "bottom": "3%",
+      "containLabel": true
+    },
+    "series": chartData.series
+  }),
 };

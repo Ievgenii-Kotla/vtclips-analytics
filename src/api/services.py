@@ -71,6 +71,7 @@ def overview(conn):
         videos_group_share_monthly(conn),
         cum_count_svideos_per_talent_daily(conn),
         cum_count_dvideos_per_talent_daily(conn),
+        svideos_categorized(conn),
     ]
     tab_data = {"charts": charts}
     return tab_data
@@ -1355,6 +1356,70 @@ def svideos_single_talent_monthly(conn, talent_id=1):
         }
     }
     return chart_data, []
+
+def svideos_categorized(conn):
+    query = """
+    SELECT COUNT(*), category, ARRAY(
+        SELECT csci.title
+        FROM chart_svideos_categorized csci
+        WHERE csco.category = csci.category
+        ORDER BY csci.published_at DESC
+        LIMIT 5
+	)
+    FROM chart_svideos_categorized csco
+    GROUP BY category
+    ORDER BY COUNT(*) DESC;
+    """
+
+    with (conn.cursor() as cur):
+        cur.execute(query)
+        rows = cur.fetchall()
+
+    series = [
+        {
+            "type": "pie",
+            "label": {
+                "show": True,
+                "color": '#fff',
+                "fontSize": 14,
+                "fontWeight": 'bold',
+                "opacity": 1,
+                "textBorderColor": '#000',
+                "textBorderWidth": 2,
+                "textShadowColor": '#000',
+                "textShadowBlur": 4,
+                "position": "inside",
+            },
+            "radius": "75%",
+            "center": ["50%", "53%"],
+            "data": [
+                {
+                    "value": row[0],
+                    "name": row[1],
+                    "titles": '<br>'.join(f"●  {title[:]}".replace('【', '[').replace('】', ']') for title in row[2])
+                } for row in rows],
+            "emphasis": {
+                "itemStyle": {
+                    "shadowBlur": 10,
+                    "shadowOffsetx": 0,
+                    "shadowColor": "rgba(0, 0, 0, 0.5)"
+                }
+            }
+        }
+    ]
+
+    chart_data = {
+        "id": 13,
+        "title": "source videos categorized last 30 days",
+        "builder": "sVideosCategorized",
+        "data": {
+            "series": series,
+            "titleText": f"HoloEN video uploads by category",
+            "titleSubText": "Last 30 days · Categorized with an LLM",
+            "itemGap": 5
+        }
+    }
+    return chart_data
 
 def _mutate_fuwamoco_colors(colors):
     """Replace fuwamoco related hex-value colors with ECharts friendly gradient of the two colors"""
