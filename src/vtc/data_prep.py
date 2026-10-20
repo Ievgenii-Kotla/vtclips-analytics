@@ -861,11 +861,9 @@ class DBCharts:
         JOIN youtube_channel_talent yct ON yv.youtube_channel_id = yct.youtube_channel_id
         JOIN talent t ON t.talent_id=yct.talent_id
         WHERE 
-            -- yv.published_at > CURRENT_TIMESTAMP - interval '30 days' 
-            -- AND 
-            yct.talent_id != 21
-        -- ORDER BY yv.published_at
-        LIMIT 48;
+            yv.published_at > CURRENT_TIMESTAMP - interval '30 days' 
+            AND yct.talent_id != 21
+        ORDER BY yv.published_at;
         """
 
         try:
