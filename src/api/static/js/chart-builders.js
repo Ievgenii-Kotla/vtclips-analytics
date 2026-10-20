@@ -415,16 +415,6 @@ export const chartBuilders = {
     "yAxis": {
       "type": 'value'
     },
-    "dataZoom": [
-      {
-        "type": "inside",
-        "xAxisIndex": 0,
-        "moveOnMouseMove": true,
-        "moveOnMouseWheel": false,
-        "minSpan": 1,
-        "preventDefaultMouseMove": false,
-      }
-    ],
     "series": chartData.series
   }),
   cumCountDVideosPerTalentDaily: (chartData) => ({
@@ -481,16 +471,6 @@ export const chartBuilders = {
     "yAxis": {
       "type": 'value'
     },
-    "dataZoom": [
-      {
-        "type": "inside",
-        "xAxisIndex": 0,
-        "moveOnMouseMove": true,
-        "moveOnMouseWheel": false,
-        "minSpan": 1,
-        "preventDefaultMouseMove": false,
-      }
-    ],
     "series": chartData.series
   }),
     countDVideosAboutTalentPerDChannel: (chartData) => ({
