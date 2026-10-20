@@ -1,7 +1,14 @@
 import logging
 import traceback
 import pandas as pd
-from psycopg2.extras import execute_values
+import psycopg2
+import asyncio
+import json
+from openai import AsyncOpenAI
+from typing import Literal
+from pydantic import BaseModel
+from pandas.errors import DatabaseError
+from psycopg2.extras import execute_values, execute_batch
 from psycopg2.extensions import connection as psycopg2_connection
 
 logger = logging.getLogger(__name__)
@@ -532,6 +539,7 @@ class DBCharts:
         DBCharts.refresh_cum_count_svideos_per_talent_daily(connection)
         DBCharts.refresh_cum_count_dvideos_per_talent_daily(connection)
         DBCharts.refresh_chart_group_talent_mentions_monthly(connection)
+        DBCharts.refresh_svideos_categorized(connection)
 
 
     @staticmethod
@@ -837,3 +845,207 @@ class DBCharts:
         ON chart_group_talent_mentions_monthly (talent_id);
         """
         DBCharts.refresh_table(connection, table_name, query)
+
+    @staticmethod
+    def refresh_svideos_categorized(connection: psycopg2_connection):
+        table_name = "chart_svideos_categorized"
+
+        query_initial_data = """
+        SELECT 
+            yv.youtube_video_id, 
+            yv.published_at::date, 
+            yv.title_normalized, 
+            t.first_name_eng, 
+            t.talent_id
+        FROM youtube_video yv
+        JOIN youtube_channel_talent yct ON yv.youtube_channel_id = yct.youtube_channel_id
+        JOIN talent t ON t.talent_id=yct.talent_id
+        WHERE 
+            -- yv.published_at > CURRENT_TIMESTAMP - interval '30 days' 
+            -- AND 
+            yct.talent_id != 21
+        -- ORDER BY yv.published_at
+        LIMIT 48;
+        """
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query_initial_data)
+                rows = cursor.fetchall()
+                if len(rows) == 0:
+                    logger.error(f"Query returned no initial data. \nUpdating table {table_name} aborted. ")
+                    return
+        except (psycopg2.Error, psycopg2.DatabaseError) as e:
+            logger.error(f"An error occurred while querying initial data: {e} \nUpdating table {table_name} aborted. ")
+            return
+
+        indexed_data = []
+        for i, row in enumerate(rows):
+            indexed_data.append([*list(row), i])
+
+        indexed_titles = {row[5]: row[2] for row in indexed_data}
+
+        instructions = """
+Classify YouTube videos into one of the categories mentioned below. 
+
+Categories:        
+- Collaboration: Named collaborators, off-collabs, group activities, or multiplayer/co-op games.
+- Gaming: Playing a game, game related video.
+- Music: Singing, karaoke, covers, original music, concerts, and dance performances.
+- Chatting: Chatting, podcasts, watchalongs, ASMR, casual activities, and personal updates.
+- Creating: Art, crafts, cooking, hand streams, and other hands-on activities.
+- Short form: Animated stories, comedic shorts, skits, and other short-form visual entertainment.
+- Other: Use this category only if there is absolutely nothing pointing to another category.
+
+Tie-breakers (only when categories are equally appropriate):
+- Prioritize Collaboration category over Gaming category
+- Prioritize Music category over Collaborations category
+
+Input is a JSON array of objects, each containing:
+- idx: a unique integer identifier
+- title: the video title to classify
+
+Return one result for every input object:
+- idx: copy the input identifier exactly
+- category: the most appropriate category name from the list above
+
+Do not omit, duplicate, or modify identifiers.
+Do not invent categories or return additional fields.
+        """
+        indexed_classifications = DBCharts.prompt_llm(instructions, indexed_titles)
+        if indexed_classifications is None:
+            logger.error("Something when wrong when prompting LLM for classification. Chart update aborted.")
+            return
+
+        for video in indexed_data:
+            video.append(indexed_classifications[video[5]])
+
+        query = """
+        INSERT INTO chart_svideos_categorized (
+            youtube_video_id, 
+            published_at, 
+            title, 
+            talent_name, 
+            talent_id,
+            category
+        ) 
+            VALUES (
+                %(youtube_video_id)s,
+                %(published_at)s,
+                %(title)s,
+                %(talent_name)s,
+                %(talent_id)s,
+                %(category)s
+        )
+        """
+        values = [
+            {
+                "youtube_video_id": video[0],
+                "published_at": video[1],
+                "title": video[2],
+                "talent_name": video[3],
+                "talent_id": video[4],
+                "category": video[6],
+            }
+            for video in indexed_data
+        ]
+
+        try:
+            with connection.cursor() as cur:
+                cur.execute("TRUNCATE TABLE chart_svideos_categorized;")
+                execute_batch(cur, query, values)
+        except Exception as e:
+            connection.rollback()
+            logger.error(f"An error occurred while updating table {table_name}: {e} \nTransaction rolled back. ")
+            raise
+        else:
+            connection.commit()
+            logger.info(f"{table_name} refreshed.")
+
+    @staticmethod
+    def prompt_llm(instructions: str, data: dict[int, str]) -> dict[int, str]:
+        """Prompt the LLM, batching requests when necessary."""
+
+        MODEL = "gpt-6-luna"
+        CONCURRENT_REQUESTS = 4
+        BATCH_SIZE = 25
+        MAX_ATTEMPTS = 3
+
+        Category = Literal[
+            "Collaboration",
+            "Gaming",
+            "Music",
+            "Chatting",
+            "Creating",
+            "Short-form",
+            "Other",
+        ]
+
+        class ClassifiedTitle(BaseModel):
+            idx: int
+            category: Category
+
+        class ClassificationResult(BaseModel):
+            results: list[ClassifiedTitle]
+
+        async def classify_batch(client, batch, semaphore):
+            last_error = None
+
+            for attempt in range(MAX_ATTEMPTS):
+                try:
+                    async with semaphore:
+                        response = await client.responses.parse(
+                            model=MODEL,
+                            instructions=instructions,
+                            input=json.dumps(batch, ensure_ascii=False),
+                            text_format=ClassificationResult,
+                        )
+
+                    result = response.output_parsed
+
+                    if result is None:
+                        msg = "Model returned no parsed result"
+                        logger.warning(msg)
+                        raise ValueError(msg)
+
+                    received_ids = [item.idx for item in result.results]
+                    expected_ids = {item["idx"] for item in batch}
+
+                    if expected_ids != set(received_ids) or len(batch) != len(received_ids):
+                        msg = "Model returned missing, duplicate, or unexpected indexes"
+                        logger.warning(msg)
+                        raise ValueError(msg)
+
+                    return {item.idx: item.category for item in result.results}
+
+                except Exception as exc:
+                    last_error = exc
+                    if attempt < MAX_ATTEMPTS - 1:
+                        await asyncio.sleep(2 ** attempt)
+
+            raise RuntimeError(f"LLM request failed after {MAX_ATTEMPTS} attempts") from last_error
+
+        async def main():
+            async with (AsyncOpenAI() as client):
+                semaphore = asyncio.Semaphore(CONCURRENT_REQUESTS)
+                items = [{"idx": idx, "title": title} for idx, title in sorted(data.items())]
+                batches = [items[i:i + BATCH_SIZE] for i in range(0, len(items), BATCH_SIZE)]
+                tasks = [classify_batch(client, batch, semaphore) for batch in batches]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                errors = [result for result in results if isinstance(result, BaseException)]
+
+                if errors:
+                    logger.error(f"{len(errors)} LLM requests failed after retries: {errors[0]}")
+                    return None
+
+                classified = {}
+                for batch_result in results:
+                    classified.update(batch_result)
+
+                if set(classified) != set(data):
+                    logger.error("Final LLM result does not match input indexes")
+                    return None
+
+                return classified
+
+        return asyncio.run(main())
