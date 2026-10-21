@@ -855,11 +855,11 @@ class DBCharts:
             yv.youtube_video_id, 
             yv.published_at::date, 
             yv.title_normalized, 
-            t.first_name_eng, 
+            CASE WHEN t.first_name_eng = 'Fuwawa' THEN 'FUWAMOCO' ELSE t.first_name_eng END AS "first_name_eng", 
             t.talent_id
         FROM youtube_video yv
         JOIN youtube_channel_talent yct ON yv.youtube_channel_id = yct.youtube_channel_id
-        JOIN talent t ON t.talent_id=yct.talent_id
+        JOIN talent t ON t.talent_id=yct.talent_id AND t.talent_id != 16  -- duplicate for FUWAMOCO ch
         WHERE 
             yv.published_at > CURRENT_TIMESTAMP - interval '30 days' 
             AND yct.talent_id != 21
